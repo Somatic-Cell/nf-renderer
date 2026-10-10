@@ -284,6 +284,7 @@ protected:
     CUDABuffer                      m_m1Rgb2SpecScaleBuffer;
     CUDABuffer                      m_m1Rgb2SpecDataBuffer;
     CUDABuffer                      m_m1InvalidSampleCountBuffer;
+    CUDABuffer                      m_m1FailureBuffer;
 
     std::vector<float>              m_wavelengthPdfHost;
     std::vector<float>              m_wavelengthCdfHost;

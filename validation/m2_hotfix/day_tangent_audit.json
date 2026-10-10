@@ -1,0 +1,596 @@
+{
+  "flags": 2097417,
+  "mixed_normal_mapped_triangles": 93026,
+  "all_mixed_probes": 651182,
+  "helper_valid_probes": 651182,
+  "old_zero_sign_probes": 279078,
+  "old_zero_sign_helper_valid_probes": 279078,
+  "degenerate_uv_mixed_triangles": 632,
+  "degenerate_uv_chart_probes": 4424,
+  "nonunit_frame_failures": 0,
+  "orthogonality_failures": 0,
+  "max_abs_frame_dot": 9.592622518539429e-08,
+  "min_abs_nonzero_uv_determinant": 8.218921720981598e-08,
+  "failure_examples": [],
+  "repaired_actual_face_examples": [
+    {
+      "mesh": 1,
+      "primitive": 5112,
+      "material": "Emissive_Light_4",
+      "normal_texture": "Textures\\Emissive_Light_2_Normal.dds",
+      "two_sided": false,
+      "ng": [
+        0.10923502594232559,
+        -0.688646674156189,
+        -0.7168217301368713
+      ],
+      "ns": [
+        -0.8186711668968201,
+        0.18660292029380798,
+        -0.5430993437767029
+      ],
+      "barycentric": [
+        0.25,
+        0.5,
+        0.25
+      ],
+      "old_interpolated_sign": 0.0,
+      "uv_determinant": -1.1920928955078125e-05,
+      "used_degenerate_uv_chart": false,
+      "tangent": [
+        -0.5343079566955566,
+        -0.5941091775894165,
+        0.601289689540863
+      ],
+      "bitangent": [
+        -0.21045789122581482,
+        0.7824408411979675,
+        0.5860834717750549
+      ],
+      "helper_valid": true
+    },
+    {
+      "mesh": 1,
+      "primitive": 5112,
+      "material": "Emissive_Light_4",
+      "normal_texture": "Textures\\Emissive_Light_2_Normal.dds",
+      "two_sided": false,
+      "ng": [
+        0.10923502594232559,
+        -0.688646674156189,
+        -0.7168217301368713
+      ],
+      "ns": [
+        -0.8186711668968201,
+        0.18660292029380798,
+        -0.5430993437767029
+      ],
+      "barycentric": [
+        0.0,
+        0.5,
+        0.5
+      ],
+      "old_interpolated_sign": 0.0,
+      "uv_determinant": -1.1920928955078125e-05,
+      "used_degenerate_uv_chart": false,
+      "tangent": [
+        -0.5343079566955566,
+        -0.5941091775894165,
+        0.601289689540863
+      ],
+      "bitangent": [
+        -0.21045789122581482,
+        0.7824408411979675,
+        0.5860834717750549
+      ],
+      "helper_valid": true
+    },
+    {
+      "mesh": 1,
+      "primitive": 5112,
+      "material": "Emissive_Light_4",
+      "normal_texture": "Textures\\Emissive_Light_2_Normal.dds",
+      "two_sided": false,
+      "ng": [
+        0.10923502594232559,
+        -0.688646674156189,
+        -0.7168217301368713
+      ],
+      "ns": [
+        -0.8186711668968201,
+        0.18660292029380798,
+        -0.5430993437767029
+      ],
+      "barycentric": [
+        0.5,
+        0.5,
+        0.0
+      ],
+      "old_interpolated_sign": 0.0,
+      "uv_determinant": -1.1920928955078125e-05,
+      "used_degenerate_uv_chart": false,
+      "tangent": [
+        -0.5343079566955566,
+        -0.5941091775894165,
+        0.601289689540863
+      ],
+      "bitangent": [
+        -0.21045789122581482,
+        0.7824408411979675,
+        0.5860834717750549
+      ],
+      "helper_valid": true
+    },
+    {
+      "mesh": 1,
+      "primitive": 5113,
+      "material": "Emissive_Light_4",
+      "normal_texture": "Textures\\Emissive_Light_2_Normal.dds",
+      "two_sided": false,
+      "ng": [
+        0.7248935699462891,
+        -0.6886539459228516,
+        0.016883336007595062
+      ],
+      "ns": [
+        0.3905719220638275,
+        0.18794023990631104,
+        0.9011836647987366
+      ],
+      "barycentric": [
+        0.25,
+        0.25,
+        0.5
+      ],
+      "old_interpolated_sign": 0.0,
+      "uv_determinant": -1.1920928955078125e-05,
+      "used_degenerate_uv_chart": false,
+      "tangent": [
+        -0.6846004128456116,
+        -0.5951699614524841,
+        0.42082661390304565
+      ],
+      "bitangent": [
+        0.6154477000236511,
+        -0.7813137769699097,
+        -0.103792704641819
+      ],
+      "helper_valid": true
+    },
+    {
+      "mesh": 1,
+      "primitive": 5113,
+      "material": "Emissive_Light_4",
+      "normal_texture": "Textures\\Emissive_Light_2_Normal.dds",
+      "two_sided": false,
+      "ng": [
+        0.7248935699462891,
+        -0.6886539459228516,
+        0.016883336007595062
+      ],
+      "ns": [
+        0.3905719220638275,
+        0.18794023990631104,
+        0.9011836647987366
+      ],
+      "barycentric": [
+        0.0,
+        0.5,
+        0.5
+      ],
+      "old_interpolated_sign": 0.0,
+      "uv_determinant": -1.1920928955078125e-05,
+      "used_degenerate_uv_chart": false,
+      "tangent": [
+        -0.6846004128456116,
+        -0.5951699614524841,
+        0.42082661390304565
+      ],
+      "bitangent": [
+        0.6154477000236511,
+        -0.7813137769699097,
+        -0.103792704641819
+      ],
+      "helper_valid": true
+    },
+    {
+      "mesh": 1,
+      "primitive": 5113,
+      "material": "Emissive_Light_4",
+      "normal_texture": "Textures\\Emissive_Light_2_Normal.dds",
+      "two_sided": false,
+      "ng": [
+        0.7248935699462891,
+        -0.6886539459228516,
+        0.016883336007595062
+      ],
+      "ns": [
+        0.3905719220638275,
+        0.18794023990631104,
+        0.9011836647987366
+      ],
+      "barycentric": [
+        0.5,
+        0.0,
+        0.5
+      ],
+      "old_interpolated_sign": 0.0,
+      "uv_determinant": -1.1920928955078125e-05,
+      "used_degenerate_uv_chart": false,
+      "tangent": [
+        -0.6846004128456116,
+        -0.5951699614524841,
+        0.42082661390304565
+      ],
+      "bitangent": [
+        0.6154477000236511,
+        -0.7813137769699097,
+        -0.103792704641819
+      ],
+      "helper_valid": true
+    },
+    {
+      "mesh": 1,
+      "primitive": 5640,
+      "material": "Emissive_Light_4",
+      "normal_texture": "Textures\\Emissive_Light_2_Normal.dds",
+      "two_sided": false,
+      "ng": [
+        -0.7170073986053467,
+        -0.6885000467300415,
+        -0.1089409738779068
+      ],
+      "ns": [
+        -0.5430993437767029,
+        0.18660292029380798,
+        0.8186711668968201
+      ],
+      "barycentric": [
+        0.25,
+        0.5,
+        0.25
+      ],
+      "old_interpolated_sign": 0.0,
+      "uv_determinant": -1.1920928955078125e-05,
+      "used_degenerate_uv_chart": false,
+      "tangent": [
+        0.6013549566268921,
+        -0.5940220355987549,
+        0.5343314409255981
+      ],
+      "bitangent": [
+        0.5860165357589722,
+        0.7825070023536682,
+        0.21039839088916779
+      ],
+      "helper_valid": true
+    },
+    {
+      "mesh": 1,
+      "primitive": 5640,
+      "material": "Emissive_Light_4",
+      "normal_texture": "Textures\\Emissive_Light_2_Normal.dds",
+      "two_sided": false,
+      "ng": [
+        -0.7170073986053467,
+        -0.6885000467300415,
+        -0.1089409738779068
+      ],
+      "ns": [
+        -0.5430992841720581,
+        0.18660292029380798,
+        0.8186711668968201
+      ],
+      "barycentric": [
+        0.0,
+        0.5,
+        0.5
+      ],
+      "old_interpolated_sign": 0.0,
+      "uv_determinant": -1.1920928955078125e-05,
+      "used_degenerate_uv_chart": false,
+      "tangent": [
+        0.6013549566268921,
+        -0.5940220355987549,
+        0.5343313813209534
+      ],
+      "bitangent": [
+        0.5860165357589722,
+        0.7825069427490234,
+        0.2103983610868454
+      ],
+      "helper_valid": true
+    }
+  ],
+  "degenerate_uv_chart_examples": [
+    {
+      "mesh": 21,
+      "primitive": 707,
+      "material": "JapaneseMapleBark",
+      "normal_texture": "Textures\\JapaneseMapleBark_Normal.dds",
+      "two_sided": false,
+      "ng": [
+        -0.8903364539146423,
+        0.4528195261955261,
+        0.04749200493097305
+      ],
+      "ns": [
+        -0.0377756766974926,
+        0.5522105097770691,
+        0.8328485488891602
+      ],
+      "barycentric": [
+        0.3333333432674408,
+        0.3333333432674408,
+        0.3333333432674408
+      ],
+      "old_interpolated_sign": 0.3333333432674408,
+      "uv_determinant": -0.0,
+      "used_degenerate_uv_chart": true,
+      "tangent": [
+        -0.42229172587394714,
+        -0.7641875147819519,
+        0.4875316619873047
+      ],
+      "bitangent": [
+        0.9056724905967712,
+        -0.33328819274902344,
+        0.26206162571907043
+      ],
+      "helper_valid": true
+    },
+    {
+      "mesh": 21,
+      "primitive": 707,
+      "material": "JapaneseMapleBark",
+      "normal_texture": "Textures\\JapaneseMapleBark_Normal.dds",
+      "two_sided": false,
+      "ng": [
+        -0.8903364539146423,
+        0.4528195261955261,
+        0.04749200493097305
+      ],
+      "ns": [
+        -0.25335758924484253,
+        0.4616377651691437,
+        0.8501179218292236
+      ],
+      "barycentric": [
+        0.5,
+        0.25,
+        0.25
+      ],
+      "old_interpolated_sign": 0.5,
+      "uv_determinant": -0.0,
+      "used_degenerate_uv_chart": true,
+      "tangent": [
+        -0.4083689749240875,
+        -0.8476883769035339,
+        0.33861368894577026
+      ],
+      "bitangent": [
+        0.8769519329071045,
+        -0.2613714337348938,
+        0.40328681468963623
+      ],
+      "helper_valid": true
+    },
+    {
+      "mesh": 21,
+      "primitive": 707,
+      "material": "JapaneseMapleBark",
+      "normal_texture": "Textures\\JapaneseMapleBark_Normal.dds",
+      "two_sided": false,
+      "ng": [
+        -0.8903364539146423,
+        0.4528195261955261,
+        0.04749200493097305
+      ],
+      "ns": [
+        0.3856452703475952,
+        0.8122289776802063,
+        -0.4376777708530426
+      ],
+      "barycentric": [
+        0.25,
+        0.5,
+        0.25
+      ],
+      "old_interpolated_sign": 0.0,
+      "uv_determinant": -0.0,
+      "used_degenerate_uv_chart": true,
+      "tangent": [
+        -0.269069641828537,
+        -0.3547460734844208,
+        -0.8954086899757385
+      ],
+      "bitangent": [
+        -0.8825413584709167,
+        0.4630759358406067,
+        0.08174002170562744
+      ],
+      "helper_valid": true
+    },
+    {
+      "mesh": 21,
+      "primitive": 707,
+      "material": "JapaneseMapleBark",
+      "normal_texture": "Textures\\JapaneseMapleBark_Normal.dds",
+      "two_sided": false,
+      "ng": [
+        -0.8903364539146423,
+        0.4528195261955261,
+        0.04749200493097305
+      ],
+      "ns": [
+        0.09039521217346191,
+        0.4455600082874298,
+        0.8906766176223755
+      ],
+      "barycentric": [
+        0.25,
+        0.25,
+        0.5
+      ],
+      "old_interpolated_sign": 0.5,
+      "uv_determinant": -0.0,
+      "used_degenerate_uv_chart": true,
+      "tangent": [
+        -0.4033348262310028,
+        -0.8013323545455933,
+        0.4418002963066101
+      ],
+      "bitangent": [
+        0.910576581954956,
+        -0.39917755126953125,
+        0.10727326571941376
+      ],
+      "helper_valid": true
+    },
+    {
+      "mesh": 21,
+      "primitive": 707,
+      "material": "JapaneseMapleBark",
+      "normal_texture": "Textures\\JapaneseMapleBark_Normal.dds",
+      "two_sided": false,
+      "ng": [
+        -0.8903364539146423,
+        0.4528195261955261,
+        0.04749200493097305
+      ],
+      "ns": [
+        -0.9239256381988525,
+        -0.3685291111469269,
+        0.10270237177610397
+      ],
+      "barycentric": [
+        0.0,
+        0.5,
+        0.5
+      ],
+      "old_interpolated_sign": 0.0,
+      "uv_determinant": -0.0,
+      "used_degenerate_uv_chart": true,
+      "tangent": [
+        0.37792325019836426,
+        -0.8374725580215454,
+        0.39473244547843933
+      ],
+      "bitangent": [
+        -0.059459976851940155,
+        0.4035170376300812,
+        0.9130380749702454
+      ],
+      "helper_valid": true
+    },
+    {
+      "mesh": 21,
+      "primitive": 707,
+      "material": "JapaneseMapleBark",
+      "normal_texture": "Textures\\JapaneseMapleBark_Normal.dds",
+      "two_sided": false,
+      "ng": [
+        -0.8903364539146423,
+        0.4528195261955261,
+        0.04749200493097305
+      ],
+      "ns": [
+        -0.12422887980937958,
+        0.363861083984375,
+        0.9231318235397339
+      ],
+      "barycentric": [
+        0.5,
+        0.0,
+        0.5
+      ],
+      "old_interpolated_sign": 1.0,
+      "uv_determinant": -0.0,
+      "used_degenerate_uv_chart": true,
+      "tangent": [
+        -0.40350595116615295,
+        -0.8684651255607605,
+        0.2880125939846039
+      ],
+      "bitangent": [
+        0.9065043330192566,
+        -0.3367096781730652,
+        0.25470855832099915
+      ],
+      "helper_valid": true
+    },
+    {
+      "mesh": 21,
+      "primitive": 707,
+      "material": "JapaneseMapleBark",
+      "normal_texture": "Textures\\JapaneseMapleBark_Normal.dds",
+      "two_sided": false,
+      "ng": [
+        -0.8903364539146423,
+        0.4528195261955261,
+        0.04749200493097305
+      ],
+      "ns": [
+        -0.7247914671897888,
+        0.5459972620010376,
+        -0.42019546031951904
+      ],
+      "barycentric": [
+        0.5,
+        0.5,
+        0.0
+      ],
+      "old_interpolated_sign": 0.0,
+      "uv_determinant": -0.0,
+      "used_degenerate_uv_chart": true,
+      "tangent": [
+        -0.6666359305381775,
+        -0.7097917795181274,
+        0.22757898271083832
+      ],
+      "bitangent": [
+        -0.1739937961101532,
+        0.4450647234916687,
+        0.8784324526786804
+      ],
+      "helper_valid": true
+    },
+    {
+      "mesh": 21,
+      "primitive": 712,
+      "material": "JapaneseMapleBark",
+      "normal_texture": "Textures\\JapaneseMapleBark_Normal.dds",
+      "two_sided": false,
+      "ng": [
+        -0.6496480107307434,
+        0.7602289319038391,
+        0.003089309437200427
+      ],
+      "ns": [
+        -0.2546444833278656,
+        -0.0064298901706933975,
+        0.967013418674469
+      ],
+      "barycentric": [
+        0.3333333432674408,
+        0.3333333432674408,
+        0.3333333432674408
+      ],
+      "old_interpolated_sign": -0.3333333432674408,
+      "uv_determinant": 0.0,
+      "used_degenerate_uv_chart": true,
+      "tangent": [
+        0.7414904236793518,
+        0.6406130194664001,
+        0.1995168924331665
+      ],
+      "bitangent": [
+        -0.6207641959190369,
+        0.7678369879722595,
+        -0.15836085379123688
+      ],
+      "helper_valid": true
+    }
+  ],
+  "passed": true
+}

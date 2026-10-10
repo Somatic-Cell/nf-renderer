@@ -1,0 +1,46 @@
+[
+  {
+    "file": "Generic_2_Glass_Roof_Awning_Red_BaseColor.dds",
+    "format": "DXT1",
+    "width": 2048,
+    "height": 2048,
+    "base_mip_alpha_u8_counts": {
+      "255": 4194304
+    },
+    "sha256": "f406ae1c281d253ff4f4c6e7d35430a247d407153c14bfeba3855a3f3ce9a0b8",
+    "note": "Every base-mip texel counted. BC3 interpolants truncate to UNORM8; all observed alpha values are the exact opaque endpoint 255."
+  },
+  {
+    "file": "Glass_Signs_BaseColor.dds",
+    "format": "DXT1",
+    "width": 2048,
+    "height": 2048,
+    "base_mip_alpha_u8_counts": {
+      "255": 4194304
+    },
+    "sha256": "19a844049ce5887a5bf31dac8e362679f636d9db683417eb50d5eedde42a9b3d",
+    "note": "Every base-mip texel counted. BC3 interpolants truncate to UNORM8; all observed alpha values are the exact opaque endpoint 255."
+  },
+  {
+    "file": "Sheleg_Glass_Sign_BaseColor.dds",
+    "format": "DXT1",
+    "width": 2048,
+    "height": 2048,
+    "base_mip_alpha_u8_counts": {
+      "255": 4194304
+    },
+    "sha256": "34159c2454089c9853fda25ad6646ed62bb0f96f40355d32fcd1fda7e43b5d82",
+    "note": "Every base-mip texel counted. BC3 interpolants truncate to UNORM8; all observed alpha values are the exact opaque endpoint 255."
+  },
+  {
+    "file": "glass_BaseColor.dds",
+    "format": "DXT5",
+    "width": 16,
+    "height": 16,
+    "base_mip_alpha_u8_counts": {
+      "255": 256
+    },
+    "sha256": "66694f280627afcbec4f83957a585461b5e45d565a66f15684116f29493ef384",
+    "note": "Every base-mip texel counted. BC3 interpolants truncate to UNORM8; all observed alpha values are the exact opaque endpoint 255."
+  }
+]

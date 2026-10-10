@@ -1,0 +1,97 @@
+{
+  "flags": 2097417,
+  "ignore_up_direction": true,
+  "convert_to_meters_assimp": false,
+  "explicit_metres_per_authored_unit": 1.0,
+  "meshes": 220,
+  "materials": 220,
+  "vertices": 30139215,
+  "triangles": 10046405,
+  "emissive_triangles": 228374,
+  "degenerate_emissive_triangles": 0,
+  "bounds_min": [
+    -115.11763763427734,
+    -4.928024768829346,
+    -115.1091079711914
+  ],
+  "bounds_max": [
+    115.01768493652344,
+    108.25066375732422,
+    115.05902099609375
+  ],
+  "degenerate_triangles": 9,
+  "nonfinite_vertices": 0,
+  "invalid_normals": 0,
+  "invalid_tangents": 0,
+  "degenerate_meshes": [
+    {
+      "mesh": 103,
+      "name": "Building_Sheleg_Tower_35",
+      "material": 103,
+      "degenerate_triangles": 9
+    }
+  ],
+  "cameras": [
+    {
+      "name": "cam_0",
+      "from": [
+        -38.37041091918945,
+        1.4603941440582275,
+        75.72154998779297
+      ],
+      "direction": [
+        0.12168564647436142,
+        0.004565596114844084,
+        -0.9925581812858582
+      ],
+      "at": [
+        -37.1535530090332,
+        1.5060501098632813,
+        65.79596710205078
+      ],
+      "up": [
+        -0.0005565274623222649,
+        0.9999895691871643,
+        0.004532551392912865
+      ],
+      "assimp_transformed_look_at": [
+        -38.36919403076172,
+        1.4604398012161255,
+        75.71162414550781
+      ],
+      "aspect": 1.7777777910232544,
+      "horizontal_half_fov_rad": 0.2191697210073471,
+      "vertical_fov_deg": 14.28338623046875
+    }
+  ],
+  "lights": [
+    {
+      "name": "light_0",
+      "type": 1,
+      "position": [
+        -45.45819854736328,
+        51.57029724121094,
+        -76.99861907958984
+      ],
+      "direction": [
+        7.595094203948975,
+        -11.387070655822754,
+        -6.724091529846191
+      ]
+    },
+    {
+      "name": "light_1",
+      "type": 2,
+      "position": [
+        -2.1053454875946045,
+        89.93240356445313,
+        0.0
+      ],
+      "direction": [
+        0.0,
+        -0.009999999776482582,
+        0.0
+      ]
+    }
+  ]
+}

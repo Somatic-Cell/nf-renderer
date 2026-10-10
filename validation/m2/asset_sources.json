@@ -1,0 +1,115 @@
+{
+  "archive_source_url": "https://developer.nvidia.com/emerald-square",
+  "source_unit_cm_per_scene_unit": 100,
+  "source_axes": {
+    "UpAxis": [
+      1
+    ],
+    "UpAxisSign": [
+      1
+    ],
+    "FrontAxis": [
+      2
+    ],
+    "FrontAxisSign": [
+      1
+    ],
+    "CoordAxis": [
+      0
+    ],
+    "CoordAxisSign": [
+      1
+    ],
+    "OriginalUpAxis": [
+      1
+    ],
+    "OriginalUpAxisSign": [
+      1
+    ]
+  },
+  "dds_by_role": {
+    "BaseColor": {
+      "count": 115,
+      "rgba8_base_bytes": 1795170304,
+      "rgba8_all_mips_bytes": 2393560252,
+      "dds_file_bytes": 349544664,
+      "zip_compressed_bytes": 108690992,
+      "note": "Unique files only. Excludes CUDA allocation/texture object overhead, geometry, acceleration structures, temporary decode memory, buffers, and framebuffer. DDS mip_count=0 is interpreted as one stored mip.",
+      "formats": {
+        "DXT1": 89,
+        "DXT5": 26
+      },
+      "dimensions": {
+        "2048x2048": 107,
+        "16x16": 8
+      }
+    },
+    "Specular": {
+      "count": 115,
+      "rgba8_base_bytes": 1375765504,
+      "rgba8_all_mips_bytes": 1834353852,
+      "dds_file_bytes": 229316576,
+      "zip_compressed_bytes": 56030278,
+      "note": "Unique files only. Excludes CUDA allocation/texture object overhead, geometry, acceleration structures, temporary decode memory, buffers, and framebuffer. DDS mip_count=0 is interpreted as one stored mip.",
+      "formats": {
+        "DXT1": 82,
+        "DXT5": 33
+      },
+      "dimensions": {
+        "2048x2048": 82,
+        "16x16": 33
+      }
+    },
+    "Normal": {
+      "count": 115,
+      "rgba8_base_bytes": 1828716568,
+      "rgba8_all_mips_bytes": 2438288604,
+      "dds_file_bytes": 609589904,
+      "zip_compressed_bytes": 253063935,
+      "note": "Unique files only. Excludes CUDA allocation/texture object overhead, geometry, acceleration structures, temporary decode memory, buffers, and framebuffer. DDS mip_count=0 is interpreted as one stored mip.",
+      "formats": {
+        "ATI2": 115
+      },
+      "dimensions": {
+        "2048x2048": 109,
+        "1x1": 6
+      }
+    },
+    "Emissive": {
+      "count": 6,
+      "rgba8_base_bytes": 67110912,
+      "rgba8_all_mips_bytes": 89481208,
+      "dds_file_bytes": 11186368,
+      "zip_compressed_bytes": 662124,
+      "note": "Unique files only. Excludes CUDA allocation/texture object overhead, geometry, acceleration structures, temporary decode memory, buffers, and framebuffer. DDS mip_count=0 is interpreted as one stored mip.",
+      "formats": {
+        "DXT1": 4,
+        "DXT5": 2
+      },
+      "dimensions": {
+        "2048x2048": 4,
+        "16x16": 2
+      }
+    }
+  },
+  "dds_memory_all": {
+    "count": 351,
+    "rgba8_base_bytes": 5066763288,
+    "rgba8_all_mips_bytes": 6755683916,
+    "dds_file_bytes": 1199637512,
+    "zip_compressed_bytes": 418447329,
+    "note": "Unique files only. Excludes CUDA allocation/texture object overhead, geometry, acceleration structures, temporary decode memory, buffers, and framebuffer. DDS mip_count=0 is interpreted as one stored mip."
+  },
+  "dds_memory_day": {
+    "count": 336,
+    "rgba8_base_bytes": 4982870028,
+    "rgba8_all_mips_bytes": 6643826256,
+    "dds_file_bytes": 1182855672,
+    "zip_compressed_bytes": 413626998,
+    "note": "Unique files only. Excludes CUDA allocation/texture object overhead, geometry, acceleration structures, temporary decode memory, buffers, and framebuffer. DDS mip_count=0 is interpreted as one stored mip."
+  },
+  "unique_day_texture_references": 336,
+  "day_textures_not_in_zip": [],
+  "fbx_sha256": "19e44211a976276b10fa68e5c89930f999ae6a729f0a378cee130a594fb3fda8",
+  "dds_pixels_decoded_by_this_audit": "Four Glass BaseColor files only; remaining 347 DDS headers only. Windows DirectXTex decode not executed."
+}

@@ -3,7 +3,9 @@
 
 #include <cuda_runtime.h>
 #include "helper_math.h"
+#ifndef _USE_MATH_DEFINES
 #define _USE_MATH_DEFINES
+#endif
 #include <math.h>
 
 

@@ -1,0 +1,62 @@
+{
+  "ray_epsilon": 9.999999747378752e-05,
+  "previous_vertex": [
+    0.0,
+    0.0,
+    -2.499999936844688e-05
+  ],
+  "previous_geometric_normal": [
+    0.8660253882408142,
+    0.0,
+    0.5
+  ],
+  "actual_ray_origin": [
+    8.660254388814792e-05,
+    0.0,
+    2.5000001187436283e-05
+  ],
+  "actual_ray_direction": [
+    0.9999995231628418,
+    0.0,
+    -0.000999999581836164
+  ],
+  "triangle": [
+    [
+      0.009999999776482582,
+      -0.10000000149011612,
+      0.0
+    ],
+    [
+      0.10000000149011612,
+      -0.10000000149011612,
+      0.0
+    ],
+    [
+      0.009999999776482582,
+      0.10000000149011612,
+      0.0
+    ]
+  ],
+  "hit_barycentric": [
+    0.3323711156845093,
+    0.1676289141178131,
+    0.5
+  ],
+  "hit_position": [
+    0.025086604058742523,
+    -3.725290298461914e-09,
+    0.0
+  ],
+  "connection_direction": [
+    0.9999995231628418,
+    -1.484971221543674e-07,
+    0.0009965472854673862
+  ],
+  "front_cosine_actual_ray": 0.000999999581836164,
+  "pdf_cosine_unoffset_connection": -0.0009965472854673862,
+  "valid_reflection_direction": true,
+  "interior_triangle_hit": true,
+  "original_emitter_hit_guard_fails": true,
+  "light_pdf_under_current_nee_front_support": 0.0,
+  "hypothetical_mis_weight_for_bsdf_pdf_0p1_and_zero_nee_pdf": 1.0
+}

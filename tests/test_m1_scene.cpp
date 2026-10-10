@@ -15,6 +15,35 @@ int main(int argc, char** argv) {
             std::string error;
             require(sceneIO::loadOrCreate(root / "scene" / name, scene, &error, false), "legacy scene parse");
             require(!scene.integrator.m1Surface, "legacy input must not enable M1");
+            require(scene.objects[0].materialProfile == "legacy", "legacy material profile default");
+            require(scene.display.exposure == 1.1f && scene.display.white == 100.0f,
+                    "existing scenes retain their display defaults");
+        }
+        for (const auto* name : {"m2_emerald_day.json", "m2_emerald_overview.json"}) {
+            sceneIO::Scene scene;
+            std::string error;
+            require(sceneIO::loadOrCreate(root / "scene" / name, scene, &error, false), "M2 preset parse");
+            require(scene.objects.size() == 1 && scene.objects[0].materialProfile == "orca_metal_rough",
+                    "M2 explicitly selects the ORCA material convention");
+            require(scene.integrator.m1Surface && scene.integrator.applySpectralRendering &&
+                    scene.integrator.m1DirectMode == "mis", "M2 reuses the spectral MIS integrator");
+            require(scene.environment.file.empty() && !scene.enableGroundRendering, "M2 vacuum configuration");
+            require(!scene.objects[0].normalizeScale && !scene.objects[0].placeOnGround &&
+                    !scene.objects[0].placeCenterBBoxAtOrigin, "M2 preserves authored coordinates");
+            const nlohmann::ordered_json serialized = scene;
+            const auto copy = serialized.get<sceneIO::Scene>();
+            require(copy.objects[0].materialProfile == "orca_metal_rough" &&
+                    copy.display.exposure == 0.02f && copy.display.white == 100.0f,
+                    "M2 profile and display survive serialization");
+        }
+        for (const auto* invalid : {
+                 "{\"objects\":[{\"materialProfile\":\"unknown\"}]}",
+                 "{\"display\":{\"exposure\":0}}",
+                 "{\"display\":{\"white\":-1}}"}) {
+            bool rejected = false;
+            try { (void)nlohmann::ordered_json::parse(invalid).get<sceneIO::Scene>(); }
+            catch (const std::exception&) { rejected = true; }
+            require(rejected, "invalid material profile/display must not silently substitute defaults");
         }
         for (const auto* lighting : {"area", "sun", "combined"}) {
             for (const auto* mode : {"mis", "bsdf", "nee"}) {
@@ -50,7 +79,7 @@ int main(int argc, char** argv) {
         std::string contents;
         require(sceneIO::loadText(path, contents) && contents == "{invalid JSON", "strict parse must preserve input");
         std::filesystem::remove_all(temporary);
-        std::cout << "M1 scene selection: 9 fixtures + 2 legacy scenes; strict failures preserve inputs\n";
+        std::cout << "Scene selection: 9 M1 fixtures + 2 M2 presets + 2 legacy scenes; strict failures preserve inputs\n";
         return 0;
     } catch (const std::exception& e) {
         std::cerr << "FAIL: " << e.what() << '\n';

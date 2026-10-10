@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="(empty)"
+	tests="7"
+	failures="0"
+	disabled="0"
+	skipped="0"
+	hostname=""
+	time="0"
+	timestamp="2026-10-10T21:17:25"
+	>
+	<testcase name="m1_bsdf_check" classname="m1_bsdf_check" time="0.693496" status="run">
+		<properties/>
+		<system-out>GGX alpha=1: albedo=0.3068528424 exact=0.3068528194 acceptance=0.5
+GGX alpha=0.200000003 cos_o=0.8999999762 albedo quadrature=0.6967915198 sampled=0.6967906612 PDF mass=0.9600190732 accepted=0.9600067139
+GGX alpha=0.200000003 cos_o=0.200000003 albedo quadrature=0.6673431858 sampled=0.6673428151 PDF mass=0.9487273378 accepted=0.9487495422
+GGX alpha=0.6999999881 cos_o=0.8999999762 albedo quadrature=0.3801558832 sampled=0.3801558749 PDF mass=0.6848344995 accepted=0.6848487854
+GGX alpha=0.6999999881 cos_o=0.200000003 albedo quadrature=0.5471985694 sampled=0.5471984207 PDF mass=0.8831377176 accepted=0.8831520081
+MIS + RR constant illumination estimate=0.7004681698 expected=0.6999999881
+Existing metallic model: albedo quadrature=0.6164091377 sampled=0.6167723749 PDF mass=0.9557935299 accepted=0.9563331604
+Shading-normal support: acceptance=0.7499885559 exact=0.75
+M1 BSDF tests: 9 groups passed
+</system-out>
+	</testcase>
+	<testcase name="m1_light_pdf_check" classname="m1_light_pdf_check" time="0.00228782" status="run">
+		<properties/>
+		<system-out>offset triangle hit: traced cosine=0.009999500588 connection cosine=-0.005385788158 competing PDF=0
+M1 area-light PDF: finite offset support, analytic Jacobian, intermediate range, invalid geometry and mode checks passed
+</system-out>
+	</testcase>
+	<testcase name="m1_diagnostics_check" classname="m1_diagnostics_check" time="0.00163702" status="run">
+		<properties/>
+		<system-out>M1/M2 failure report checks passed
+</system-out>
+	</testcase>
+	<testcase name="m2_alpha_check" classname="m2_alpha_check" time="0.00198099" status="run">
+		<properties/>
+		<system-out>legacy alpha: BSDF=4 NEE=4 MIS=4 exact=4; double-alpha mutation=1.4375
+M2 alpha: cutoff boundaries, opacity composition, endpoint/MIS consistency, double-weighting sensitivity and invalid-input rejection passed
+</system-out>
+	</testcase>
+	<testcase name="m2_tangent_frame_check" classname="m2_tangent_frame_check" time="0.001716" status="run">
+		<properties/>
+		<system-out>M2 tangent frame: mixed-sign interior regression, non-flat normal map, mirrored UV, world transforms, smooth normal, tiny regular UV, pinned Assimp degenerate-UV chart and invalid-input checks passed
+</system-out>
+	</testcase>
+	<testcase name="m1_spectral_check" classname="m1_spectral_check" time="0.0998182" status="run">
+		<properties/>
+		<system-out>RGB2Spec official/common parity: 10126 colors, max evaluation abs error 7.56979e-06
+M1 spectral asset tests passed
+</system-out>
+	</testcase>
+	<testcase name="m1_scene_check" classname="m1_scene_check" time="0.00479823" status="run">
+		<properties/>
+		<system-out>Scene selection: 9 M1 fixtures + 2 M2 presets + 2 legacy scenes; strict failures preserve inputs
+</system-out>
+	</testcase>
+</testsuite>

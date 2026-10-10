@@ -62,6 +62,9 @@ struct PRDSpectral {
     float3 m1PrimaryAlbedo{};
     bool m1PreviousDelta=true;
     bool m1Invalid=false;
+    uint32_t m1SampleIndex=0;
+    m1::FailureStage m1FailureStage=m1::FailureStage::Camera;
+    m1::FailureContext m1FailureContext{};
 
     // for HWSS
     // float4 beta;
@@ -72,6 +75,7 @@ struct ShadowPRD {
     Random random;
     bool visible    {false};
     bool m1Invalid  {false};
+    PRDSpectral* m1Path {nullptr}; // Only M1/M2 shadow rays attach a path record.
 };
 
 

@@ -60,6 +60,14 @@ struct Material {
     bool    isLight                 {false};
     bool    isGlass                 {false};
 
+    // M2 keeps emission independent from the reflective surface. Legacy M1
+    // lights retain their emission-only endpoint behavior.
+    bool    isOrca                  {false};
+    bool    emissionOnly            {true};
+    bool    twoSided                 {true};
+    float   opacity                 {1.0f};
+    std::string name;
+
     std::vector<uint32_t>           pixel;
     int2        resolution          {make_int2(-1, -1)};
     // 各種フラグ

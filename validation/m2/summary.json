@@ -1,0 +1,61 @@
+{
+  "base_repository": "https://github.com/Somatic-Cell/nf-renderer",
+  "base_commit": "b465de0d66a65b0877e93fac77cd6bd28d0a246f",
+  "base_files_verified": 16,
+  "assimp_commit": "3e8673b14d2a209852dd1a1633464fe03c31746d",
+  "falcor_reference_commit": "57e3d42a8656e0f5933e8b04a2d30be320c8c831",
+  "asset_sha256": "19e44211a976276b10fa68e5c89930f999ae6a729f0a378cee130a594fb3fda8",
+  "portable_ctest": {
+    "passed": 4,
+    "failed": 0,
+    "tests": [
+      "m1_bsdf_check",
+      "m2_alpha_check",
+      "m1_spectral_check",
+      "m1_scene_check"
+    ]
+  },
+  "actual_assimp_import": {
+    "meshes": 220,
+    "materials": 220,
+    "vertices": 30139215,
+    "triangles": 10046405,
+    "emissive_triangles": 228374,
+    "two_sided_materials": 29,
+    "emissive_materials": 12,
+    "texture_bindings": 672,
+    "unique_texture_paths": 336,
+    "metres_per_unit": 1.0,
+    "missing_required_uv_bindings": 0,
+    "nonfinite_required_uvs": 0,
+    "invalid_positions": 0,
+    "invalid_normals": 0,
+    "invalid_tangents": 0,
+    "degenerate_triangles": 9,
+    "degenerate_emissive_triangles": 0,
+    "passed": true
+  },
+  "shaders": {
+    "optix_ir_passed": 14,
+    "ptx_passed": 2,
+    "all_final_inputs_match_compile_record": true,
+    "compiler": "nvcc 13.0.88",
+    "optix_headers": "9",
+    "architecture_compile_check": "compute_86/sm_86"
+  },
+  "windows_full_application_build_executed": false,
+  "windows_all_dds_directxtex_decode_executed": false,
+  "gpu_runtime_executed": false,
+  "emerald_render_image_verified": false,
+  "gpu_memory_or_performance_measured": false,
+  "new_source_sha256": {
+    "src/model.cpp": "ce188266fb98dad2cecbc75ab6f847e37fb9d8e824c18ff03dadf2ac82b93beb",
+    "include/model.h": "00d66a6524558708e4e08334168407c016a8c4f7f25b6f24c186673153b3cab3",
+    "include/m2/orca_material.hpp": "54c2cc5ed1c6ebe2abc08227a71550355c22806aecf3a2e01733385b8eb74c41",
+    "include/m2/orca_scene.hpp": "25d9b4ba7749749870bd37588ebac67dfeb1fc66297c21d500c5e8997e6f24f5",
+    "src/texture.cpp": "312afb0f23a444522dda32b4e0598bd0d764d9cdf3700c6508b9505f8b410b86",
+    "include/texture.hpp": "f40dbba47e96b2eb8734e4b016d7631c8368ddd6a6b2d9f0e6c156bb093a9271",
+    "include/m2/alpha.hpp": "d2c2da2497dd3d2a24294d53e5ed61b70f1cd1e7be11ef71a41f4c62b352b9a7"
+  },
+  "final_geometry_audit_cpp_standard": 17
+}

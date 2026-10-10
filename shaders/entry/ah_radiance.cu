@@ -6,6 +6,8 @@
 #include "../device/shader_common.cuh"
 #include "../device/random_number_generator.cuh"
 #include "../../include/launch_params.h"
+#include "../../include/m2/alpha.hpp"
+#include "../device/m1_diagnostics.cuh"
 #include <stdio.h>
 
 extern "C" __global__ void __anyhit__radiance_rgb()
@@ -49,22 +51,31 @@ extern "C" __global__ void __anyhit__radiance_rgb()
 extern "C" __global__ void __anyhit__radiance_spectral()
 {
     const HitgroupSBTData &sbtData =*(const HitgroupSBTData*) optixGetSbtDataPointer();
+    PRDSpectral &prd = *getPRD<PRDSpectral>();
 
     const uint32_t meshIndex = sbtData.tri.meshIndex;
     const uint32_t materialIndex = sbtData.tri.materialIndex;
+    if(optixLaunchParams.m1.enabled &&
+       (sbtData.geomType!=GeomType::Triangle || meshIndex>=unsigned(optixLaunchParams.numMeshes) ||
+        materialIndex>=unsigned(optixLaunchParams.numMaterials))) {
+        m1diagnostics::set_hit_context(prd,m1::FailureStage::RadianceAnyHit,sbtData);
+        m1diagnostics::fail(prd,m1::FailureReason::RadianceSbt,
+            {{float(sbtData.geomType),float(optixLaunchParams.numMeshes),float(optixLaunchParams.numMaterials)}});
+        optixTerminateRay();
+        return;
+    }
     const TriangleMeshGeomData &mesh = optixLaunchParams.meshes[meshIndex];
     const MaterialData & material = optixLaunchParams.materials[materialIndex];
 
-    PRDSpectral &prd = *getPRD<PRDSpectral>();
-
     if(optixLaunchParams.m1.enabled && material.diffuseTexture.texture && !mesh.texcoord) {
-        prd.m1Invalid=true;
-        prd.continueTrace=0;
+        m1diagnostics::set_hit_context(prd,m1::FailureStage::RadianceAnyHit,sbtData);
+        m1diagnostics::fail(prd,m1::FailureReason::RadianceUV,{{1}});
         optixTerminateRay();
         return;
     }
     
-    float opacity = 1.0f;     
+    float opacity = 1.0f;
+    float2 diagnosticUV=make_float2(0);
     if(material.diffuseTexture.texture > 0){
         // 基本的な交差点の情報を取得
         const int primID = optixGetPrimitiveIndex();
@@ -81,14 +92,20 @@ extern "C" __global__ void __anyhit__radiance_spectral()
             + u * UVDiffuse2
             + v * UVDiffuse3;
 
+        diagnosticUV=diffuseTextureCoordinate;
         opacity = tex2D<float4>(material.diffuseTexture.texture, diffuseTextureCoordinate.x, 1.0f - diffuseTextureCoordinate.y).w;
     }
 
-    if(optixLaunchParams.m1.enabled && (!isfinite(opacity)||opacity<0.0f||opacity>1.0f)) {
-        prd.m1Invalid=true;
-        prd.continueTrace=0;
-        optixTerminateRay();
-        return;
+    if(optixLaunchParams.m1.enabled) {
+        float coverage=0;
+        if(!m2::surface_coverage(opacity,material.opacity,material.alphaCutoff,coverage)) {
+            m1diagnostics::set_hit_context(prd,m1::FailureStage::RadianceAnyHit,sbtData);
+            m1diagnostics::fail(prd,m1::FailureReason::RadianceOpacity,
+                {{opacity,material.opacity,material.alphaCutoff,diagnosticUV.x,diagnosticUV.y}});
+            optixTerminateRay();
+            return;
+        }
+        opacity=coverage;
     }
     if(opacity < 1.0f && opacity <= prd.random()){
         optixIgnoreIntersection();

@@ -1,4 +1,5 @@
 /build
+/build_m1/
 /model/*
 !/model/tokyo
 /envmap/*

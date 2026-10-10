@@ -21,6 +21,22 @@ add_executable(m1_bsdf_check "${M1_ROOT}/tests/test_m1_bsdf.cpp")
 target_include_directories(m1_bsdf_check PRIVATE "${M1_ROOT}/include")
 add_test(NAME m1_bsdf_check COMMAND m1_bsdf_check)
 
+add_executable(m1_light_pdf_check "${M1_ROOT}/tests/test_m1_light_pdf.cpp")
+target_include_directories(m1_light_pdf_check PRIVATE "${M1_ROOT}/include")
+add_test(NAME m1_light_pdf_check COMMAND m1_light_pdf_check)
+
+add_executable(m1_diagnostics_check "${M1_ROOT}/tests/test_m1_diagnostics.cpp")
+target_include_directories(m1_diagnostics_check PRIVATE "${M1_ROOT}/include")
+add_test(NAME m1_diagnostics_check COMMAND m1_diagnostics_check)
+
+add_executable(m2_alpha_check "${M1_ROOT}/tests/test_m2_alpha.cpp")
+target_include_directories(m2_alpha_check PRIVATE "${M1_ROOT}/include")
+add_test(NAME m2_alpha_check COMMAND m2_alpha_check)
+
+add_executable(m2_tangent_frame_check "${M1_ROOT}/tests/test_m2_tangent_frame.cpp")
+target_include_directories(m2_tangent_frame_check PRIVATE "${M1_ROOT}/include")
+add_test(NAME m2_tangent_frame_check COMMAND m2_tangent_frame_check)
+
 add_executable(m1_spectral_check "${M1_ROOT}/tests/test_m1_spectral_assets.cpp")
 target_link_libraries(m1_spectral_check PRIVATE m1_spectral_assets)
 add_test(NAME m1_spectral_check COMMAND m1_spectral_check "${M1_ROOT}/spectrum/m1")
@@ -34,7 +50,7 @@ target_include_directories(m1_scene_check PRIVATE "${M1_ROOT}/include" "${M1_JSO
 add_test(NAME m1_scene_check COMMAND m1_scene_check "${M1_ROOT}")
 
 if(MSVC)
-    foreach(target m1_bsdf_check m1_spectral_check m1_scene_check m1_spectral_assets)
+    foreach(target m1_bsdf_check m1_light_pdf_check m1_diagnostics_check m2_alpha_check m2_tangent_frame_check m1_spectral_check m1_scene_check m1_spectral_assets)
         target_compile_options(${target} PRIVATE /utf-8 /W4)
     endforeach()
 endif()

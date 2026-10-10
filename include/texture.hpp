@@ -2,14 +2,16 @@
 #define TEXTURE_HPP_
 
 #include <iostream>
+#include <cstddef>
+#include <cstdint>
 #include <filesystem>
 #include <string>
 
 #if defined(_WIN32)
-#include <windows.h>
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
+#include <windows.h>
 #else
 #include <unistd.h>
 #endif
@@ -36,6 +38,9 @@ struct LoadedTexture {
     uint32_t width = 0;
     uint32_t height = 0;
     DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN;
+    // One uint32_t per RGBA8 pixel, exactly width * height elements. Rows are
+    // tightly packed; DirectXTex rowPitch padding is not stored here. RGB bytes
+    // retain their encoding for role-specific sRGB decoding in the CUDA sampler.
     std::vector<uint32_t> pixels;
 
     template <typename T>
@@ -49,12 +54,17 @@ struct LoadedTexture {
     }
 };
 
+// The renderer's storage contract accepts R8G8B8A8_UNORM only. Load the full-size
+// base mip of a single 2D image. Array/cube/volume input is an explicit error.
+// Returns false with a path/stage diagnostic on failure; outTex is unchanged.
 bool textureLoader(
     const std::string &imgFilePath,
     LoadedTexture& outTex,
-    DXGI_FORMAT targetFormat 
+    DXGI_FORMAT targetFormat
 );
 
+// Requires finite glossiness and the same tightly packed RGBA8 contract.
+// Invalid input throws; dstARMTexture is unchanged on failure.
 void convertTextureSpecularToRoughnessMetallic(
     const LoadedTexture& srcSpecular,
     const bool isMetal,

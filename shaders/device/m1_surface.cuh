@@ -5,23 +5,30 @@
 #include "../config.cuh"
 #include "../params/per_ray_data.cuh"
 #include "shader_common.cuh"
+#include "m1_diagnostics.cuh"
 #include "../../include/m1/bsdf.hpp"
+#include "../../include/m1/light_pdf.hpp"
 #include "../../include/m1/rgb2spec_device.hpp"
+#include "../../include/m2/alpha.hpp"
+#include "../../include/m2/tangent_frame.hpp"
 #include <math_constants.h>
 
 namespace m1surface {
 using m1::Vec3;
+using m1::FailureReason;
+using m1::FailureStage;
+using m1diagnostics::fail;
 
 static __forceinline__ __device__ Vec3 vector(float3 v){return {v.x,v.y,v.z};}
 static __forceinline__ __device__ float3 vector(Vec3 v){return make_float3(v.x,v.y,v.z);}
 static __forceinline__ __device__ bool finite3(float3 v){return m1::finite(vector(v));}
-static __forceinline__ __device__ void fail(PRDSpectral& p){p.m1Invalid=true;p.continueTrace=0;}
 
 static __forceinline__ __device__ float reflectance(float3 rgb,float wavelength,PRDSpectral& p) {
     const auto& m=optixLaunchParams.m1;
     const m1::Rgb2SpecTableView table{m.rgb2specScale,m.rgb2specData,m.rgb2specResolution};
     float value=0;
-    if(!m1::rgb2spec_reflectance_device(table,rgb.x,rgb.y,rgb.z,wavelength,value))fail(p);
+    if(!m1::rgb2spec_reflectance_device(table,rgb.x,rgb.y,rgb.z,wavelength,value))
+        fail(p,FailureReason::ReflectanceSpectrum,{{rgb.x,rgb.y,rgb.z,wavelength,value}});
     return value;
 }
 
@@ -40,13 +47,19 @@ static __forceinline__ __device__ float d65(float wavelength) {
 // Separate 2*max(RGB) amplitude from its bounded chromatic shape, as in PBRT's
 // RGB illuminant reconstruction. The scene intensity supplies radiance units.
 static __forceinline__ __device__ float emission(float3 rgb,float wavelength,PRDSpectral& p) {
-    if(!finite3(rgb)||rgb.x<0||rgb.y<0||rgb.z<0){fail(p);return 0;}
+    if(!finite3(rgb)||rgb.x<0||rgb.y<0||rgb.z<0){
+        fail(p,FailureReason::EmissionRgb,{{rgb.x,rgb.y,rgb.z}});return 0;
+    }
     const float amplitude=2.0f*fmaxf(rgb.x,fmaxf(rgb.y,rgb.z));
     if(amplitude==0)return 0;
-    if(!m1::finite(amplitude)){fail(p);return 0;}
+    if(!m1::finite(amplitude)){
+        fail(p,FailureReason::EmissionAmplitude,{{rgb.x,rgb.y,rgb.z,amplitude}});return 0;
+    }
     const float value=amplitude*reflectance(rgb/amplitude,wavelength,p)*
         d65(wavelength)*optixLaunchParams.light.lightIntensityFactor;
-    if(!m1::finite(value)||value<0)fail(p);
+    if(!m1::finite(value)||value<0)
+        fail(p,FailureReason::EmissionSpectrum,
+             {{value,amplitude,d65(wavelength),optixLaunchParams.light.lightIntensityFactor}});
     return value;
 }
 
@@ -114,16 +127,17 @@ static __forceinline__ __device__ Vec3 offset(Vec3 p,Vec3 normal,Vec3 direction)
 
 static __forceinline__ __device__ bool visible(PRDSpectral& p,Vec3 origin,Vec3 direction,float distance) {
     if(!m1::finite(origin)||!m1::bsdf_unit_direction(direction)||!(distance>0)){
-        fail(p);return false;
+        fail(p,FailureReason::ShadowRay,{{origin.x,origin.y,origin.z,
+            direction.x,direction.y,direction.z,distance,m1::dot(direction,direction)}});return false;
     }
-    ShadowPRD shadow;shadow.random=p.random;shadow.visible=false;shadow.m1Invalid=false;
+    ShadowPRD shadow;shadow.random=p.random;shadow.visible=false;shadow.m1Invalid=false;shadow.m1Path=&p;
     unsigned u0,u1;packPointer(&shadow,u0,u1);
     optixTrace(optixLaunchParams.traversable,vector(origin),vector(direction),0.0f,distance,0.0f,
                OptixVisibilityMask(MASK_SURFACE),
                OPTIX_RAY_FLAG_TERMINATE_ON_FIRST_HIT|OPTIX_RAY_FLAG_DISABLE_CLOSESTHIT,
                SHADOW_RAY_TYPE,RAY_TYPE_COUNT,SHADOW_RAY_TYPE,u0,u1);
     p.random=shadow.random;
-    if(shadow.m1Invalid)fail(p);
+    if(shadow.m1Invalid)fail(p,FailureReason::ShadowUnhandled,{{1}});
     return shadow.visible&&!shadow.m1Invalid;
 }
 
@@ -135,9 +149,16 @@ struct SurfaceBsdf {
         return type==MATERIAL_TYPE_PRINCIPLED_BRDF ? m1::evaluate_metallic(metallic,wo,wi) :
                                                    m1::evaluate_bsdf(simple,wo,wi);
     }
-    __forceinline__ __device__ m1::BsdfSample sample(Vec3 wo,float u,float v,float w) const {
-        return type==MATERIAL_TYPE_PRINCIPLED_BRDF ? m1::sample_metallic(metallic,wo,u,v,w) :
-                                                   m1::sample_bsdf(simple,wo,u,v,w);
+    __forceinline__ __device__ m1::BsdfSample sample(Vec3 wo,float u,float v,float w,PRDSpectral& p) const {
+        const auto result=type==MATERIAL_TYPE_PRINCIPLED_BRDF ? m1::sample_metallic(metallic,wo,u,v,w) :
+                                                              m1::sample_bsdf(simple,wo,u,v,w);
+        if(result.status==m1::BsdfSampleStatus::Invalid)
+            fail(p,FailureReason::BsdfSample,{{wo.x,wo.y,wo.z,u,v,w,
+                type==MATERIAL_TYPE_PRINCIPLED_BRDF?metallic.color:simple.color,
+                type==MATERIAL_TYPE_PRINCIPLED_BRDF?metallic.metallic:0,
+                type==MATERIAL_TYPE_PRINCIPLED_BRDF?metallic.roughness:simple.alpha,
+                result.wi.x,result.wi.y,result.wi.z,result.pdf,result.weight,result.eta_scale,simple.eta_i_over_t}});
+        return result;
     }
 };
 
@@ -150,63 +171,117 @@ static __forceinline__ __device__ void add_direct(PRDSpectral& p,const SurfaceBs
                                                  Vec3 wo,Vec3 wi,float radiance,float pdf_light) {
     if(wi.z<=0||radiance==0)return;
     const auto v=bsdf.evaluate(wo,wi);
-    if(!v.valid||!m1::finite(radiance)||radiance<0||!m1::finite(pdf_light)||!(pdf_light>0)){
-        fail(p);return;
+    if(!v.valid) {
+        fail(p,FailureReason::DirectBsdf,{{wo.x,wo.y,wo.z,wi.x,wi.y,wi.z,
+            m1::dot(wo,wo),m1::dot(wi,wi),v.f,v.pdf,
+            bsdf.type==MATERIAL_TYPE_PRINCIPLED_BRDF?bsdf.metallic.color:bsdf.simple.color,
+            bsdf.metallic.metallic,bsdf.metallic.roughness}});return;
+    }
+    if(!m1::finite(radiance)||radiance<0||!m1::finite(pdf_light)||!(pdf_light>0)){
+        fail(p,FailureReason::DirectInputs,{{radiance,pdf_light}});return;
     }
     const float weight=optixLaunchParams.m1.directMode==0 ? m1::power_heuristic(pdf_light,v.pdf) : 1.0f;
     p.contribution+=p.albedo*v.f*wi.z*radiance*weight/pdf_light;
-    if(!m1::finite(p.contribution)||p.contribution<0)fail(p);
+    if(!m1::finite(p.contribution)||p.contribution<0)
+        fail(p,FailureReason::DirectContribution,{{radiance,pdf_light,v.f,v.pdf,wi.z,weight}});
 }
 
 static __forceinline__ __device__ int find_emitter(unsigned mesh,unsigned instance,unsigned primitive) {
-    for(int i=0;i<optixLaunchParams.light.numLights;++i) {
-        const auto definition=optixLaunchParams.light.lightDefinition[i];
-        if(definition.lightType!=LIGHT_TYPE_TRIANGLE)continue;
-        const auto& e=optixLaunchParams.light.triangleLightData[definition.lightIndexInType];
-        if(e.meshIndex==mesh&&e.instanceID==instance&&e.primitiveIndex==primitive)
-            return int(definition.lightIndexInType);
+    // createLightTable() appends triangles in (flat mesh, instance, primitive)
+    // order. Binary search preserves the exact per-triangle PDF without a
+    // linear scan through every emissive triangle at each BSDF light hit.
+    int lo=0,hi=optixLaunchParams.light.numLights;
+    while(lo<hi) {
+        const int mid=lo+(hi-lo)/2;
+        const auto& e=optixLaunchParams.light.triangleLightData[mid];
+        const bool less=e.meshIndex<mesh ||
+            (e.meshIndex==mesh && (e.instanceID<instance ||
+             (e.instanceID==instance && e.primitiveIndex<primitive)));
+        if(less)lo=mid+1;else hi=mid;
+    }
+    if(lo<optixLaunchParams.light.numLights) {
+        const auto& e=optixLaunchParams.light.triangleLightData[lo];
+        if(e.meshIndex==mesh&&e.instanceID==instance&&e.primitiveIndex==primitive)return lo;
     }
     return -1;
 }
 
-static __forceinline__ __device__ float opacity(TextureSlot texture,float2 uv,PRDSpectral& p) {
+static __forceinline__ __device__ float opacity(TextureSlot texture,float2 uv,
+    float factor,float cutoff,PRDSpectral& p) {
     const float a=texture.texture ? tex2D<float4>(texture.texture,uv.x,1.0f-uv.y).w : 1.0f;
-    if(!m1::finite(a)||a<0||a>1){fail(p);return 0;}
-    return a;
+    float coverage=0;
+    if(!m2::surface_coverage(a,factor,cutoff,coverage)){
+        fail(p,FailureReason::SurfaceOpacity,{{a,factor,cutoff,uv.x,uv.y}});return 0;
+    }
+    return coverage;
 }
 
 static __forceinline__ __device__ Vec3 shading_normal(const TriangleMeshGeomData& mesh,
-    const MaterialData& material,uint3 ind,float b0,float b1,float b2,Vec3 ng,PRDSpectral& p) {
+    const MaterialData& material,uint3 ind,float b0,float b1,float b2,Vec3 ng,
+    Vec3 edge1,Vec3 edge2,PRDSpectral& p) {
     Vec3 ns=ng;
     Vec3 object_normal{};
     if(mesh.hasNormal) {
-        if(!mesh.normal){fail(p);return ng;}
+        if(!mesh.normal){fail(p,FailureReason::MissingNormals,{{float(mesh.hasNormal)}});return ng;}
         object_normal=vector(b0*mesh.normal[ind.x]+b1*mesh.normal[ind.y]+b2*mesh.normal[ind.z]);
         ns=m1::normalize(vector(optixTransformNormalFromObjectToWorldSpace(vector(object_normal))));
-        if(!m1::bsdf_unit_direction(ns)){fail(p);return ng;}
+        if(!m1::bsdf_unit_direction(ns)){
+            fail(p,FailureReason::InterpolatedNormal,{{ns.x,ns.y,ns.z,
+                object_normal.x,object_normal.y,object_normal.z,b0,b1,b2}});return ng;
+        }
     }
     if(m1::dot(ns,ng)<0)ns=-ns;
     if(material.normalTexture.texture) {
-        if(!mesh.hasTangent||!mesh.tangent||!mesh.hasNormal||!mesh.normalTexcoord){fail(p);return ng;}
+        if(!mesh.hasTangent||!mesh.tangent||!mesh.hasNormal||!mesh.normalTexcoord){
+            fail(p,FailureReason::MissingTangentFrame,{{float(mesh.hasTangent),float(mesh.hasNormal)}});return ng;
+        }
         const float2 uv=b0*mesh.normalTexcoord[ind.x]+b1*mesh.normalTexcoord[ind.y]+b2*mesh.normalTexcoord[ind.z];
         const float4 raw=tex2D<float4>(material.normalTexture.texture,uv.x,1.0f-uv.y);
-        if(!isfinite(raw.x)||!isfinite(raw.y)||raw.x<0||raw.x>1||raw.y<0||raw.y>1){fail(p);return ng;}
-        const float4 tangent=b0*mesh.tangent[ind.x]+b1*mesh.tangent[ind.y]+b2*mesh.tangent[ind.z];
-        if(!isfinite(tangent.w)||tangent.w==0){fail(p);return ng;}
+        if(!isfinite(raw.x)||!isfinite(raw.y)||raw.x<0||raw.x>1||raw.y<0||raw.y>1){
+            fail(p,FailureReason::NormalTexture,{{raw.x,raw.y,uv.x,uv.y}});return ng;
+        }
+        const float4 t0=mesh.tangent[ind.x],t1=mesh.tangent[ind.y],t2=mesh.tangent[ind.z];
+        const float4 tangent=b0*t0+b1*t1+b2*t2;
+        if((t0.w!=1&&t0.w!=-1)||(t1.w!=1&&t1.w!=-1)||(t2.w!=1&&t2.w!=-1)){
+            fail(p,FailureReason::TangentHandedness,
+                {{tangent.w,t0.w,t1.w,t2.w,b0,b1,b2}});return ng;
+        }
         const Vec3 object_tangent=vector(make_float3(tangent));
-        Vec3 t=vector(optixTransformVectorFromObjectToWorldSpace(vector(object_tangent)));
-        t=m1::normalize(t-ns*m1::dot(ns,t));
-        const Vec3 object_b=m1::cross(object_normal,object_tangent)*(tangent.w>0?1.0f:-1.0f);
-        const Vec3 world_b=vector(optixTransformVectorFromObjectToWorldSpace(vector(object_b)));
-        const Vec3 cross_b=m1::cross(ns,t);
-        const Vec3 b=m1::dot(cross_b,world_b)>=0?cross_b:-cross_b;
-        if(!m1::bsdf_unit_direction(t)||!m1::bsdf_unit_direction(b)){fail(p);return ng;}
+        Vec3 t{},b{};
+        if(t0.w!=t1.w||t0.w!=t2.w) {
+            // Handedness is a discrete orientation, not a barycentrically
+            // interpolated scalar. Opposite vertex signs can sum to exactly
+            // zero on a valid triangle. Use this triangle's UV derivatives for
+            // mixed-sign faces, with the pinned Assimp +U/-V convention.
+            const float2 uv0=mesh.normalTexcoord[ind.x],uv1=mesh.normalTexcoord[ind.y],uv2=mesh.normalTexcoord[ind.z];
+            const auto basis=m2::triangle_uv_tangent_frame(edge1,edge2,
+                {uv0.x,uv0.y},{uv1.x,uv1.y},{uv2.x,uv2.y},ns);
+            if(!basis.valid) {
+                fail(p,FailureReason::TriangleTangentFrame,{{float(basis.uv_determinant),ns.x,ns.y,ns.z,
+                    uv0.x,uv0.y,uv1.x,uv1.y,uv2.x,uv2.y,
+                    edge1.x,edge1.y,edge1.z,edge2.x,edge2.y,edge2.z}});return ng;
+            }
+            t=basis.tangent;b=basis.bitangent;
+        } else {
+            t=vector(optixTransformVectorFromObjectToWorldSpace(vector(object_tangent)));
+            t=m1::normalize(t-ns*m1::dot(ns,t));
+            const Vec3 object_b=m1::cross(object_normal,object_tangent)*t0.w;
+            const Vec3 world_b=vector(optixTransformVectorFromObjectToWorldSpace(vector(object_b)));
+            const Vec3 cross_b=m1::cross(ns,t);
+            b=m1::dot(cross_b,world_b)>=0?cross_b:-cross_b;
+        }
+        if(!m1::bsdf_unit_direction(t)||!m1::bsdf_unit_direction(b)){
+            fail(p,FailureReason::TangentFrame,{{t.x,t.y,t.z,b.x,b.y,b.z,ns.x,ns.y,ns.z,
+                m1::dot(t,t),m1::dot(b,b),object_tangent.x,object_tangent.y,object_tangent.z}});return ng;
+        }
         // Existing two-channel normal-map convention: signed XY, flipped green,
         // positive Z reconstructed from XY. Normalize after texture filtering.
         const float x=2.0f*raw.x-1.0f,y=1.0f-2.0f*raw.y;
         const float z=sqrtf(fmaxf(0.0f,1.0f-x*x-y*y));
         ns=m1::normalize(x*t+y*b+z*ns);
-        if(!m1::bsdf_unit_direction(ns)){fail(p);return ng;}
+        if(!m1::bsdf_unit_direction(ns)){
+            fail(p,FailureReason::MappedNormal,{{ns.x,ns.y,ns.z,x,y,z}});return ng;
+        }
         if(m1::dot(ns,ng)<0)ns=-ns;
     }
     return ns;
@@ -215,8 +290,12 @@ static __forceinline__ __device__ Vec3 shading_normal(const TriangleMeshGeomData
 static __forceinline__ __device__ void hit(PRDSpectral& p) {
     if(p.m1Invalid){p.continueTrace=0;return;}
     const auto& sbt=*reinterpret_cast<const HitgroupSBTData*>(optixGetSbtDataPointer());
+    m1diagnostics::set_hit_context(p,FailureStage::Surface,sbt);
     if(sbt.geomType!=GeomType::Triangle||sbt.tri.meshIndex>=unsigned(optixLaunchParams.numMeshes)||
-       sbt.tri.materialIndex>=unsigned(optixLaunchParams.numMaterials)){fail(p);return;}
+       sbt.tri.materialIndex>=unsigned(optixLaunchParams.numMaterials)){
+        fail(p,FailureReason::HitSbt,{{float(sbt.geomType),float(optixLaunchParams.numMeshes),
+                                     float(optixLaunchParams.numMaterials)}});return;
+    }
     const auto& mesh=optixLaunchParams.meshes[sbt.tri.meshIndex];
     const auto& material=optixLaunchParams.materials[sbt.tri.materialIndex];
     const unsigned primitive=optixGetPrimitiveIndex(),instance=optixGetInstanceId();
@@ -226,7 +305,9 @@ static __forceinline__ __device__ void hit(PRDSpectral& p) {
     const Vec3 v2=vector(optixTransformPointFromObjectToWorldSpace(mesh.vertex[ind.z]));
     const Vec3 cross=m1::cross(v1-v0,v2-v0);
     const float twice_area=m1::length(cross);
-    if(!m1::finite(twice_area)||!(twice_area>0)){fail(p);return;}
+    if(!m1::finite(twice_area)||!(twice_area>0)){
+        fail(p,FailureReason::HitGeometry,{{twice_area,cross.x,cross.y,cross.z}});return;
+    }
     const Vec3 ng=cross/twice_area;
     const auto bary=optixGetTriangleBarycentrics();
     const float b0=1.0f-bary.x-bary.y;
@@ -240,36 +321,59 @@ static __forceinline__ __device__ void hit(PRDSpectral& p) {
                     bary.y*mesh.emissiveTexcoord[ind.z];
     if((material.emissiveTexture.texture&&!mesh.emissiveTexcoord)||
        ((material.diffuseTexture.texture||material.rmTexture.texture)&&!mesh.texcoord)) {
-        fail(p);return;
+        fail(p,FailureReason::MissingSurfaceUV,{{float(material.diffuseTexture.texture!=0),
+             float(material.rmTexture.texture!=0),float(material.emissiveTexture.texture!=0)}});return;
     }
-    const Vec3 ns=shading_normal(mesh,material,ind,b0,bary.x,bary.y,ng,p);
+    const Vec3 ns=shading_normal(mesh,material,ind,b0,bary.x,bary.y,ng,v1-v0,v2-v0,p);
     if(p.m1Invalid)return;
     if(p.bounce==0)p.m1PrimaryNormal=vector(ns);
 
-    if(material.materialType==MATERIAL_TYPE_LIGHT) {
+    if(material.hasEmission || material.materialType==MATERIAL_TYPE_LIGHT) {
         if(front) {
             float3 rgb=material.emissive;
             if(material.emissiveTexture.texture)
                 rgb*=make_float3(tex2D<float4>(material.emissiveTexture.texture,emissive_uv.x,1-emissive_uv.y));
             const float le=emission(rgb,p.waveLength,p);
             const int emitter=find_emitter(sbt.tri.meshIndex,instance,primitive);
-            if(emitter<0){fail(p);return;}
+            if(emitter<0){fail(p,FailureReason::EmitterMissing,{{float(optixLaunchParams.light.numLights)}});return;}
             const auto& e=optixLaunchParams.light.triangleLightData[emitter];
             const Vec3 connection=position-vector(p.m1PreviousPosition);
             const float distance2=m1::dot(connection,connection);
             float pdf_light=0;
-            if(p.bounce>0) {
+            if(m1::light_hit_needs_pdf(p.bounce,p.m1PreviousDelta,optixLaunchParams.m1.directMode)) {
                 const float cosine=m1::dot(ng,-m1::normalize(connection));
-                if(!(cosine>0)||!(e.area>0)||!(optixLaunchParams.light.numLights>0)){fail(p);return;}
-                pdf_light=distance2/(e.area*cosine*optixLaunchParams.light.numLights);
-                if(!m1::finite(pdf_light)||!(pdf_light>0)){fail(p);return;}
+                if(!m1::finite(cosine)||!m1::finite(distance2)||!(distance2>0)||
+                   !m1::finite(e.area)||!(e.area>0)||!(optixLaunchParams.light.numLights>0)){
+                    fail(p,FailureReason::EmitterGeometry,{{cosine,m1::dot(ng,-ray_direction),
+                        e.area,distance2,float(optixLaunchParams.light.numLights),
+                        connection.x,connection.y,connection.z,ray_direction.x,ray_direction.y,ray_direction.z,
+                        p.m1PreviousPosition.x,p.m1PreviousPosition.y,p.m1PreviousPosition.z}});return;
+                }
+                // The traced ray starts at an offset point, while area NEE is
+                // defined between unoffset vertices. Its one-sided support can
+                // therefore be empty even for a front-facing traced hit. Zero
+                // competing density is valid and gives the BSDF strategy weight
+                // one; abs(cosine) or a cosine floor would invent NEE support.
+                const auto competing=m1::one_sided_area_light_pdf(
+                    distance2,e.area,cosine,optixLaunchParams.light.numLights);
+                pdf_light=competing.pdf;
+                if(!competing.valid){
+                    fail(p,FailureReason::EmitterPdf,{{pdf_light,cosine,e.area,distance2,
+                         float(optixLaunchParams.light.numLights)}});return;
+                }
             }
             p.contribution+=p.albedo*le*light_hit_weight(p,pdf_light);
+            if(!m1::finite(p.contribution)||p.contribution<0)
+                fail(p,FailureReason::EmitterContribution,{{le,pdf_light,light_hit_weight(p,pdf_light)}});
         }
-        p.continueTrace=0;
-        if(!m1::finite(p.contribution)||p.contribution<0)fail(p);
-        return;
+        if(p.m1Invalid)return;
+        // ORCA windows/signs may both emit and scatter. Continue through their
+        // BSDF; the existing M1 pure lamps remain terminal endpoints.
+        if(material.materialType==MATERIAL_TYPE_LIGHT){p.continueTrace=0;return;}
     }
+    // Single-sided ORCA materials shade the front only. Their back faces still
+    // occlude rays; they are not removed from the geometry or made transparent.
+    if(!front&&!material.twoSided){p.continueTrace=0;return;}
     // maxBounce counts scattering vertices. A final endpoint may still emit.
     if(p.bounce>=optixLaunchParams.frame.maxBounce){p.continueTrace=0;return;}
     SurfaceBsdf bsdf;bsdf.type=material.materialType;
@@ -292,8 +396,9 @@ static __forceinline__ __device__ void hit(PRDSpectral& p) {
                 roughness=rm.y;metallic=rm.z;
             }
             bsdf.metallic={color,metallic,roughness};
-            if(!m1::valid_metallic_parameters(bsdf.metallic))fail(p);
-        } else fail(p);
+            if(!m1::valid_metallic_parameters(bsdf.metallic))
+                fail(p,FailureReason::MetallicParameters,{{color,metallic,roughness,uv.x,uv.y}});
+        } else fail(p,FailureReason::UnsupportedMaterial,{{float(material.materialType)}});
     }
     if(p.m1Invalid)return;
     const Vec3 normal=front?ng:-ng;
@@ -304,10 +409,14 @@ static __forceinline__ __device__ void hit(PRDSpectral& p) {
 
     if(material.materialType!=MATERIAL_TYPE_GLASS&&optixLaunchParams.m1.directMode!=1) {
         if(optixLaunchParams.m1.sunEnabled) {
+            p.m1FailureStage=FailureStage::SunNee;
             const Vec3 direction=sample_sun(p.random(),p.random());
             const Vec3 local=frame.to_local(direction);
             const float le=sun_radiance(p.waveLength),pdf=sun_pdf();
-            if(!m1::finite(le)||le<0||!m1::finite(pdf)||!(pdf>0)){fail(p);return;}
+            if(!m1::finite(le)||le<0||!m1::finite(pdf)||!(pdf>0)){
+                fail(p,FailureReason::SunParameters,{{le,pdf,optixLaunchParams.m1.sunAngularRadiusRad,
+                     optixLaunchParams.m1.sunScale}});return;
+            }
             if(local.z>0&&m1::dot(normal,direction)>0&&le>0&&
                visible(p,offset(position,ng,direction),direction,CUDART_INF_F))
                 add_direct(p,bsdf,wo,local,le,pdf);
@@ -315,10 +424,16 @@ static __forceinline__ __device__ void hit(PRDSpectral& p) {
         }
         const int count=optixLaunchParams.light.numLights;
         if(count>0) {
+            p.m1FailureStage=FailureStage::AreaNee;
             const int selected=int(p.random()*count);
-            if(selected<0||selected>=count){fail(p);return;}
+            if(selected<0||selected>=count){
+                fail(p,FailureReason::LightSelection,{{float(selected),float(count)}});return;
+            }
             const auto definition=optixLaunchParams.light.lightDefinition[selected];
-            if(definition.lightType!=LIGHT_TYPE_TRIANGLE){fail(p);return;}
+            if(definition.lightType!=LIGHT_TYPE_TRIANGLE){
+                fail(p,FailureReason::LightType,{{float(selected),float(definition.lightType),
+                     float(definition.lightIndexInType)}});return;
+            }
             const auto& e=optixLaunchParams.light.triangleLightData[definition.lightIndexInType];
             const float root=sqrtf(p.random()),b1=root*(1-p.random()),b2=root-b1,a0=1-root;
             const Vec3 point=a0*vector(e.v0)+b1*vector(e.v1)+b2*vector(e.v2);
@@ -334,9 +449,14 @@ static __forceinline__ __device__ void hit(PRDSpectral& p) {
                     float3 rgb=e.constantEmission;
                     if(e.emissiveTexture.texture)
                         rgb*=make_float3(tex2D<float4>(e.emissiveTexture.texture,light_uv.x,1-light_uv.y));
-                    const float le=emission(rgb,p.waveLength,p)*opacity(e.opacityTexture,alpha_uv,p);
-                    const float pdf=distance2/(e.area*cos_light*count);
-                    if(!m1::finite(le)||le<0||!m1::finite(pdf)||!(pdf>0)){fail(p);return;}
+                    const float le=emission(rgb,p.waveLength,p)*
+                        opacity(e.opacityTexture,alpha_uv,e.opacityFactor,e.alphaCutoff,p);
+                    const auto density=m1::one_sided_area_light_pdf(distance2,e.area,cos_light,count);
+                    const float pdf=density.pdf;
+                    if(!m1::finite(le)||le<0||!density.valid||!(pdf>0)){
+                        fail(p,FailureReason::AreaLightParameters,
+                            {{le,pdf,distance2,e.area,cos_light,float(count),float(selected)}});return;
+                    }
                     const Vec3 origin=offset(position,ng,direction);
                     const Vec3 target=offset(point,en,-direction);
                     const Vec3 shadow_delta=target-origin;
@@ -348,8 +468,9 @@ static __forceinline__ __device__ void hit(PRDSpectral& p) {
         }
     }
     if(p.m1Invalid)return;
-    const auto sampled=bsdf.sample(wo,p.random(),p.random(),p.random());
-    if(sampled.status==m1::BsdfSampleStatus::Invalid){fail(p);return;}
+    p.m1FailureStage=FailureStage::Bsdf;
+    const auto sampled=bsdf.sample(wo,p.random(),p.random(),p.random(),p);
+    if(sampled.status==m1::BsdfSampleStatus::Invalid)return;
     if(sampled.status==m1::BsdfSampleStatus::Null){p.continueTrace=0;return;}
     const Vec3 direction=m1::normalize(frame.to_world(sampled.wi));
     const float geometric_cosine=m1::dot(normal,direction);
@@ -361,31 +482,39 @@ static __forceinline__ __device__ void hit(PRDSpectral& p) {
     }
     p.albedo*=sampled.weight;p.m1EtaScale*=sampled.eta_scale;
     if(!m1::finite(p.albedo)||p.albedo<0||!m1::finite(p.m1EtaScale)||!(p.m1EtaScale>0)){
-        fail(p);return;
+        fail(p,FailureReason::Throughput,{{sampled.weight,sampled.eta_scale}});return;
     }
     if(p.albedo==0){p.continueTrace=0;return;}
     // MIS PDFs are conditional on reaching this vertex and exclude RR in BOTH
     // strategies. Surviving path throughput alone is divided by survival.
     if(p.bounce+1>=int(optixLaunchParams.m1.rrDepth)) {
         const float rr_beta=p.albedo*p.m1EtaScale;
-        if(!m1::finite(rr_beta)){fail(p);return;}
+        if(!m1::finite(rr_beta)){fail(p,FailureReason::Roulette,{{rr_beta}});return;}
         const float survival=fminf(0.95f,rr_beta);
         if(!(survival>0)||p.random()>=survival){p.continueTrace=0;return;}
         p.albedo/=survival;
     }
     p.pdf.bxdf=sampled.pdf;p.m1PreviousDelta=sampled.delta;p.m1PreviousPosition=vector(position);
     p.wi=vector(direction);p.position=vector(offset(position,ng,direction));p.continueTrace=1;
-    if(!m1::finite(p.albedo)||!finite3(p.position)||!finite3(p.wi))fail(p);
+    if(!m1::finite(p.albedo)||!finite3(p.position)||!finite3(p.wi))
+        fail(p,FailureReason::Continuation,{{p.position.x,p.position.y,p.position.z,p.wi.x,p.wi.y,p.wi.z}});
 }
 
 static __forceinline__ __device__ void miss(PRDSpectral& p) {
+    p.m1FailureStage=FailureStage::Miss;
+    p.m1FailureContext={};
+    float le=0,pdf=0;
     if(!p.m1Invalid&&optixLaunchParams.m1.sunEnabled&&inside_sun(vector(p.wi))) {
-        const float le=sun_radiance(p.waveLength),pdf=sun_pdf();
-        if(!m1::finite(le)||le<0||!m1::finite(pdf)||!(pdf>0)){fail(p);return;}
+        le=sun_radiance(p.waveLength);pdf=sun_pdf();
+        if(!m1::finite(le)||le<0||!m1::finite(pdf)||!(pdf>0)){
+            fail(p,FailureReason::SunParameters,{{le,pdf,optixLaunchParams.m1.sunAngularRadiusRad,
+                 optixLaunchParams.m1.sunScale}});return;
+        }
         p.contribution+=p.albedo*le*light_hit_weight(p,pdf);
     }
     p.continueTrace=0;
-    if(!m1::finite(p.contribution)||p.contribution<0)fail(p);
+    if(!m1::finite(p.contribution)||p.contribution<0)
+        fail(p,FailureReason::MissContribution,{{le,pdf}});
 }
 
 static __forceinline__ __device__ void render_frame() {
@@ -398,6 +527,7 @@ static __forceinline__ __device__ void render_frame() {
     for(int sample=0;sample<optixLaunchParams.frame.numPixelSamples;++sample) {
         p.contribution=0;p.albedo=1;p.continueTrace=1;p.bounce=0;
         p.pdf.bxdf=0;p.m1PreviousDelta=true;p.m1Invalid=false;p.m1EtaScale=1;
+        p.m1SampleIndex=unsigned(sample);p.m1FailureStage=FailureStage::Camera;p.m1FailureContext={};
         p.m1PrimaryNormal=make_float3(0);p.m1PrimaryAlbedo=make_float3(0);
         const float minimum=optixLaunchParams.spectral.wavelengthMin;
         const float range=optixLaunchParams.spectral.wavelengthMax-minimum;
@@ -409,7 +539,9 @@ static __forceinline__ __device__ void render_frame() {
         const LensRay ray=optixDirectCall<LensRay,const float2,const float,const float>(
             optixLaunchParams.camera.cameraMode,screen,p.random(),p.random());
         p.position=ray.org;p.wi=vector(m1::normalize(vector(ray.dir)));p.m1PreviousPosition=ray.org;
-        if(!finite3(p.position)||!finite3(p.wi)||!m1::finite(ray.weight)||ray.weight<0)fail(p);
+        if(!finite3(p.position)||!finite3(p.wi)||!m1::finite(ray.weight)||ray.weight<0)
+            fail(p,FailureReason::CameraRay,{{ray.org.x,ray.org.y,ray.org.z,
+                 ray.dir.x,ray.dir.y,ray.dir.z,ray.weight}});
         while(p.continueTrace&&!p.m1Invalid) {
             optixTrace(optixLaunchParams.traversable,p.position,p.wi,0.0f,CUDART_INF_F,0.0f,
                        OptixVisibilityMask(MASK_SURFACE),OPTIX_RAY_FLAG_NONE,
@@ -422,7 +554,9 @@ static __forceinline__ __device__ void render_frame() {
         const float3 rgb=make_float3(3.24096994f*xyz.x-1.53738318f*xyz.y-0.49861076f*xyz.z,
                                     -0.96924364f*xyz.x+1.87596750f*xyz.y+0.04155506f*xyz.z,
                                     0.05563008f*xyz.x-0.20397696f*xyz.y+1.05697151f*xyz.z);
-        if(!finite3(rgb))p.m1Invalid=true;
+        p.m1FailureStage=FailureStage::Film;
+        if(!finite3(rgb))fail(p,FailureReason::FilmConversion,
+            {{xyz.x,xyz.y,xyz.z,rgb.x,rgb.y,rgb.z,ray.weight,p.pdf.spectral}});
         if(p.m1Invalid) {
             if(optixLaunchParams.m1.invalidSamples)atomicAdd(optixLaunchParams.m1.invalidSamples,1u);
             // The host rejects the entire frame when this diagnostic is nonzero.
@@ -432,6 +566,8 @@ static __forceinline__ __device__ void render_frame() {
         normal_mean+=(p.m1PrimaryNormal-normal_mean)/float(sample+1);
         albedo_mean+=(p.m1PrimaryAlbedo-albedo_mean)/float(sample+1);
         if(!finite3(mean)||!finite3(normal_mean)||!finite3(albedo_mean)) {
+            fail(p,FailureReason::SampleMean,{{mean.x,mean.y,mean.z,normal_mean.x,normal_mean.y,normal_mean.z,
+                 albedo_mean.x,albedo_mean.y,albedo_mean.z}});
             if(optixLaunchParams.m1.invalidSamples)atomicAdd(optixLaunchParams.m1.invalidSamples,1u);
         }
     }
@@ -455,6 +591,9 @@ static __forceinline__ __device__ void render_frame() {
     if(optixLaunchParams.frame.normalBuffer)optixLaunchParams.frame.normalBuffer[index]=normal_rgba;
     if(optixLaunchParams.frame.albedoBuffer)optixLaunchParams.frame.albedoBuffer[index]=albedo_rgba;
     if(!finite3(make_float3(rgba))||!finite3(make_float3(normal_rgba))||!finite3(make_float3(albedo_rgba))) {
+        p.m1FailureStage=FailureStage::Film;
+        fail(p,FailureReason::TemporalMean,{{rgba.x,rgba.y,rgba.z,normal_rgba.x,normal_rgba.y,normal_rgba.z,
+             albedo_rgba.x,albedo_rgba.y,albedo_rgba.z}});
         if(optixLaunchParams.m1.invalidSamples)atomicAdd(optixLaunchParams.m1.invalidSamples,1u);
     }
 }

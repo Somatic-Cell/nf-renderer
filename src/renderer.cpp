@@ -1,6 +1,7 @@
 #include "renderer.hpp"
 #include "texture.hpp"
 #include "m1/spectral_assets.hpp"
+#include "m1/failure_report.hpp"
 #include <optix_function_table_definition.h>
 #include <optix_stack_size.h>
 #include <optix_types.h>
@@ -9,9 +10,12 @@
 // #include <fstream>
 #include <algorithm>
 #include <cmath>
+#include <fstream>
+#include <iomanip>
 #include <limits>
 #include <mutex>
 #include <stdexcept>
+#include <sstream>
 #include <string.h>
 
 
@@ -90,6 +94,8 @@ void validateM1Geometry(const std::vector<const Model*>& models)
         }
         for (const auto* material : model->materials) {
             if (!material) throw std::invalid_argument("M1 material pointer is null");
+            if (!std::isfinite(material->opacity) || material->opacity < 0.0f || material->opacity > 1.0f)
+                throw std::invalid_argument("Material opacity must be in [0,1]");
             for (int id : {material->diffuseTextureID, material->normalTextureID,
                            material->rmTextureID, material->emissiveTextureID}) {
                 if (id >= 0 && static_cast<size_t>(id) >= model->textures.size()) {
@@ -1422,6 +1428,8 @@ void Renderer::render()
         }
         const uint32_t zero = 0;
         m_m1InvalidSampleCountBuffer.upload(&zero, 1);
+        const m1::FailureBuffer emptyFailure{};
+        m_m1FailureBuffer.upload(&emptyFailure, 1);
     }
     m_launchParamsBuffer.upload(&m_launchParams, 1);
     m_launchParams.frame.frameID ++;
@@ -1443,9 +1451,64 @@ void Renderer::render()
         uint32_t invalidSamples = 0;
         m_m1InvalidSampleCountBuffer.download(&invalidSamples, 1);
         if (invalidSamples != 0) {
+            m1::FailureBuffer failure{};
+            m_m1FailureBuffer.download(&failure, 1);
+            std::ostringstream message;
+            message.imbue(std::locale::classic());
+            message << std::setprecision(std::numeric_limits<float>::max_digits10)
+                    << "M1/M2 surface integrator reported " << invalidSamples
+                    << " invalid path/film events; the frame was not accepted\n";
+            if (failure.claimed != 0) {
+                message << m1::format_failure(failure.first) << '\n';
+                // Device material IDs index the concatenation of each model's
+                // material list. Resolve names only on failure, not per frame.
+                size_t materialBase = 0;
+                for (const auto* model : m_models) {
+                    const size_t id = failure.first.context.material;
+                    if (id >= materialBase && id - materialBase < model->materials.size()) {
+                        const auto* material = model->materials[id - materialBase];
+                        message << "material_name=" << std::quoted(material->name)
+                                << " two_sided=" << material->twoSided
+                                << " normal_texture=" << (material->normalTextureID >= 0) << '\n';
+                        break;
+                    }
+                    materialBase += model->materials.size();
+                }
+            } else {
+                message << "No failure record was written. Rebuild the executable and ALL shader modules together.\n";
+            }
+            message << "resolution=" << m_launchParams.frame.size.x << 'x' << m_launchParams.frame.size.y
+                    << " samples_per_frame=" << m_launchParams.frame.numPixelSamples
+                    << " max_bounce=" << m_launchParams.frame.maxBounce
+                    << " rr_depth=" << m_launchParams.m1.rrDepth
+                    << " direct_mode=" << m_launchParams.m1.directMode
+                    << " ray_epsilon=" << m_launchParams.m1.rayEpsilon << '\n'
+                    << "camera_from=(" << m_lastSetCamera.from.x << ',' << m_lastSetCamera.from.y << ',' << m_lastSetCamera.from.z << ")"
+                    << " camera_at=(" << m_lastSetCamera.at.x << ',' << m_lastSetCamera.at.y << ',' << m_lastSetCamera.at.z << ")"
+                    << " camera_up=(" << m_lastSetCamera.up.x << ',' << m_lastSetCamera.up.y << ',' << m_lastSetCamera.up.z << ")"
+                    << " fov=" << m_lastSetCamera.fov << '\n'
+                    << "sun_enabled=" << m_launchParams.m1.sunEnabled
+                    << " sun_scale=" << m_launchParams.m1.sunScale
+                    << " sun_angular_radius_rad=" << m_launchParams.m1.sunAngularRadiusRad
+                    << " sun_zenith_rad=" << m_launchParams.sunParams.sunZenithRad
+                    << " sun_azimuth_rad=" << m_launchParams.sunParams.sunAzimuthRad << '\n';
+            for (size_t i = 0; i < m_sceneDesc.objects.size(); ++i)
+                message << "object[" << i << "]=" << std::quoted(m_sceneDesc.objects[i].file) << '\n';
+
+            // Persist the full report even if a launched console closes after
+            // main catches the exception. A failed log write never hides it.
+            std::error_code pathError;
+            const auto logPath = std::filesystem::absolute("m1_failure.log", pathError);
+            std::ofstream log(pathError ? std::filesystem::path("m1_failure.log") : logPath,
+                              std::ios::app);
+            log << message.str() << '\n';
+            log.flush();
+            if (log)
+                message << "Diagnostic appended to " << (pathError ? "m1_failure.log" : logPath.u8string()) << '\n';
+            else
+                message << "Could not write m1_failure.log; the complete report is shown above.\n";
             m_launchParams.frame.frameID = 0;
-            throw std::runtime_error("M1 reported " + std::to_string(invalidSamples) +
-                                     " invalid path/film events; the frame was not accepted");
+            throw std::runtime_error(message.str());
         }
     }
 
@@ -1887,6 +1950,8 @@ void Renderer::createLightTable()
                 light.normal = crossEdges / twiceArea;
                 light.area = 0.5f * twiceArea;
                 light.constantEmission = material.emissive;
+                light.opacityFactor = material.opacity;
+                light.alphaCutoff = material.isOrca ? 0.5f : -1.0f;
                 light.meshIndex = static_cast<uint32_t>(meshIndex);
                 // The existing IAS creates one instance per flat mesh, with
                 // instanceId == meshIndex. Preserve that same identity here.
@@ -2014,6 +2079,9 @@ void Renderer::uploadSpectrumData()
         const uint32_t zero = 0;
         m_m1InvalidSampleCountBuffer.alloc(sizeof(zero));
         m_m1InvalidSampleCountBuffer.upload(&zero, 1);
+        const m1::FailureBuffer emptyFailure{};
+        m_m1FailureBuffer.alloc(sizeof(emptyFailure));
+        m_m1FailureBuffer.upload(&emptyFailure, 1);
 
         auto& m1Params = m_launchParams.m1;
         m1Params.cie = reinterpret_cast<const m1::CieSample*>(m_m1CieBuffer.getDevicePointer());
@@ -2026,6 +2094,7 @@ void Renderer::uploadSpectrumData()
         m1Params.rgb2specScale = reinterpret_cast<const float*>(m_m1Rgb2SpecScaleBuffer.getDevicePointer());
         m1Params.rgb2specData = reinterpret_cast<const float*>(m_m1Rgb2SpecDataBuffer.getDevicePointer());
         m1Params.invalidSamples = reinterpret_cast<uint32_t*>(m_m1InvalidSampleCountBuffer.getDevicePointer());
+        m1Params.failure = reinterpret_cast<m1::FailureBuffer*>(m_m1FailureBuffer.getDevicePointer());
         m_launchParams.spectral.wavelengthMin = m_wavelengthMin;
         m_launchParams.spectral.wavelengthMax = m_wavelengthMax;
         std::cout << "# M1: CIE/AM0/D65 tables and RGB2Spec uploaded; one wavelength per path in ["
@@ -2388,13 +2457,17 @@ void Renderer::loadAssets()
             matData.roughness   = mat->roughness;
             matData.metallic    = mat->metallic;
             matData.emissive    = mat->emissive;
+            matData.hasEmission = mat->isLight ? 1u : 0u;
+            matData.opacity = mat->opacity;
+            matData.twoSided = mat->twoSided ? 1u : 0u;
+            matData.alphaCutoff = mat->isOrca ? 0.5f : -1.0f;
 
             // material type
-            if(mat->isLight){
+            if(mat->isLight && mat->emissionOnly){
                 matData.materialType = MATERIAL_TYPE_LIGHT;
             } else if (mat->isGlass){
                 matData.materialType = MATERIAL_TYPE_GLASS;
-            } else if (mat->rmTextureID >= 0){
+            } else if (mat->rmTextureID >= 0 || mat->isOrca){
                 matData.materialType = MATERIAL_TYPE_PRINCIPLED_BRDF;
             } else {
                 matData.materialType = MATERIAL_TYPE_DIFFUSE;

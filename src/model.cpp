@@ -1,7 +1,15 @@
 #include "model.h"
+#include "m2/orca_material.hpp"
+#include "m2/orca_scene.hpp"
 
+#include <algorithm>
+#include <cmath>
+#include <cstring>
+#include <limits>
 #include <tuple>
 #include <set>
+#include <unordered_map>
+#include <utility>
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
@@ -23,8 +31,15 @@ public:
     bool load(const std::string &fbxFile, Model *model, const sceneIO::Object objectDesc);
 
 private:
-    void parseMesh(TriangleMesh & dstMesh, const aiMesh* pSrcMesh, const std::vector<Material*> materials);
+    void parseMesh(TriangleMesh & dstMesh, const aiMesh* pSrcMesh, const std::vector<Material*>& materials);
     void parseMaterial(Material& dstMaterial, const aiMaterial* pSrcMaterial, std::vector<Texture*>& textures, const std::string &fbxPath);
+    void parseOrcaMaterial(Material& dstMaterial, const aiMaterial& source,
+        std::vector<Texture*>& textures, const std::string& fbxPath);
+    int loadOrcaTexture(const m2::OrcaTextureBinding& binding, bool colorTexture,
+        const std::string& materialName, std::vector<Texture*>& textures, const std::string& fbxPath);
+    bool m_orca = false;
+    double m_metresPerUnit = 1.0;
+    std::unordered_map<std::string, int> m_textureCache;
 };
 
 MeshLoader::MeshLoader()
@@ -40,6 +55,12 @@ bool MeshLoader::load(const std::string &fileName, Model* model, const sceneIO::
         return false;
     }
 
+    if (objectDesc.materialProfile != "legacy" && objectDesc.materialProfile != "orca_metal_rough")
+        throw std::invalid_argument("Unsupported materialProfile: " + objectDesc.materialProfile);
+    m_orca = objectDesc.materialProfile == "orca_metal_rough";
+    m_metresPerUnit = 1.0;
+    m_textureCache.clear();
+
     Assimp::Importer importer;
     int flag = 0;
     flag |= aiProcess_Triangulate;              // 全ての面を三角形メッシュに統一
@@ -50,14 +71,31 @@ bool MeshLoader::load(const std::string &fileName, Model* model, const sceneIO::
     flag |= aiProcess_RemoveRedundantMaterials; // 未使用のマテリアルを削除して軽量化
     flag |= aiProcess_OptimizeMeshes;           // 複数のメッシュをまとめて描画効率を改善
 
+    if (m_orca) {
+        std::string extension = std::filesystem::u8path(fileName).extension().string();
+        std::transform(extension.begin(), extension.end(), extension.begin(), [](unsigned char c) {
+            return char(c >= 'A' && c <= 'Z' ? c + ('a' - 'A') : c);
+        });
+        if (extension != ".fbx")
+            throw std::invalid_argument("orca_metal_rough currently requires FBX axis/unit metadata");
+        m2::configure_orca_importer(importer);
+        // Keep authored material identities and require actual UV coordinates.
+        // Missing data must not turn into a generated/default-looking surface.
+        flag = static_cast<int>(m2::orca_import_flags);
+    }
+
     auto pScene = importer.ReadFile(fileName.c_str(), flag);
 
     if(pScene == nullptr){
         std::cerr << "Assimp Error: " << importer.GetErrorString() << std::endl;
         return false;
     }
-
-    
+    if (m_orca) {
+        m_metresPerUnit = m2::orca_metres_per_unit(*pScene);
+        if (!pScene->mRootNode || !pScene->mNumMeshes || !pScene->mMeshes)
+            throw std::runtime_error("ORCA FBX has no renderable scene meshes");
+        std::cout << "ORCA FBX metres per authored unit: " << m_metresPerUnit << std::endl;
+    }
 
     std::cout << "Detected " << pScene->mNumMeshes << "meshes." << std::endl;
     std::cout << "Detected " << pScene->mNumMaterials << "materials." << std::endl;
@@ -92,6 +130,15 @@ bool MeshLoader::load(const std::string &fileName, Model* model, const sceneIO::
         const auto pMaterial = pScene->mMaterials[i];
         parseMaterial(*model->materials[i], pMaterial, model->textures, fileName);
     }
+    if (m_orca) {
+        size_t textureBytes = 0;
+        for (const Texture* texture : model->textures)
+            textureBytes += static_cast<size_t>(texture->resolution.x) *
+                static_cast<size_t>(texture->resolution.y) * sizeof(uint32_t);
+        std::cout << "ORCA unique texture/color-role pairs: " << model->textures.size()
+                  << ", full-resolution RGBA8 base-mip storage: "
+                  << static_cast<double>(textureBytes) / (1024.0 * 1024.0) << " MiB" << std::endl;
+    }
 
     // ------------------------
     // メッシュデータの読み込み
@@ -110,6 +157,20 @@ bool MeshLoader::load(const std::string &fileName, Model* model, const sceneIO::
     }
 
     std::cout << "created a total of " << model->meshes.size() << "meshes" << std::endl;
+    if (m_orca) {
+        uint64_t triangles = 0;
+        size_t twoSided = 0, emissive = 0;
+        for (const TriangleMesh* mesh : model->meshes) triangles += mesh->index.size();
+        for (const Material* material : model->materials) {
+            twoSided += material->twoSided ? 1u : 0u;
+            emissive += material->isLight ? 1u : 0u;
+        }
+        std::cout << "ORCA profile summary: meshes=" << model->meshes.size()
+                  << ", triangles=" << triangles << ", materials=" << model->materials.size()
+                  << ", twoSided=" << twoSided << ", emissive=" << emissive
+                  << ", uniqueDecodedTextures=" << model->textures.size()
+                  << ", metresPerUnit=" << m_metresPerUnit << std::endl;
+    }
 
     // シーンを囲う Bounding Box を生成
     for(auto mesh : model->meshes){
@@ -159,12 +220,38 @@ bool MeshLoader::load(const std::string &fileName, Model* model, const sceneIO::
 }
 
 // Assimp の aiMesh フォーマットをパースし，このレンダラで使用する Mesh フォーマットに変換
-void MeshLoader::parseMesh(TriangleMesh & dstMesh, const aiMesh* pSrcMesh, const std::vector<Material*> materials)
+void MeshLoader::parseMesh(TriangleMesh & dstMesh, const aiMesh* pSrcMesh, const std::vector<Material*>& materials)
 {
+    if (!pSrcMesh || pSrcMesh->mMaterialIndex >= materials.size() ||
+        !materials[pSrcMesh->mMaterialIndex])
+        throw std::runtime_error("Mesh has an invalid material index");
     int materialID = pSrcMesh->mMaterialIndex;
     dstMesh.materialID = materialID;
 
     const Material& material = *materials[materialID];
+
+    const std::string meshLabel = "ORCA mesh '" + std::string(pSrcMesh->mName.C_Str()) +
+        "' (material '" + material.name + "'): ";
+    const auto meshError = [&](const std::string& error) {
+        throw std::runtime_error(meshLabel + error);
+    };
+    if (m_orca) {
+        if (!pSrcMesh->mNumVertices || !pSrcMesh->mVertices || !pSrcMesh->mNumFaces || !pSrcMesh->mFaces)
+            meshError("empty geometry");
+        if (!pSrcMesh->HasNormals()) meshError("authored vertex normals are missing");
+        const auto requireUV = [&](int textureID, unsigned int channel, const char* role) {
+            if (textureID < 0) return;
+            if (channel >= AI_MAX_NUMBER_OF_TEXTURECOORDS || !pSrcMesh->HasTextureCoords(channel) ||
+                pSrcMesh->mNumUVComponents[channel] != 2)
+                meshError(std::string(role) + " requires a valid 2D UV channel " + std::to_string(channel));
+        };
+        requireUV(material.diffuseTextureID, material.diffuseUVIndex, "BaseColor");
+        requireUV(material.normalTextureID, material.normalUVIndex, "Normal");
+        requireUV(material.rmTextureID, material.rmUVIndex, "ORM");
+        requireUV(material.emissiveTextureID, material.emissiveUVIndex, "Emissive");
+        if (material.normalTextureID >= 0 && !pSrcMesh->HasTangentsAndBitangents())
+            meshError("normal map has no valid tangent space");
+    }
     
     aiVector3D zero3D(0.0f, 0.0f, 0.0f);
     
@@ -194,7 +281,31 @@ void MeshLoader::parseMesh(TriangleMesh & dstMesh, const aiMesh* pSrcMesh, const
         const aiVector3D* pEmissiveTexCoord  = (pSrcMesh->HasTextureCoords(material.emissiveUVIndex))    ? &(pSrcMesh->mTextureCoords[material.emissiveUVIndex][i]) : &zero3D;
 
         
-        dstMesh.vertex[i]   = make_float3(pPosition->x, pPosition->y, pPosition->z);
+        const float3 position = make_float3(
+            static_cast<float>(static_cast<double>(pPosition->x) * m_metresPerUnit),
+            static_cast<float>(static_cast<double>(pPosition->y) * m_metresPerUnit),
+            static_cast<float>(static_cast<double>(pPosition->z) * m_metresPerUnit));
+        if (m_orca) {
+            const auto finite3 = [](const float3& v) {
+                return std::isfinite(v.x) && std::isfinite(v.y) && std::isfinite(v.z);
+            };
+            if (!finite3(position)) meshError("non-finite vertex position after metre conversion");
+            if (!finite3(normal) || !(dot(normal, normal) > 0.0f))
+                meshError("non-finite or zero vertex normal");
+            if (material.normalTextureID >= 0 &&
+                (!finite3(tangent) || !finite3(biTangent) || !(dot(tangent, tangent) > 0.0f) ||
+                 !(dot(biTangent, biTangent) > 0.0f)))
+                meshError("non-finite or zero tangent/bitangent");
+            const auto finiteUV = [&](int textureID, const aiVector3D& uv, const char* role) {
+                if (textureID >= 0 && (!std::isfinite(uv.x) || !std::isfinite(uv.y)))
+                    meshError(std::string(role) + " has a non-finite UV coordinate");
+            };
+            finiteUV(material.diffuseTextureID, *pDiffuseTexCoord, "BaseColor");
+            finiteUV(material.normalTextureID, *pNormalTexCoord, "Normal");
+            finiteUV(material.rmTextureID, *pDiffuseTexCoord, "ORM");
+            finiteUV(material.emissiveTextureID, *pEmissiveTexCoord, "Emissive");
+        }
+        dstMesh.vertex[i]   = position;
         dstMesh.normal[i]   = normal;
         dstMesh.tangent[i]  = make_float4(tangent, tanW);
         dstMesh.diffuseTexcoord[i]  = make_float2(pDiffuseTexCoord->x, pDiffuseTexCoord->y);        
@@ -207,18 +318,99 @@ void MeshLoader::parseMesh(TriangleMesh & dstMesh, const aiMesh* pSrcMesh, const
     for(auto i = 0u; i < pSrcMesh->mNumFaces; i++)
     {
         const auto& face  = (pSrcMesh->mFaces[i]);
-        assert(face.mNumIndices == 3);
+        if (face.mNumIndices != 3 || !face.mIndices ||
+            face.mIndices[0] >= pSrcMesh->mNumVertices || face.mIndices[1] >= pSrcMesh->mNumVertices ||
+            face.mIndices[2] >= pSrcMesh->mNumVertices)
+            throw std::runtime_error("Mesh '" + std::string(pSrcMesh->mName.C_Str()) + "' has an invalid triangle");
         dstMesh.index[i]   = make_uint3(face.mIndices[0], face.mIndices[1], face.mIndices[2]);
     }
 
     dstMesh.hasTangentSpace = pSrcMesh->HasTangentsAndBitangents();
     dstMesh.hasNormal       = pSrcMesh->HasNormals();
+    dstMesh.hasUVCoord      = pSrcMesh->HasTextureCoords(material.diffuseUVIndex);
 
+}
+
+int MeshLoader::loadOrcaTexture(const m2::OrcaTextureBinding& binding, bool colorTexture,
+    const std::string& materialName, std::vector<Texture*>& textures, const std::string& fbxPath)
+{
+    if (!binding.present()) return -1;
+    std::string relative = binding.path;
+    std::replace(relative.begin(), relative.end(), '\\', '/');
+    std::filesystem::path texturePath = std::filesystem::u8path(relative);
+    if (!texturePath.is_absolute())
+        texturePath = std::filesystem::u8path(fbxPath).parent_path() / texturePath;
+    std::error_code error;
+    if (!std::filesystem::is_regular_file(texturePath, error) || error)
+        m2::orca_material_error(materialName, "referenced texture is missing or not a regular file: " + binding.path);
+    texturePath = std::filesystem::canonical(texturePath, error);
+    if (error)
+        m2::orca_material_error(materialName, "cannot resolve texture: " + binding.path + ": " + error.message());
+    const auto utf8 = texturePath.generic_u8string();
+    const std::string textureName(utf8.begin(), utf8.end());
+    std::string cacheKey = textureName;
+#if defined(_WIN32)
+    // The verified asset paths are ASCII; match the Windows filesystem's case
+    // insensitivity as well as resolving separators, dot segments and symlinks.
+    std::transform(cacheKey.begin(), cacheKey.end(), cacheKey.begin(), [](unsigned char c) {
+        return char(c >= 'A' && c <= 'Z' ? c + ('a' - 'A') : c);
+    });
+#endif
+    cacheKey += colorTexture ? "|srgb" : "|linear";
+    const auto cached = m_textureCache.find(cacheKey);
+    if (cached != m_textureCache.end()) return cached->second;
+
+    static thread_local ComInit com;
+    LoadedTexture decoded;
+    if (!textureLoader(textureName, decoded, DXGI_FORMAT_R8G8B8A8_UNORM))
+        m2::orca_material_error(materialName, "cannot decode referenced texture: " + textureName);
+    if (textures.size() >= static_cast<size_t>((std::numeric_limits<int>::max)()))
+        throw std::length_error("Texture index exceeds the renderer's integer range");
+    auto texture = std::make_unique<Texture>();
+    texture->pixel = new uint32_t[decoded.pixels.size()];
+    std::memcpy(texture->pixel, decoded.pixels.data(), decoded.pixels.size() * sizeof(uint32_t));
+    texture->resolution = make_int2(static_cast<int>(decoded.width), static_cast<int>(decoded.height));
+    texture->isDiffuseTexture = colorTexture;
+    const int textureID = static_cast<int>(textures.size());
+    textures.push_back(texture.get());
+    texture.release();
+    m_textureCache.emplace(std::move(cacheKey), textureID);
+    return textureID;
+}
+
+void MeshLoader::parseOrcaMaterial(Material& dstMaterial, const aiMaterial& source,
+    std::vector<Texture*>& textures, const std::string& fbxPath)
+{
+    const m2::OrcaMaterial material = m2::read_orca_material(source);
+    dstMaterial.name = material.name;
+    dstMaterial.isOrca = true;
+    dstMaterial.emissionOnly = false;
+    dstMaterial.isGlass = false;
+    dstMaterial.twoSided = material.twoSided;
+    dstMaterial.opacity = material.opacity;
+    dstMaterial.diffuse = make_float3(material.baseColor[0], material.baseColor[1], material.baseColor[2]);
+    dstMaterial.roughness = material.roughness;
+    dstMaterial.metallic = material.metallic;
+    dstMaterial.emissive = make_float3(material.emission[0], material.emission[1], material.emission[2]);
+    dstMaterial.isLight = material.emission[0] > 0 || material.emission[1] > 0 || material.emission[2] > 0;
+    dstMaterial.diffuseUVIndex = material.baseColorTexture.uvIndex;
+    dstMaterial.normalUVIndex = material.normalTexture.uvIndex;
+    dstMaterial.rmUVIndex = material.ormTexture.uvIndex;
+    dstMaterial.emissiveUVIndex = material.emissiveTexture.uvIndex;
+    dstMaterial.diffuseTextureID = loadOrcaTexture(material.baseColorTexture, true, material.name, textures, fbxPath);
+    dstMaterial.normalTextureID = loadOrcaTexture(material.normalTexture, false, material.name, textures, fbxPath);
+    dstMaterial.rmTextureID = loadOrcaTexture(material.ormTexture, false, material.name, textures, fbxPath);
+    dstMaterial.emissiveTextureID = loadOrcaTexture(material.emissiveTexture, true, material.name, textures, fbxPath);
 }
 
 // Assimp の aiMesh フォーマットをパースし，このレンダラで使用する Mesh フォーマットに変換
 void MeshLoader::parseMaterial(Material& dstMaterial, const aiMaterial* pSrcMaterial, std::vector<Texture*>& textures, const std::string &fbxPath)
 {
+    if (!pSrcMaterial) throw std::runtime_error("Assimp returned a null material");
+    if (m_orca) {
+        parseOrcaMaterial(dstMaterial, *pSrcMaterial, textures, fbxPath);
+        return;
+    }
     int shading = 0;
     pSrcMaterial->Get(AI_MATKEY_SHADING_MODEL, shading);
 
@@ -262,6 +454,7 @@ void MeshLoader::parseMaterial(Material& dstMaterial, const aiMaterial* pSrcMate
     aiString materialName;
     pSrcMaterial->Get(AI_MATKEY_NAME, materialName);
     std::string nameStr(materialName.C_Str());
+    dstMaterial.name = nameStr;
 
     if((nameStr.find("Glass") != std::string::npos) || (nameStr.find("glass") != std::string::npos) || (nameStr.find("water") != std::string::npos) || (shading == aiShadingMode_Fresnel))
     {
@@ -299,8 +492,8 @@ void MeshLoader::parseMaterial(Material& dstMaterial, const aiMaterial* pSrcMate
             LoadedTexture tmpTextureDst;
             if(textureLoader(diffuseTexturePath.string(), tmpTextureDst, DXGI_FORMAT_R8G8B8A8_UNORM)){
                 Texture* diffuseColorTexture = new Texture();
-                diffuseColorTexture->pixel = new uint32_t[tmpTextureDst.width * tmpTextureDst.height];
-                std::memcpy(diffuseColorTexture->pixel, tmpTextureDst.pixels.data(), tmpTextureDst.width * tmpTextureDst.height * sizeof(uint32_t));
+                diffuseColorTexture->pixel = new uint32_t[tmpTextureDst.pixels.size()];
+                std::memcpy(diffuseColorTexture->pixel, tmpTextureDst.pixels.data(), tmpTextureDst.pixels.size() * sizeof(uint32_t));
                 dstMaterial.diffuseTextureID = textures.size();
                 diffuseColorTexture->resolution = make_int2(tmpTextureDst.width, tmpTextureDst.height);
                 diffuseColorTexture->isDiffuseTexture = true;
@@ -316,8 +509,8 @@ void MeshLoader::parseMaterial(Material& dstMaterial, const aiMaterial* pSrcMate
             LoadedTexture tmpTextureDst;
             if(textureLoader(diffuseTexturePath.string(), tmpTextureDst, DXGI_FORMAT_R8G8B8A8_UNORM)){
                 Texture* diffuseColorTexture = new Texture();
-                diffuseColorTexture->pixel = new uint32_t[tmpTextureDst.width * tmpTextureDst.height];
-                std::memcpy(diffuseColorTexture->pixel, tmpTextureDst.pixels.data(), tmpTextureDst.width * tmpTextureDst.height * sizeof(uint32_t));
+                diffuseColorTexture->pixel = new uint32_t[tmpTextureDst.pixels.size()];
+                std::memcpy(diffuseColorTexture->pixel, tmpTextureDst.pixels.data(), tmpTextureDst.pixels.size() * sizeof(uint32_t));
                 dstMaterial.diffuseTextureID = textures.size();
                 diffuseColorTexture->resolution = make_int2(tmpTextureDst.width, tmpTextureDst.height);
                 diffuseColorTexture->isDiffuseTexture = true;
@@ -340,8 +533,8 @@ void MeshLoader::parseMaterial(Material& dstMaterial, const aiMaterial* pSrcMate
             LoadedTexture tmpTextureDst;
             if(textureLoader(normalTexturePath.string(), tmpTextureDst, DXGI_FORMAT_R8G8B8A8_UNORM)){
                 Texture* normalTexture = new Texture();
-                normalTexture->pixel = new uint32_t[tmpTextureDst.width * tmpTextureDst.height];
-                std::memcpy(normalTexture->pixel, tmpTextureDst.pixels.data(), tmpTextureDst.width * tmpTextureDst.height * sizeof(uint32_t));
+                normalTexture->pixel = new uint32_t[tmpTextureDst.pixels.size()];
+                std::memcpy(normalTexture->pixel, tmpTextureDst.pixels.data(), tmpTextureDst.pixels.size() * sizeof(uint32_t));
                 dstMaterial.normalTextureID = textures.size();
                 normalTexture->resolution = make_int2(tmpTextureDst.width, tmpTextureDst.height);
                 textures.push_back(normalTexture);
@@ -363,8 +556,8 @@ void MeshLoader::parseMaterial(Material& dstMaterial, const aiMaterial* pSrcMate
             LoadedTexture tmpTextureDst;
             if(textureLoader(emissiveTexturePath.string(), tmpTextureDst, DXGI_FORMAT_R8G8B8A8_UNORM)){
                 Texture* emissiveTexture = new Texture();
-                emissiveTexture->pixel = new uint32_t[tmpTextureDst.width * tmpTextureDst.height];
-                std::memcpy(emissiveTexture->pixel, tmpTextureDst.pixels.data(), tmpTextureDst.width * tmpTextureDst.height * sizeof(uint32_t));
+                emissiveTexture->pixel = new uint32_t[tmpTextureDst.pixels.size()];
+                std::memcpy(emissiveTexture->pixel, tmpTextureDst.pixels.data(), tmpTextureDst.pixels.size() * sizeof(uint32_t));
                 dstMaterial.emissiveTextureID = textures.size();
                 emissiveTexture->resolution = make_int2(tmpTextureDst.width, tmpTextureDst.height);
                 // RGB colour textures are encoded sRGB; CUDA decodes them once.
@@ -450,8 +643,8 @@ void MeshLoader::parseMaterial(Material& dstMaterial, const aiMaterial* pSrcMate
             LoadedTexture tmpTextureDst;
             if(textureLoader(specularTexturePath.string(), tmpTextureDst, DXGI_FORMAT_R8G8B8A8_UNORM)){
                 Texture* rmTexture = new Texture();
-                rmTexture->pixel = new uint32_t[tmpTextureDst.width * tmpTextureDst.height];
-                std::memcpy(rmTexture->pixel, tmpTextureDst.pixels.data(), tmpTextureDst.width * tmpTextureDst.height * sizeof(uint32_t));
+                rmTexture->pixel = new uint32_t[tmpTextureDst.pixels.size()];
+                std::memcpy(rmTexture->pixel, tmpTextureDst.pixels.data(), tmpTextureDst.pixels.size() * sizeof(uint32_t));
                 dstMaterial.rmTextureID = textures.size();
                 rmTexture->resolution = make_int2(tmpTextureDst.width, tmpTextureDst.height);
                 textures.push_back(rmTexture);
@@ -501,15 +694,22 @@ Model *loadModel(const std::string &modelFileName, const sceneIO::Object objectD
     exePath = std::filesystem::path(pathBuffer);
 #endif
 
-    std::filesystem::path fbxDir = exePath.parent_path().parent_path().parent_path().parent_path() / "model/mesh" / modelFileName;
-    if (std::filesystem::path(modelFileName).is_absolute() || std::filesystem::exists(modelFileName))
-        fbxDir = std::filesystem::absolute(modelFileName);
-    else if (std::filesystem::exists(std::filesystem::path("model/mesh") / modelFileName))
-        fbxDir = std::filesystem::absolute(std::filesystem::path("model/mesh") / modelFileName);
+    const std::filesystem::path requestedPath = objectDesc.materialProfile == "orca_metal_rough"
+        ? std::filesystem::u8path(modelFileName) : std::filesystem::path(modelFileName);
+    std::filesystem::path fbxDir = exePath.parent_path().parent_path().parent_path().parent_path() / "model/mesh" / requestedPath;
+    if (requestedPath.is_absolute() || std::filesystem::exists(requestedPath))
+        fbxDir = std::filesystem::absolute(requestedPath);
+    else if (std::filesystem::exists(std::filesystem::path("model/mesh") / requestedPath))
+        fbxDir = std::filesystem::absolute(std::filesystem::path("model/mesh") / requestedPath);
     std::cout << "Model Path:" << fbxDir << std::endl;
 
     std::string err = "";
-    bool readOk = loader.load(fbxDir.string(), model.get(), objectDesc);
+    // M2 texture decoding expects UTF-8 paths (including a non-ASCII asset root).
+    // Keep the historical path encoding for the legacy branch.
+    const auto utf8Path = fbxDir.u8string();
+    const std::string inputPath = objectDesc.materialProfile == "orca_metal_rough"
+        ? std::string(utf8Path.begin(), utf8Path.end()) : fbxDir.string();
+    bool readOk = loader.load(inputPath, model.get(), objectDesc);
 
     if(!readOk) {
         throw std::runtime_error("Could not read model from " + fbxDir.string() + " : " + err);

@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include "spectral_types.hpp"
+#include "diagnostics.hpp"
 
 // Additional launch data for the M1 surface integrator.  The existing renderer,
 // SBT, geometry/material buffers and two-word PRD payload ABI remain in use.
@@ -29,4 +30,5 @@ struct M1RenderParams {
     // Counts rejected path samples and invalid film events; inspected by host.
     // Rejecting a non-finite sample is a reported failure, not a bias fix.
     uint32_t* invalidSamples = nullptr;
+    m1::FailureBuffer* failure = nullptr;
 };

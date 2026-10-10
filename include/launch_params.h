@@ -123,6 +123,12 @@ struct MaterialData {
     float   roughness;
     float   metallic;
     float3  emissive;
+    // Emission is independent of the surface BSDF. MATERIAL_TYPE_LIGHT still
+    // denotes an emission-only surface for the original M1 fixtures.
+    unsigned int hasEmission;
+    float opacity;
+    unsigned int twoSided;
+    float alphaCutoff; // -1: stochastic coverage (legacy); 0.5: ORCA mask
 
     TextureSlot diffuseTexture;
     TextureSlot normalTexture;
@@ -150,10 +156,12 @@ struct TriangleLightData {
     float2 uv0, uv1, uv2;
     TextureSlot emissiveTexture;
 
-    // Match the stochastic any-hit coverage, which uses diffuse texture alpha.
+    // Match the any-hit coverage model, which uses diffuse texture alpha.
     // Diffuse and emissive textures may use distinct UV sets.
     float2 opacityUV0, opacityUV1, opacityUV2;
     TextureSlot opacityTexture;
+    float opacityFactor = 1.0f;
+    float alphaCutoff = -1.0f;
 };
 
 struct SpectralParams {

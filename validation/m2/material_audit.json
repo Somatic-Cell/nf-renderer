@@ -1,0 +1,7518 @@
+{
+  "flags": 2097417,
+  "meshes": 220,
+  "materials": 220,
+  "fbx_ignore_up_direction": true,
+  "fbx_convert_to_meters": false,
+  "metres_per_unit": 1.0,
+  "material_records": [
+    {
+      "index": 0,
+      "name": "Painted_Metal2",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Painted_Metal_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Painted_Metal_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Painted_Metal_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 1,
+      "name": "Emissive_Light_4",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Emissive_Light_2_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Emissive_Light_2_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Emissive_Light_2_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 2,
+      "name": "Generic_2_Glass_Roof_Awning_Red2",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Generic_2_Glass_Roof_Awning_Red_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Generic_2_Glass_Roof_Awning_Red_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Generic_2_Glass_Roof_Awning_Red_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 3,
+      "name": "Generic_2_Frames_Trim2",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Generic_2_Frames_Trim_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Generic_2_Frames_Trim_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Generic_2_Frames_Trim_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 4,
+      "name": "Generic_2_Struts_Blue",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Generic_2_Struts_Blue_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Generic_2_Struts_Blue_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Generic_2_Struts_Blue_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 5,
+      "name": "Roof3",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Roof_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Roof_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Roof_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 6,
+      "name": "Generic_2_Struts_Red1",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Generic_2_Struts_Red_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Generic_2_Struts_Red_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Generic_2_Struts_Red_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 7,
+      "name": "Generic_2_Struts_Green1",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Generic_2_Struts_Green_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Generic_2_Struts_Green_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Generic_2_Struts_Green_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 8,
+      "name": "Painted_Metal4",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Painted_Metal_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Painted_Metal_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Painted_Metal_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 9,
+      "name": "Emissive_Light_6",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Emissive_Light_2_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Emissive_Light_2_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Emissive_Light_2_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 10,
+      "name": "Generic_2_Glass_Roof_Awning_Red3",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Generic_2_Glass_Roof_Awning_Red_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Generic_2_Glass_Roof_Awning_Red_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Generic_2_Glass_Roof_Awning_Red_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 11,
+      "name": "Generic_2_Frames_Trim3",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Generic_2_Frames_Trim_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Generic_2_Frames_Trim_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Generic_2_Frames_Trim_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 12,
+      "name": "Generic_2_Struts_Red2",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Generic_2_Struts_Red_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Generic_2_Struts_Red_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Generic_2_Struts_Red_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 13,
+      "name": "Painted_Metal5",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Painted_Metal_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Painted_Metal_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Painted_Metal_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 14,
+      "name": "Emissive_Light_7",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Emissive_Light_2_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Emissive_Light_2_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Emissive_Light_2_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 15,
+      "name": "StreetSigns",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\StreetSigns_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\StreetSigns_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\StreetSigns_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 16,
+      "name": "SteelBench",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\SteelBench_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\SteelBench_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\SteelBench_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 17,
+      "name": "Hydrant",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Hydrant_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Hydrant_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Hydrant_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 18,
+      "name": "Cap_02",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Cap_02_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Cap_02_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Cap_02_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 19,
+      "name": "JapaneseMapleLeaf_1.DoubleSided",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": true,
+      "base_color_texture": {
+        "path": "Textures\\JapaneseMapleLeaf_1_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\JapaneseMapleLeaf_1_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\JapaneseMapleLeaf_1_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 20,
+      "name": "JapaneseMapleLeaf_2.DoubleSided",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": true,
+      "base_color_texture": {
+        "path": "Textures\\JapaneseMapleLeaf_2_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\JapaneseMapleLeaf_2_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\JapaneseMapleLeaf_2_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 21,
+      "name": "JapaneseMapleBark",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\JapaneseMapleBark_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\JapaneseMapleBark_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\JapaneseMapleBark_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 22,
+      "name": "Glass_Signs",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Glass_Signs_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Glass_Signs_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Glass_Signs_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 23,
+      "name": "Roof",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Roof_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Roof_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Roof_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 24,
+      "name": "Arch",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Arch_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Arch_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Arch_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 25,
+      "name": "Metal_Dividers",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Metal_Dividers_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Metal_Dividers_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Metal_Dividers_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 26,
+      "name": "foliage_ground_cover4",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\foliage_ground_cover_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\foliage_ground_cover_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\foliage_ground_cover_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 27,
+      "name": "Road4",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Road_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Road_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Road_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 28,
+      "name": "Cap_08",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Cap_02_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Cap_02_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Cap_02_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 29,
+      "name": "JapaneseMapleLeaf_1.DoubleSided4",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": true,
+      "base_color_texture": {
+        "path": "Textures\\JapaneseMapleLeaf_1_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\JapaneseMapleLeaf_1_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\JapaneseMapleLeaf_1_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 30,
+      "name": "JapaneseMapleLeaf_2.DoubleSided4",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": true,
+      "base_color_texture": {
+        "path": "Textures\\JapaneseMapleLeaf_2_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\JapaneseMapleLeaf_2_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\JapaneseMapleLeaf_2_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 31,
+      "name": "JapaneseMapleBark4",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\JapaneseMapleBark_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\JapaneseMapleBark_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\JapaneseMapleBark_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 32,
+      "name": "ParkingMeter",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\ParkingMeter_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\ParkingMeter_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\ParkingMeter_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 33,
+      "name": "Signal",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Signal_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Signal_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Signal_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "Textures\\Signal_Emissive.dds",
+        "uv": 0
+      }
+    },
+    {
+      "index": 34,
+      "name": "Emissive_Light_Inst",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Emissive_Light_Inst_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Emissive_Light_Inst_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Emissive_Light_Inst_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "Textures\\Emissive_Light_Inst_Emissive.dds",
+        "uv": 0
+      }
+    },
+    {
+      "index": 35,
+      "name": "BikeRacks",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\BikeRacks_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\BikeRacks_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\BikeRacks_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 36,
+      "name": "Bollard",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Bollard_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Bollard_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Bollard_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 37,
+      "name": "Trash_Black",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Trash_Black_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Trash_Black_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Trash_Black_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 38,
+      "name": "Sign",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Sign_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Sign_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Sign_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 39,
+      "name": "Generic_2_Glass_Roof_Awning_Red",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Generic_2_Glass_Roof_Awning_Red_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Generic_2_Glass_Roof_Awning_Red_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Generic_2_Glass_Roof_Awning_Red_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 40,
+      "name": "Generic_2_Frames_Trim",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Generic_2_Frames_Trim_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Generic_2_Frames_Trim_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Generic_2_Frames_Trim_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 41,
+      "name": "Generic_2_Struts_Green",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Generic_2_Struts_Green_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Generic_2_Struts_Green_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Generic_2_Struts_Green_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 42,
+      "name": "Painted_Metal",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Painted_Metal_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Painted_Metal_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Painted_Metal_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 43,
+      "name": "Emissive_Light_2",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Emissive_Light_2_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Emissive_Light_2_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Emissive_Light_2_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 44,
+      "name": "Road",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Road_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Road_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Road_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 45,
+      "name": "foliage_ground_cover",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\foliage_ground_cover_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\foliage_ground_cover_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\foliage_ground_cover_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 46,
+      "name": "Recycling",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Recycling_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Recycling_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Recycling_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 47,
+      "name": "DumpsterBrown",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\DumpsterBrown_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\DumpsterBrown_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\DumpsterBrown_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 48,
+      "name": "511_Frames_Green",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\511_Frames_Green_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\511_Frames_Green_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\511_Frames_Green_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 49,
+      "name": "511_Struts_GrayBlue",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\511_Struts_GrayBlue_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\511_Struts_GrayBlue_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\511_Struts_GrayBlue_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 50,
+      "name": "511_Awning_Green",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\511_Awning_Green_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\511_Awning_Green_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\511_Awning_Green_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 51,
+      "name": "Floor",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Floor_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Floor_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Floor_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 52,
+      "name": "WorldGridMaterial",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\WorldGridMaterial_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\WorldGridMaterial_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\WorldGridMaterial_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 53,
+      "name": "Leasing",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Leasing_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Leasing_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Leasing_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 54,
+      "name": "PoleBanner_1",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\PoleBanner_1_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\PoleBanner_1_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\PoleBanner_1_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 55,
+      "name": "Chalkboard_1",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Chalkboard_1_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Chalkboard_1_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Chalkboard_1_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 56,
+      "name": "KWOW",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\KWOW_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\KWOW_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\KWOW_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 57,
+      "name": "Pink_Flower.DoubleSided",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": true,
+      "base_color_texture": {
+        "path": "Textures\\Pink_Flower_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Pink_Flower_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Pink_Flower_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 58,
+      "name": "Azalea_Leaves_2.DoubleSided",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": true,
+      "base_color_texture": {
+        "path": "Textures\\Azalea_Leaves_2_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Azalea_Leaves_2_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Azalea_Leaves_2_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 59,
+      "name": "Azalea_Leaves_1.DoubleSided",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": true,
+      "base_color_texture": {
+        "path": "Textures\\Azalea_Leaves_1_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Azalea_Leaves_1_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Azalea_Leaves_1_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 60,
+      "name": "Cap_01",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Cap_01_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Cap_01_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Cap_01_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 61,
+      "name": "FlowerStem_05",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\FlowerStem_05_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\FlowerStem_05_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\FlowerStem_05_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 62,
+      "name": "Planter",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Planter_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Planter_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Planter_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 63,
+      "name": "Trash",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Trash_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Trash_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Trash_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 64,
+      "name": "Chalkboard_Sign_5",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Chalkboard_Sign_5_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Chalkboard_Sign_5_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Chalkboard_Sign_5_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 65,
+      "name": "Chalboard_Material_3",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Chalboard_Material_3_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Chalboard_Material_3_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Chalboard_Material_3_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 66,
+      "name": "Chalkboard_Sign_2",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Chalkboard_Sign_2_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Chalkboard_Sign_2_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Chalkboard_Sign_2_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 67,
+      "name": "Chalkboard_Sign_7",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Chalkboard_Sign_7_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Chalkboard_Sign_7_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Chalkboard_Sign_7_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 68,
+      "name": "Green",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Green_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Green_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Green_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 69,
+      "name": "Red",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Red_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Red_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Red_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 70,
+      "name": "Blue",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Blue_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Blue_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Blue_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 71,
+      "name": "Boston_Fern_Fiddlehead.DoubleSided",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": true,
+      "base_color_texture": {
+        "path": "Textures\\Boston_Fern_Fiddlehead_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Boston_Fern_Fiddlehead_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Boston_Fern_Fiddlehead_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 72,
+      "name": "Boston_Fern_Leaflets_1.DoubleSided",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": true,
+      "base_color_texture": {
+        "path": "Textures\\Boston_Fern_Leaflets_1_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Boston_Fern_Leaflets_1_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Boston_Fern_Leaflets_1_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 73,
+      "name": "Boston_Fern_Stem",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Boston_Fern_Stem_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Boston_Fern_Stem_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Boston_Fern_Stem_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 74,
+      "name": "Bus_Etc",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Bus_Etc_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Bus_Etc_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Bus_Etc_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "Textures\\Bus_Etc_Emissive.dds",
+        "uv": 0
+      }
+    },
+    {
+      "index": 75,
+      "name": "Bus_Body",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Bus_Body_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Bus_Body_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Bus_Body_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 76,
+      "name": "Road5",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Road_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Road_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Road_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 77,
+      "name": "StreetSigns2",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\StreetSigns_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\StreetSigns_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\StreetSigns_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 78,
+      "name": "Hydrant",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Hydrant_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Hydrant_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Hydrant_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 79,
+      "name": "Emissive_Light_Inst2",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Emissive_Light_Inst_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Emissive_Light_Inst_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Emissive_Light_Inst_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "Textures\\Emissive_Light_Inst_Emissive.dds",
+        "uv": 0
+      }
+    },
+    {
+      "index": 80,
+      "name": "Signal2",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Signal_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Signal_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Signal_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "Textures\\Signal_Emissive.dds",
+        "uv": 0
+      }
+    },
+    {
+      "index": 81,
+      "name": "PoleBanner_3",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\PoleBanner_1_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\PoleBanner_1_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\PoleBanner_1_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 82,
+      "name": "ParkingMeter2",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\ParkingMeter_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\ParkingMeter_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\ParkingMeter_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 83,
+      "name": "Cap_06",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Cap_02_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Cap_02_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Cap_02_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 84,
+      "name": "JapaneseMapleLeaf_1.DoubleSided2",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": true,
+      "base_color_texture": {
+        "path": "Textures\\JapaneseMapleLeaf_1_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\JapaneseMapleLeaf_1_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\JapaneseMapleLeaf_1_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 85,
+      "name": "JapaneseMapleLeaf_2.DoubleSided2",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": true,
+      "base_color_texture": {
+        "path": "Textures\\JapaneseMapleLeaf_2_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\JapaneseMapleLeaf_2_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\JapaneseMapleLeaf_2_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 86,
+      "name": "JapaneseMapleBark2",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\JapaneseMapleBark_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\JapaneseMapleBark_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\JapaneseMapleBark_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 87,
+      "name": "Green2",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Green_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Green_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Green_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 88,
+      "name": "Falcor_Awning",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Falcor_Awning_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Falcor_Awning_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Falcor_Awning_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 89,
+      "name": "Road2",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Road_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Road_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Road_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 90,
+      "name": "foliage_ground_cover2",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\foliage_ground_cover_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\foliage_ground_cover_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\foliage_ground_cover_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 91,
+      "name": "Tower_Windows_Ball",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Tower_Windows_Ball_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Tower_Windows_Ball_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Tower_Windows_Ball_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 92,
+      "name": "Tower_Top",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Tower_Top_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Tower_Top_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Tower_Top_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 93,
+      "name": "Tower_Railing",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Tower_Railing_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Tower_Railing_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Tower_Railing_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 94,
+      "name": "Tower_Roof",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Tower_Roof_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Tower_Roof_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Tower_Roof_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 95,
+      "name": "Tower_Moulding_Roof",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Tower_Moulding_Roof_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Tower_Moulding_Roof_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Tower_Moulding_Roof_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 96,
+      "name": "Tower_Moulding_Big",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Tower_Moulding_Big_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Tower_Moulding_Big_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Tower_Moulding_Big_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 97,
+      "name": "Tower_Moulding_Observation",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Tower_Moulding_Observation_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Tower_Moulding_Observation_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Tower_Moulding_Observation_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 98,
+      "name": "Tower_Observation_Arch",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Tower_Observation_Arch_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Tower_Observation_Arch_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Tower_Observation_Arch_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 99,
+      "name": "Sheleg_Wood_Metal",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Sheleg_Wood_Metal_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Sheleg_Wood_Metal_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Sheleg_Wood_Metal_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 100,
+      "name": "Sheleg_Glass_Sign",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Sheleg_Glass_Sign_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Sheleg_Glass_Sign_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Sheleg_Glass_Sign_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 101,
+      "name": "Sheleg_Trim",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Sheleg_Trim_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Sheleg_Trim_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Sheleg_Trim_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 102,
+      "name": "Sheleg_1F_Concrete",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Sheleg_1F_Concrete_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Sheleg_1F_Concrete_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Sheleg_1F_Concrete_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 103,
+      "name": "Sheleg_2F_Concrete",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Sheleg_2F_Concrete_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Sheleg_2F_Concrete_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Sheleg_2F_Concrete_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 104,
+      "name": "Open",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Open_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Open_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Open_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 105,
+      "name": "Recycling2",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Recycling_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Recycling_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Recycling_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 106,
+      "name": "Trash2",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Trash_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Trash_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Trash_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 107,
+      "name": "Generic_2_Glass_Roof_Awning_Red1",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Generic_2_Glass_Roof_Awning_Red_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Generic_2_Glass_Roof_Awning_Red_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Generic_2_Glass_Roof_Awning_Red_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 108,
+      "name": "Generic_2_Frames_Trim1",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Generic_2_Frames_Trim_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Generic_2_Frames_Trim_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Generic_2_Frames_Trim_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 109,
+      "name": "Generic_2_Struts_Red",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Generic_2_Struts_Red_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Generic_2_Struts_Red_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Generic_2_Struts_Red_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 110,
+      "name": "Roof1",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Roof_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Roof_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Roof_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 111,
+      "name": "Banners1",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Banners1_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Banners1_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Banners1_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 112,
+      "name": "Sign2",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Sign_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Sign_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Sign_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 113,
+      "name": "Bus_Etc2",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Bus_Etc_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Bus_Etc_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Bus_Etc_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "Textures\\Bus_Etc_Emissive.dds",
+        "uv": 0
+      }
+    },
+    {
+      "index": 114,
+      "name": "Bus_Body2",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Bus_Body_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Bus_Body_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Bus_Body_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 115,
+      "name": "Red2",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Red_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Red_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Red_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 116,
+      "name": "Blue2",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Blue_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Blue_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Blue_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 117,
+      "name": "Floor1",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Floor_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Floor_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Floor_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 118,
+      "name": "WorldGridMaterial1",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\WorldGridMaterial_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\WorldGridMaterial_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\WorldGridMaterial_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 119,
+      "name": "511_Frames_BlueBlack",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\511_Frames_BlueBlack_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\511_Frames_BlueBlack_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\511_Frames_BlueBlack_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 120,
+      "name": "511_Struts_GrayBlue1",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\511_Struts_GrayBlue_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\511_Struts_GrayBlue_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\511_Struts_GrayBlue_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 121,
+      "name": "511_Awning_BlueBlack",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\511_Awning_BlueBlack_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\511_Awning_BlueBlack_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\511_Awning_BlueBlack_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 122,
+      "name": "Trash3",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Trash_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Trash_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Trash_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 123,
+      "name": "Red3",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Red_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Red_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Red_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 124,
+      "name": "StreetSigns3",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\StreetSigns_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\StreetSigns_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\StreetSigns_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 125,
+      "name": "Sign3",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Sign_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Sign_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Sign_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 126,
+      "name": "Painted_Metal3",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Painted_Metal_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Painted_Metal_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Painted_Metal_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 127,
+      "name": "Emissive_Light_5",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Emissive_Light_2_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Emissive_Light_2_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Emissive_Light_2_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 128,
+      "name": "Cap_07",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Cap_02_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Cap_02_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Cap_02_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 129,
+      "name": "JapaneseMapleLeaf_1.DoubleSided3",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": true,
+      "base_color_texture": {
+        "path": "Textures\\JapaneseMapleLeaf_1_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\JapaneseMapleLeaf_1_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\JapaneseMapleLeaf_1_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 130,
+      "name": "JapaneseMapleLeaf_2.DoubleSided3",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": true,
+      "base_color_texture": {
+        "path": "Textures\\JapaneseMapleLeaf_2_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\JapaneseMapleLeaf_2_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\JapaneseMapleLeaf_2_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 131,
+      "name": "JapaneseMapleBark3",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\JapaneseMapleBark_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\JapaneseMapleBark_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\JapaneseMapleBark_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 132,
+      "name": "Green3",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Green_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Green_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Green_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 133,
+      "name": "Chalkboard_Material_6",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Chalkboard_Material_6_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Chalkboard_Material_6_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Chalkboard_Material_6_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 134,
+      "name": "Chalkboard_Sign_4",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Chalkboard_Sign_4_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Chalkboard_Sign_4_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Chalkboard_Sign_4_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 135,
+      "name": "PoleBanner_5",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\PoleBanner_1_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\PoleBanner_1_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\PoleBanner_1_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 136,
+      "name": "Blue3",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Blue_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Blue_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Blue_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 137,
+      "name": "Emissive_Light_Inst3",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Emissive_Light_Inst_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Emissive_Light_Inst_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Emissive_Light_Inst_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "Textures\\Emissive_Light_Inst_Emissive.dds",
+        "uv": 0
+      }
+    },
+    {
+      "index": 138,
+      "name": "Signal3",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Signal_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Signal_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Signal_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "Textures\\Signal_Emissive.dds",
+        "uv": 0
+      }
+    },
+    {
+      "index": 139,
+      "name": "ParkingMeter3",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\ParkingMeter_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\ParkingMeter_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\ParkingMeter_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 140,
+      "name": "Bus_Etc3",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Bus_Etc_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Bus_Etc_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Bus_Etc_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "Textures\\Bus_Etc_Emissive.dds",
+        "uv": 0
+      }
+    },
+    {
+      "index": 141,
+      "name": "Bus_Body3",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Bus_Body_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Bus_Body_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Bus_Body_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 142,
+      "name": "hotel_moulding",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\hotel_moulding_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\hotel_moulding_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\hotel_moulding_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 143,
+      "name": "hotel_deco_awnings",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\hotel_deco_awnings_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\hotel_deco_awnings_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\hotel_deco_awnings_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 144,
+      "name": "hotel_arch",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\hotel_arch_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\hotel_arch_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\hotel_arch_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 145,
+      "name": "hotel_frames",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\hotel_frames_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\hotel_frames_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\hotel_frames_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 146,
+      "name": "hotel_windows",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\hotel_windows_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\hotel_windows_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\hotel_windows_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 147,
+      "name": "hotel_roof",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\hotel_roof_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\hotel_roof_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\hotel_roof_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 148,
+      "name": "Recycling3",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Recycling_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Recycling_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Recycling_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 149,
+      "name": "511_Frames_Brown",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\511_Frames_Brown_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\511_Frames_Brown_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\511_Frames_Brown_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 150,
+      "name": "511_Struts_GrayBlue2",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\511_Struts_GrayBlue_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\511_Struts_GrayBlue_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\511_Struts_GrayBlue_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 151,
+      "name": "Roof2",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Roof_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Roof_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Roof_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 152,
+      "name": "511_Awning_Green1",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\511_Awning_Green_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\511_Awning_Green_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\511_Awning_Green_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 153,
+      "name": "Hydrant",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Hydrant_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Hydrant_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Hydrant_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 154,
+      "name": "glass",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\glass_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\glass_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\glass_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 155,
+      "name": "frames",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\frames_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\frames_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\frames_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 156,
+      "name": "moulding_signs",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\moulding_signs_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\moulding_signs_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\moulding_signs_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 157,
+      "name": "arch_1f",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\arch_1f_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\arch_1f_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\arch_1f_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 158,
+      "name": "arch_midlevel_door",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\arch_midlevel_door_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\arch_midlevel_door_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\arch_midlevel_door_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 159,
+      "name": "Road3",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Road_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Road_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Road_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 160,
+      "name": "foliage_ground_cover3",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\foliage_ground_cover_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\foliage_ground_cover_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\foliage_ground_cover_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 161,
+      "name": "OpenHouse",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\OpenHouse_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\OpenHouse_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\OpenHouse_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 162,
+      "name": "Floor2",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Floor_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Floor_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Floor_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 163,
+      "name": "WorldGridMaterial2",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\WorldGridMaterial_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\WorldGridMaterial_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\WorldGridMaterial_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 164,
+      "name": "Bark",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Bark_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Bark_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Bark_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 165,
+      "name": "Hedge_Base.DoubleSided",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": true,
+      "base_color_texture": {
+        "path": "Textures\\Hedge_Base_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Hedge_Base_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Hedge_Base_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 166,
+      "name": "Hedge_Leaves_1.DoubleSided",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": true,
+      "base_color_texture": {
+        "path": "Textures\\Hedge_Leaves_1_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Hedge_Leaves_1_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Hedge_Leaves_1_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 167,
+      "name": "Hedge_Leaves_3.DoubleSided",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": true,
+      "base_color_texture": {
+        "path": "Textures\\Hedge_Leaves_3_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Hedge_Leaves_3_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Hedge_Leaves_3_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 168,
+      "name": "Bench",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Bench_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Bench_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Bench_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 169,
+      "name": "Hydrant",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Hydrant_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Hydrant_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Hydrant_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 170,
+      "name": "Emissive_Light_Inst1",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Emissive_Light_Inst_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Emissive_Light_Inst_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Emissive_Light_Inst_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "Textures\\Emissive_Light_Inst_Emissive.dds",
+        "uv": 0
+      }
+    },
+    {
+      "index": 171,
+      "name": "Signal1",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Signal_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Signal_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Signal_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "Textures\\Signal_Emissive.dds",
+        "uv": 0
+      }
+    },
+    {
+      "index": 172,
+      "name": "Pink_Flower.DoubleSided1",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": true,
+      "base_color_texture": {
+        "path": "Textures\\Pink_Flower_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Pink_Flower_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Pink_Flower_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 173,
+      "name": "Azalea_Leaves_2.DoubleSided1",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": true,
+      "base_color_texture": {
+        "path": "Textures\\Azalea_Leaves_2_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Azalea_Leaves_2_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Azalea_Leaves_2_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 174,
+      "name": "Azalea_Leaves_1.DoubleSided1",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": true,
+      "base_color_texture": {
+        "path": "Textures\\Azalea_Leaves_1_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Azalea_Leaves_1_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Azalea_Leaves_1_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 175,
+      "name": "Cap_05",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Cap_01_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Cap_01_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Cap_01_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 176,
+      "name": "FlowerStem_06",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\FlowerStem_05_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\FlowerStem_05_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\FlowerStem_05_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 177,
+      "name": "Cap_02",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Cap_02_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Cap_02_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Cap_02_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 178,
+      "name": "JapaneseMapleLeaf_1.DoubleSided1",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": true,
+      "base_color_texture": {
+        "path": "Textures\\JapaneseMapleLeaf_1_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\JapaneseMapleLeaf_1_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\JapaneseMapleLeaf_1_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 179,
+      "name": "JapaneseMapleLeaf_2.DoubleSided1",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": true,
+      "base_color_texture": {
+        "path": "Textures\\JapaneseMapleLeaf_2_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\JapaneseMapleLeaf_2_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\JapaneseMapleLeaf_2_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 180,
+      "name": "JapaneseMapleBark1",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\JapaneseMapleBark_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\JapaneseMapleBark_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\JapaneseMapleBark_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 181,
+      "name": "SteelBench1",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\SteelBench_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\SteelBench_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\SteelBench_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 182,
+      "name": "Trash1",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Trash_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Trash_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Trash_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 183,
+      "name": "Recycling1",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Recycling_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Recycling_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Recycling_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 184,
+      "name": "Bollard",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Bollard_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Bollard_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Bollard_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 185,
+      "name": "BikeRacks1",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\BikeRacks_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\BikeRacks_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\BikeRacks_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 186,
+      "name": "Painted_Metal1",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Painted_Metal_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Painted_Metal_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Painted_Metal_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 187,
+      "name": "Emissive_Light_3",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Emissive_Light_2_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Emissive_Light_2_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Emissive_Light_2_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 188,
+      "name": "StreetSigns1",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\StreetSigns_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\StreetSigns_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\StreetSigns_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 189,
+      "name": "Green1",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Green_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Green_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Green_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 190,
+      "name": "PoleBanner_2",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\PoleBanner_1_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\PoleBanner_1_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\PoleBanner_1_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 191,
+      "name": "Red1",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Red_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Red_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Red_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 192,
+      "name": "Cap_03",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Cap_03_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Cap_03_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Cap_03_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 193,
+      "name": "EuropeanLindenBark",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\EuropeanLindenBark_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\EuropeanLindenBark_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\EuropeanLindenBark_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 194,
+      "name": "EuropeanLindenLeaf.DoubleSided",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": true,
+      "base_color_texture": {
+        "path": "Textures\\EuropeanLindenLeaf_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\EuropeanLindenLeaf_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\EuropeanLindenLeaf_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 195,
+      "name": "EuropeanLindenLeaf_2.DoubleSided",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": true,
+      "base_color_texture": {
+        "path": "Textures\\EuropeanLindenLeaf_2_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\EuropeanLindenLeaf_2_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\EuropeanLindenLeaf_2_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 196,
+      "name": "Grass_blades.DoubleSided",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": true,
+      "base_color_texture": {
+        "path": "Textures\\Grass_blades_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Grass_blades_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Grass_blades_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 197,
+      "name": "Picnic_Table1",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Picnic_Table1_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Picnic_Table1_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Picnic_Table1_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 198,
+      "name": "Railing_Black",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Railing_Black_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Railing_Black_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Railing_Black_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 199,
+      "name": "DumpsterBrown1",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\DumpsterBrown_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\DumpsterBrown_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\DumpsterBrown_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 200,
+      "name": "Sign1",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Sign_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Sign_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Sign_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 201,
+      "name": "Cap_04",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Cap_03_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Cap_03_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Cap_03_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 202,
+      "name": "Cards.DoubleSided",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": true,
+      "base_color_texture": {
+        "path": "Textures\\Cards_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Cards_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Cards_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 203,
+      "name": "Leaves.DoubleSided",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": true,
+      "base_color_texture": {
+        "path": "Textures\\Leaves_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Leaves_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Leaves_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 204,
+      "name": "Leaves_2.DoubleSided",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": true,
+      "base_color_texture": {
+        "path": "Textures\\Leaves_2_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Leaves_2_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Leaves_2_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 205,
+      "name": "Bark",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Bark_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Bark_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Bark_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 206,
+      "name": "Road1",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Road_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Road_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Road_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 207,
+      "name": "foliage_ground_cover1",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\foliage_ground_cover_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\foliage_ground_cover_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\foliage_ground_cover_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 208,
+      "name": "Bus_Etc1",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Bus_Etc_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Bus_Etc_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Bus_Etc_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "Textures\\Bus_Etc_Emissive.dds",
+        "uv": 0
+      }
+    },
+    {
+      "index": 209,
+      "name": "Bus_Body1",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Bus_Body_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Bus_Body_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Bus_Body_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 210,
+      "name": "ParkingMeter1",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\ParkingMeter_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\ParkingMeter_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\ParkingMeter_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 211,
+      "name": "Trash_Black1",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Trash_Black_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Trash_Black_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Trash_Black_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 212,
+      "name": "Cap_03",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Cap_02_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Cap_02_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Cap_02_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 213,
+      "name": "WhiteOakBark",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\WhiteOakBark_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\WhiteOakBark_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\WhiteOakBark_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 214,
+      "name": "White_Oak_Leaves_Hero_1.DoubleSided",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": true,
+      "base_color_texture": {
+        "path": "Textures\\White_Oak_Leaves_Hero_1_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\White_Oak_Leaves_Hero_1_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\White_Oak_Leaves_Hero_1_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 215,
+      "name": "White_Oak_Leaves_Hero_3.DoubleSided",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": true,
+      "base_color_texture": {
+        "path": "Textures\\White_Oak_Leaves_Hero_3_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\White_Oak_Leaves_Hero_3_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\White_Oak_Leaves_Hero_3_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 216,
+      "name": "trampled_sand",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\trampled_sand_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\trampled_sand_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\trampled_sand_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 217,
+      "name": "Grass_Patterned",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Grass_Patterned_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Grass_Patterned_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Grass_Patterned_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 218,
+      "name": "PineForestFloor",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\PineForestFloor_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\PineForestFloor_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\PineForestFloor_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    },
+    {
+      "index": 219,
+      "name": "Blue1",
+      "base_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "roughness": 0.5,
+      "metallic": 0.5,
+      "opacity": 1.0,
+      "two_sided": false,
+      "base_color_texture": {
+        "path": "Textures\\Blue_BaseColor.dds",
+        "uv": 0
+      },
+      "normal_texture": {
+        "path": "Textures\\Blue_Normal.dds",
+        "uv": 0
+      },
+      "orm_texture": {
+        "path": "Textures\\Blue_Specular.dds",
+        "uv": 0
+      },
+      "emissive_texture": {
+        "path": "",
+        "uv": 0
+      }
+    }
+  ],
+  "errors": [],
+  "two_sided_materials": 29,
+  "emissive_materials": 12,
+  "texture_bindings": 672,
+  "unique_texture_paths": 336,
+  "missing_required_uv_bindings": 0,
+  "nonfinite_required_uvs": 0,
+  "invalid_material_indices": 0,
+  "vertices": 30139215,
+  "triangles": 10046405,
+  "emissive_triangles": 228374,
+  "emissive_geometric_area_m2": 864.2310852959399,
+  "degenerate_triangles": 9,
+  "degenerate_emissive_triangles": 0,
+  "invalid_positions": 0,
+  "invalid_normals": 0,
+  "invalid_tangents": 0,
+  "bounds_min_m": [
+    -115.11763763427734,
+    -4.928024768829346,
+    -115.1091079711914
+  ],
+  "bounds_max_m": [
+    115.01768493652344,
+    108.25066375732422,
+    115.05902099609375
+  ],
+  "passed": true
+}

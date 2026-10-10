@@ -1,0 +1,87 @@
+{
+  "repository": "Somatic-Cell/nf-renderer",
+  "commit": "b465de0d66a65b0877e93fac77cd6bd28d0a246f",
+  "files": [
+    {
+      "path": "CMakeLists.txt",
+      "sha": "f94bb1ce82a1100370bd6a25f6e6f7fda18ce839",
+      "error": false
+    },
+    {
+      "path": "include/application.hpp",
+      "sha": "0b00aa4d0f95043fda4c83a51d279cd5cce52ee4",
+      "error": false
+    },
+    {
+      "path": "include/launch_params.h",
+      "sha": "5723de69316107d004f3107871a385fafd131d93",
+      "error": false
+    },
+    {
+      "path": "include/model.h",
+      "sha": "3f142efd9e2797cadeadb80417d6456e345b8483",
+      "error": false
+    },
+    {
+      "path": "include/sceneDescIO.hpp",
+      "sha": "475536bc86dd68551837e6c786ea60a9d41394fb",
+      "error": false
+    },
+    {
+      "path": "include/texture.hpp",
+      "sha": "92b8cb597c7c3dd2f584fb6d6d493740c3714a4f",
+      "error": false
+    },
+    {
+      "path": "shaders/device/m1_surface.cuh",
+      "sha": "c65cd67d3b0656b0463bc3ca3621928e26dc09ff",
+      "error": false
+    },
+    {
+      "path": "shaders/entry/ah_radiance.cu",
+      "sha": "3979a3a526e018487b63025abea64b0004f2c1b2",
+      "error": false
+    },
+    {
+      "path": "shaders/entry/ah_shadow.cu",
+      "sha": "e3ec31d945a95b0a3d29a508d52a5285e3789e30",
+      "error": false
+    },
+    {
+      "path": "src/application.cpp",
+      "sha": "c23d422acdbd205fe14612af362e3a72190e918e",
+      "error": false
+    },
+    {
+      "path": "src/main.cpp",
+      "sha": "2ef7c5b0657ac1b12a35dbbe498017f142c3a302",
+      "error": false
+    },
+    {
+      "path": "src/model.cpp",
+      "sha": "7e3e06a30cead653db17a829514068adafe65571",
+      "error": false
+    },
+    {
+      "path": "src/renderer.cpp",
+      "sha": "688ab8ecc6e3e851207c3d2f3c6d4503ae7a19d5",
+      "error": false
+    },
+    {
+      "path": "src/texture.cpp",
+      "sha": "f94aea7a8edd5a4d081c75c9ff995699f4930aff",
+      "error": false
+    },
+    {
+      "path": "tests/m1/CMakeLists.txt",
+      "sha": "c0e6f3b3a3e4b6e8df724858485dc4cc1fe965e5",
+      "error": false
+    },
+    {
+      "path": "tests/test_m1_scene.cpp",
+      "sha": "bc850f139af5dbd337686e294b7023c155cc8d5b",
+      "error": false
+    }
+  ],
+  "all_16_modified_file_bases_match_github": true
+}

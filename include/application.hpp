@@ -71,6 +71,8 @@ public:
         );
 
         m_renderer.setCamera(camera);
+        m_renderer.setExposure(scene.display.exposure);
+        m_renderer.setWhite(scene.display.white);
         if (!scene.integrator.m1Surface)
             m_renderer.setEnvMap(scene.environment.file);
 
@@ -260,14 +262,14 @@ public:
             ImGui::Begin("For Spectral Rendering");
             ImGui::Text("Spectrum Data:");
             if (m_scene.integrator.m1Surface) {
-                ImGui::Text("M1: one wavelength per path, 360-830 nm");
+                ImGui::Text("One wavelength per path, 360-830 nm");
                 const auto progress = m_renderer.getLaunchParams();
                 ImGui::Text("Accumulated: %llu spp", static_cast<unsigned long long>(progress.frame.frameID) *
                             static_cast<unsigned long long>(progress.frame.numPixelSamples));
                 ImGui::Text("Reflectance: RGB2Spec / linear sRGB");
                 ImGui::Text("Sun: TSIS-1 HSRS v2; RGB emitters: CIE D65");
                 ImGui::Text("Direct lighting: %s", m_scene.integrator.m1DirectMode.c_str());
-                ImGui::Text("Vacuum (no atmospheric scattering in M1)");
+                ImGui::Text("Vacuum (surface rendering)");
             } else {
             ImGui::Text("XYZ CMF: %s\n", m_scene.spectrum.xyzFuncFile.c_str());
             ImGui::Text("Basis function for reflectance: %s\n",  m_scene.spectrum.upSampleBasisFile.c_str());

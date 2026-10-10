@@ -1,0 +1,77 @@
+Start testing: Oct 10 20:29 KST
+----------------------------------------------------------
+1/4 Testing: m1_bsdf_check
+1/4 Test: m1_bsdf_check
+Command: "/workspace/scratch/6fbbff5708b2/nf-renderer-m2/build-m2-cpu/m1_bsdf_check"
+Directory: /workspace/scratch/6fbbff5708b2/nf-renderer-m2/build-m2-cpu
+"m1_bsdf_check" start time: Oct 10 20:29 KST
+Output:
+----------------------------------------------------------
+GGX alpha=1: albedo=0.3068528424 exact=0.3068528194 acceptance=0.5
+GGX alpha=0.200000003 cos_o=0.8999999762 albedo quadrature=0.6967915198 sampled=0.6967906612 PDF mass=0.9600190732 accepted=0.9600067139
+GGX alpha=0.200000003 cos_o=0.200000003 albedo quadrature=0.6673431858 sampled=0.6673428151 PDF mass=0.9487273378 accepted=0.9487495422
+GGX alpha=0.6999999881 cos_o=0.8999999762 albedo quadrature=0.3801558832 sampled=0.3801558749 PDF mass=0.6848344995 accepted=0.6848487854
+GGX alpha=0.6999999881 cos_o=0.200000003 albedo quadrature=0.5471985694 sampled=0.5471984207 PDF mass=0.8831377176 accepted=0.8831520081
+MIS + RR constant illumination estimate=0.7004681698 expected=0.6999999881
+Existing metallic model: albedo quadrature=0.6164091377 sampled=0.6167723749 PDF mass=0.9557935299 accepted=0.9563331604
+Shading-normal support: acceptance=0.7499885559 exact=0.75
+M1 BSDF tests: 9 groups passed
+<end of output>
+Test time =   0.67 sec
+----------------------------------------------------------
+Test Passed.
+"m1_bsdf_check" end time: Oct 10 20:29 KST
+"m1_bsdf_check" time elapsed: 00:00:00
+----------------------------------------------------------
+
+2/4 Testing: m2_alpha_check
+2/4 Test: m2_alpha_check
+Command: "/workspace/scratch/6fbbff5708b2/nf-renderer-m2/build-m2-cpu/m2_alpha_check"
+Directory: /workspace/scratch/6fbbff5708b2/nf-renderer-m2/build-m2-cpu
+"m2_alpha_check" start time: Oct 10 20:29 KST
+Output:
+----------------------------------------------------------
+legacy alpha: BSDF=4 NEE=4 MIS=4 exact=4; double-alpha mutation=1.4375
+M2 alpha: cutoff boundaries, opacity composition, endpoint/MIS consistency, double-weighting sensitivity and invalid-input rejection passed
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"m2_alpha_check" end time: Oct 10 20:29 KST
+"m2_alpha_check" time elapsed: 00:00:00
+----------------------------------------------------------
+
+3/4 Testing: m1_spectral_check
+3/4 Test: m1_spectral_check
+Command: "/workspace/scratch/6fbbff5708b2/nf-renderer-m2/build-m2-cpu/m1_spectral_check" "/workspace/scratch/6fbbff5708b2/nf-renderer-m2/spectrum/m1"
+Directory: /workspace/scratch/6fbbff5708b2/nf-renderer-m2/build-m2-cpu
+"m1_spectral_check" start time: Oct 10 20:29 KST
+Output:
+----------------------------------------------------------
+RGB2Spec official/common parity: 10126 colors, max evaluation abs error 7.56979e-06
+M1 spectral asset tests passed
+<end of output>
+Test time =   0.08 sec
+----------------------------------------------------------
+Test Passed.
+"m1_spectral_check" end time: Oct 10 20:29 KST
+"m1_spectral_check" time elapsed: 00:00:00
+----------------------------------------------------------
+
+4/4 Testing: m1_scene_check
+4/4 Test: m1_scene_check
+Command: "/workspace/scratch/6fbbff5708b2/nf-renderer-m2/build-m2-cpu/m1_scene_check" "/workspace/scratch/6fbbff5708b2/nf-renderer-m2"
+Directory: /workspace/scratch/6fbbff5708b2/nf-renderer-m2/build-m2-cpu
+"m1_scene_check" start time: Oct 10 20:29 KST
+Output:
+----------------------------------------------------------
+Scene selection: 9 M1 fixtures + 2 M2 presets + 2 legacy scenes; strict failures preserve inputs
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"m1_scene_check" end time: Oct 10 20:29 KST
+"m1_scene_check" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Oct 10 20:29 KST

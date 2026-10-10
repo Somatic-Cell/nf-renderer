@@ -13,6 +13,7 @@
 #include <vector>
 #include <cstdint>
 #include <cctype>
+#include <cmath>
 #include <stdexcept>
 
 #if defined(_WIN32)
@@ -41,6 +42,8 @@ namespace sceneIO {
         std::string name = "Cornell Box";
         std::string type = "mesh";
         std::string file = "CornellBox\\CornellBox-Original.obj";
+        // Explicit asset convention. Existing scenes retain the legacy loader.
+        std::string materialProfile = "legacy";
         Transform TRS{};
         bool placeCenterBBoxAtOrigin = true;
         bool placeOnGround = true;
@@ -93,12 +96,18 @@ namespace sceneIO {
         std::string m1AssetDirectory = "spectrum/m1";
     };
 
+    struct Display {
+        float exposure = 1.1f;
+        float white = 100.0f;
+    };
+
     struct Scene {
         std::vector<Object>     objects         {Object{}};
         Camera                  camera          {};
         Environment             environment     {};
         Integrator              integrator      {};
         Spectrum                spectrum        {};
+        Display                 display         {};
         bool                    enableGroundRendering {true};
     };
 
@@ -133,6 +142,9 @@ namespace sceneIO {
         v.name                      = j.value("name", v.name);
         v.type                      = j.value("type", v.type);
         v.file                      = j.value("file", v.file);
+        v.materialProfile           = j.value("materialProfile", v.materialProfile);
+        if (v.materialProfile != "legacy" && v.materialProfile != "orca_metal_rough")
+            throw std::invalid_argument("Unsupported materialProfile: " + v.materialProfile);
         v.TRS                       = j.value("TRS", v.TRS);
         v.placeCenterBBoxAtOrigin   = j.value("placeCenterBBoxAtOrigin", v.placeCenterBBoxAtOrigin);
         v.placeOnGround             = j.value("placeOnGround", v.placeOnGround);
@@ -144,6 +156,7 @@ namespace sceneIO {
             {"name",                    v.name},
             {"type",                    v.type},
             {"file",                    v.file},
+            {"materialProfile",         v.materialProfile},
             {"TRS",                     v.TRS},
             {"placeCenterBBoxAtOrigin", v.placeCenterBBoxAtOrigin},
             {"placeOnGround",           v.placeOnGround},
@@ -246,12 +259,25 @@ namespace sceneIO {
 
 
 
+    inline void from_json(const nlohmann::ordered_json& j, Display& v){
+        v.exposure = j.value("exposure", v.exposure);
+        v.white = j.value("white", v.white);
+        if (!std::isfinite(v.exposure) || !(v.exposure > 0.0f) ||
+            !std::isfinite(v.white) || !(v.white > 0.0f))
+            throw std::invalid_argument("Display exposure and white must be finite and positive");
+    }
+
+    inline void to_json(nlohmann::ordered_json& j, const Display& v){
+        j = {{"exposure", v.exposure}, {"white", v.white}};
+    }
+
     inline void from_json(const nlohmann::ordered_json& j, Scene& v){
         if(j.contains("objects"))       v.objects       = j["objects"].get<std::vector<Object>>();
         if(j.contains("camera"))        v.camera        = j["camera"].get<Camera>();
         if(j.contains("environment"))   v.environment   = j["environment"].get<Environment>();
         if(j.contains("integrator"))    v.integrator    = j["integrator"].get<Integrator>();
         if(j.contains("spectrum"))      v.spectrum      = j["spectrum"].get<Spectrum>();
+        if(j.contains("display"))       v.display       = j["display"].get<Display>();
         v.enableGroundRendering                         = j.value("enableGroundRendering", v.enableGroundRendering);
     }
 
@@ -263,6 +289,7 @@ namespace sceneIO {
             {"environment", v.environment},
             {"integrator", v.integrator},
             {"spectrum", v.spectrum},
+            {"display", v.display},
             {"enableGroundRendering", v.enableGroundRendering}
         };
     }

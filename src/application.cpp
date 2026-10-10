@@ -92,6 +92,9 @@ void Application::save(std::string fileName)
         info["sun_azimuth_rad"] = params.sunParams.sunAzimuthRad;
         info["light_intensity_factor"] = params.light.lightIntensityFactor;
         info["ray_epsilon"] = params.m1.rayEpsilon;
+        info["display"] = {{"exposure", m_renderer.getExposure()},
+                           {"white", m_renderer.getWhite()}};
+        info["objects"] = m_scene.objects;
         info["camera"] = {
             {"from", {params.camera.position.x, params.camera.position.y, params.camera.position.z}},
             {"direction", {params.camera.direction.x, params.camera.direction.y, params.camera.direction.z}},

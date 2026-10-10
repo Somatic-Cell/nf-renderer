@@ -44,6 +44,8 @@ extern "C" int main(int ac, char **av)
       std::vector<const Model*> models;
       models.reserve(sceneDesc.objects.size());
       for(const auto& obj : sceneDesc.objects){
+          if(obj.materialProfile == "orca_metal_rough" && !sceneDesc.integrator.m1Surface)
+            throw std::invalid_argument("orca_metal_rough requires the spectral surface integrator (m1Surface=true)");
           if(obj.type != "mesh") {
             if (sceneDesc.integrator.m1Surface)
               throw std::invalid_argument("M1 objects must have type mesh: " + obj.name);
