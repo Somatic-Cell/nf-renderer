@@ -288,6 +288,13 @@ if(USE_OPTIX_IR)
         "-I${PROJECT_SOURCE_DIR}/include"
     )
 
+    if(MSVC)
+        list(APPEND OPTIX_NVCC_OPTIONS
+            "-Xcompiler=/utf-8"
+            "-Xcompiler=/Zc:__cplusplus"
+        )
+    endif()
+
     set(NANOVDB_INCLUDE_DIR "${EXT_DIR}/openvdb/nanovdb")
     list(APPEND
         OPTIX_NVCC_OPTIONS
