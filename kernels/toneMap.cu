@@ -1,4 +1,5 @@
 #include <cuda_runtime.h>
+#include <cstdint>
 #include "../utils/helper_math.h"
 #define _USE_MATH_DEFINES
 #include <math.h>
@@ -39,6 +40,9 @@ extern "C" __global__ void computeFinalPixelColorsKernel(uint32_t *finalColorBuf
     int pixelID = pixelX + size.x * pixelY;
 
     float4 f4 = denoisedBuffer[pixelID];
+    // Only the display projection clips out-of-gamut negative RGB values.
+    // Spectral film/PFM samples remain unclamped, including negative components.
+    f4 = make_float4(fmaxf(0.0f, f4.x), fmaxf(0.0f, f4.y), fmaxf(0.0f, f4.z), 1.0f);
     f4 = clamp(d_gammacorrect(d_toneMapLocal(f4 * exposure, white), 2.2f), 0.0f, 1.0f);
     uint32_t rgba = 0;
     rgba |= (uint32_t)(f4.x * 255.9f) <<  0;

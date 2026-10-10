@@ -1,0 +1,10 @@
+Dataset {
+    Sequence {
+        Float64 wavelength;
+        Structure {
+            Float64 irradiance;
+            Float64 uncertainty;
+            Float64 bandwidth;
+        } unknown;
+    } samples;
+} tsis1_hsrs_1nm;

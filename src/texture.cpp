@@ -43,6 +43,13 @@ bool textureLoader(
     DXGI_FORMAT targetFormat = DXGI_FORMAT_R8G8B8A8_UNORM 
 )
 {
+    // This loader preserves encoded RGB / data-channel values. Colour-space
+    // decoding is selected later by the texture's role in the CUDA sampler.
+    if (DirectX::IsSRGB(targetFormat)) {
+        std::cerr << "Texture storage format must be non-sRGB: " << imgFilePath << std::endl;
+        return false;
+    }
+
     DirectX::ScratchImage image;
     HRESULT hr = E_FAIL;
 
@@ -52,11 +59,21 @@ bool textureLoader(
     if(ext == "dds") {
         hr = DirectX::LoadFromDDSFile(wPath.c_str(), DirectX::DDS_FLAGS_NONE, nullptr, image);
     } else {
-        hr = DirectX::LoadFromWICFile(wPath.c_str(), DirectX::WIC_FLAGS_NONE, nullptr, image);
+        hr = DirectX::LoadFromWICFile(wPath.c_str(), DirectX::WIC_FLAGS_IGNORE_SRGB, nullptr, image);
     }
 
     if(FAILED(hr)) {
         std::cerr << "Failed to load texture: " << imgFilePath << std::endl;
+        return false;
+    }
+
+    // DDS can still carry an _SRGB format. OverrideFormat changes only the
+    // format metadata; MakeLinear selects its byte-compatible UNORM alias.
+    // Do this before decompress/convert, which otherwise implicitly decode
+    // _SRGB input. CUDA then decodes colour RGB once; normal/ARM data stays raw.
+    const DXGI_FORMAT storageFormat = DirectX::MakeLinear(image.GetMetadata().format);
+    if (storageFormat != image.GetMetadata().format && !image.OverrideFormat(storageFormat)) {
+        std::cerr << "Failed to preserve texture encoding: " << imgFilePath << std::endl;
         return false;
     }
 

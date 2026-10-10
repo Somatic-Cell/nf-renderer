@@ -1,0 +1,47 @@
+Internal ctest changing into directory: /workspace/scratch/6fbbff5708b2/NeuralPFRenderer-m1/build-m1-cpu-validated
+UpdateCTestConfiguration  from :/workspace/scratch/6fbbff5708b2/NeuralPFRenderer-m1/build-m1-cpu-validated/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/workspace/scratch/6fbbff5708b2/NeuralPFRenderer-m1/build-m1-cpu-validated/DartConfiguration.tcl
+Test project /workspace/scratch/6fbbff5708b2/NeuralPFRenderer-m1/build-m1-cpu-validated
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 1
+    Start 1: m1_bsdf_check
+
+1: Test command: /workspace/scratch/6fbbff5708b2/NeuralPFRenderer-m1/build-m1-cpu-validated/m1_bsdf_check
+1: Working Directory: /workspace/scratch/6fbbff5708b2/NeuralPFRenderer-m1/build-m1-cpu-validated
+1: Test timeout computed to be: 10000000
+1: GGX alpha=1: albedo=0.3068528424 exact=0.3068528194 acceptance=0.5
+1: GGX alpha=0.200000003 cos_o=0.8999999762 albedo quadrature=0.6967915198 sampled=0.6967906612 PDF mass=0.9600190732 accepted=0.9600067139
+1: GGX alpha=0.200000003 cos_o=0.200000003 albedo quadrature=0.6673431858 sampled=0.6673428151 PDF mass=0.9487273378 accepted=0.9487495422
+1: GGX alpha=0.6999999881 cos_o=0.8999999762 albedo quadrature=0.3801558832 sampled=0.3801558749 PDF mass=0.6848344995 accepted=0.6848487854
+1: GGX alpha=0.6999999881 cos_o=0.200000003 albedo quadrature=0.5471985694 sampled=0.5471984207 PDF mass=0.8831377176 accepted=0.8831520081
+1: MIS + RR constant illumination estimate=0.7004681698 expected=0.6999999881
+1: Existing metallic model: albedo quadrature=0.6164091377 sampled=0.6167723749 PDF mass=0.9557935299 accepted=0.9563331604
+1: Shading-normal support: acceptance=0.7499885559 exact=0.75
+1: M1 BSDF tests: 9 groups passed
+1/3 Test #1: m1_bsdf_check ....................   Passed    0.65 sec
+test 2
+    Start 2: m1_spectral_check
+
+2: Test command: /workspace/scratch/6fbbff5708b2/NeuralPFRenderer-m1/build-m1-cpu-validated/m1_spectral_check "/workspace/scratch/6fbbff5708b2/NeuralPFRenderer-m1/spectrum/m1"
+2: Working Directory: /workspace/scratch/6fbbff5708b2/NeuralPFRenderer-m1/build-m1-cpu-validated
+2: Test timeout computed to be: 10000000
+2: RGB2Spec official/common parity: 10126 colors, max evaluation abs error 7.56979e-06
+2: M1 spectral asset tests passed
+2/3 Test #2: m1_spectral_check ................   Passed    0.08 sec
+test 3
+    Start 3: m1_scene_check
+
+3: Test command: /workspace/scratch/6fbbff5708b2/NeuralPFRenderer-m1/build-m1-cpu-validated/m1_scene_check "/workspace/scratch/6fbbff5708b2/NeuralPFRenderer-m1"
+3: Working Directory: /workspace/scratch/6fbbff5708b2/NeuralPFRenderer-m1/build-m1-cpu-validated
+3: Test timeout computed to be: 10000000
+3: M1 scene selection: 9 fixtures + 2 legacy scenes; strict failures preserve inputs
+3/3 Test #3: m1_scene_check ...................   Passed    0.00 sec
+
+100% tests passed, 0 tests failed out of 3
+
+Total Test time (real) =   0.74 sec

@@ -1,4 +1,5 @@
 #include "../config.cuh"
+#include "../device/m1_surface.cuh"
 
 #include <optix.h>
 
@@ -61,6 +62,7 @@ extern "C" __global__ void __miss__radiance_rgb()
 
 extern "C" __global__ void __miss__radiance_spectral()
 {
+    if(optixLaunchParams.m1.enabled) { m1surface::miss(*getPRD<PRDSpectral>()); return; }
     PRDSpectral &prd = *getPRD<PRDSpectral>(); 
     
     float u, v;
@@ -120,6 +122,7 @@ extern "C" __global__ void __miss__radiance_noEnvMap_rgb()
 
 extern "C" __global__ void __miss__radiance_noEnvMap_spectral()
 {
+    if(optixLaunchParams.m1.enabled) { m1surface::miss(*getPRD<PRDSpectral>()); return; }
     PRDSpectral &prd = *getPRD<PRDSpectral>();
     prd.continueTrace = 0;
     // if(prd.bounce == 0){
@@ -131,6 +134,7 @@ extern "C" __global__ void __miss__radiance_noEnvMap_spectral()
 
 extern "C" __global__ void __miss__radiance_sky_spectral()
 {
+    if(optixLaunchParams.m1.enabled) { m1surface::miss(*getPRD<PRDSpectral>()); return; }
     PRDSpectral &prd = *getPRD<PRDSpectral>();
     const AtmosphereDeviceData& atmo = optixLaunchParams.atmo;
 

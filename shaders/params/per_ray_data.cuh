@@ -40,7 +40,7 @@ struct PRDSpectral {
     // float3 primaryAlbedo;
     float contribution;
 
-    float  waveLength; // nm hero
+    float  waveLength; // one wavelength per path, in nm on the source table grid
     float  waveLengthNormalized; // 0-1, テクスチャフェッチ用
     
     struct{
@@ -54,6 +54,15 @@ struct PRDSpectral {
 
     uint instanceID;
 
+    // M1 uses albedo as scalar path throughput and contribution as accumulated
+    // spectral radiance. Wavelength PDF compensation is applied once in raygen.
+    float m1EtaScale=1.0f;
+    float3 m1PreviousPosition{};
+    float3 m1PrimaryNormal{};
+    float3 m1PrimaryAlbedo{};
+    bool m1PreviousDelta=true;
+    bool m1Invalid=false;
+
     // for HWSS
     // float4 beta;
     // float4 logPOrefix;
@@ -62,6 +71,7 @@ struct PRDSpectral {
 struct ShadowPRD {
     Random random;
     bool visible    {false};
+    bool m1Invalid  {false};
 };
 
 

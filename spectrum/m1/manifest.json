@@ -1,0 +1,159 @@
+{
+  "schema": "m1-spectral-assets-v1",
+  "prepared_date_utc": "2026-10-10",
+  "wavelength_unit": "nm",
+  "wavelength_min": 360.0,
+  "wavelength_max": 830.0,
+  "cie": {
+    "source": "CIE 1931 2 degree, CIE 018:2019 Table 6",
+    "doi": "10.25039/CIE.DS.xvudnb9b",
+    "samples": 471,
+    "step_nm": 1.0,
+    "license": "CC-BY-SA-4.0",
+    "interpolation": "linear",
+    "extrapolation": "zero"
+  },
+  "d65": {
+    "doi": "10.25039/CIE.DS.hjfjmt59",
+    "license": "CC-BY-SA-4.0",
+    "source_samples": 531,
+    "samples": 471,
+    "step_nm": 1.0,
+    "quantity": "relative spectral distribution",
+    "normalization_range_nm": [
+      360.0,
+      830.0
+    ],
+    "normalization": "trapz(D65_normalized*ybar)/trapz(ybar) = 1",
+    "normalization_quadrature": "trapezoidal rule, 1 nm grid, double precision",
+    "raw_y_integral_nm": 106.8569149167669,
+    "raw_d65_y_integral_nm": 10567.081562022116,
+    "multiplicative_normalization_factor": 0.010112244737544995,
+    "interpolation": "linear",
+    "extrapolation": "zero"
+  },
+  "solar": {
+    "source": "LASP LISIRD TSIS-1 HSRS, API tsis1_hsrs_1nm",
+    "version": "2",
+    "quantity": "TOA spectral irradiance normal to solar center",
+    "units": "W/m^2/nm",
+    "samples": 4701,
+    "sampling_step_nm": 0.1,
+    "spectral_bandwidth_nm": 1.0,
+    "transformation": "360..830 nm and first two columns selected verbatim; no resampling or normalization",
+    "interpolation": "linear",
+    "license": "CC-BY-4.0",
+    "version_license_evidence": "raw/TSIS_HSRS_v2_catalog_entry.json",
+    "publication_doi": "10.1029/2022EA002637"
+  },
+  "sources": [
+    {
+      "file": "CIE_xyz_1931_2deg.csv",
+      "url": "https://files.cie.co.at/Publications-datasets/CIE_xyz_1931_2deg.csv",
+      "sha256": "fa663e3535a7e0763a745993a1f0a192eb0275ac46ad2d1befd7626841e713c1",
+      "license": "CC-BY-SA-4.0"
+    },
+    {
+      "file": "CIE_xyz_1931_2deg.csv_metadata.json",
+      "url": "https://files.cie.co.at/Publications-datasets/CIE_xyz_1931_2deg.csv_metadata.json",
+      "sha256": "03abcaecf4e63d77045ef57c4514b52c8bb1a46dd18e1f93a50044a0f4f481c8",
+      "license": "CC-BY-SA-4.0"
+    },
+    {
+      "file": "tsis1_hsrs_1nm.csv",
+      "url": "https://lasp.colorado.edu/lisird/latis/dap/tsis1_hsrs_1nm.csv",
+      "sha256": "1cf3b07e6ac9669c429ad7ce9e92d50dfd741422efcfffa3d1e0eeb5f901616f",
+      "license": "CC-BY-4.0"
+    },
+    {
+      "file": "tsis1_hsrs_1nm.das",
+      "url": "https://lasp.colorado.edu/lisird/latis/dap/tsis1_hsrs_1nm.das",
+      "sha256": "d0015b9ec62d8fcca744340e00ef3a7252b1be9b72f2870aa991d5f12d49108f",
+      "license": "CC-BY-4.0"
+    },
+    {
+      "file": "tsis1_hsrs_1nm.dds",
+      "url": "https://lasp.colorado.edu/lisird/latis/dap/tsis1_hsrs_1nm.dds",
+      "sha256": "06cf52880e2c3eebb9af282c3e16bf7a33c52c91d7ad7f8e5826701a4806d332",
+      "license": "CC-BY-4.0"
+    },
+    {
+      "file": "CIE_std_illum_D65.csv",
+      "url": "https://files.cie.co.at/Publications-datasets/CIE_std_illum_D65.csv",
+      "sha256": "e76f210bffff3d552ef7113025da5f325d5dfec200dd4b878b1a2f3a507032cb",
+      "license": "CC-BY-SA-4.0"
+    },
+    {
+      "file": "CIE_std_illum_D65.csv_metadata_v2.json",
+      "url": "https://files.cie.co.at/Publications-datasets/CIE_std_illum_D65.csv_metadata_v2.json",
+      "sha256": "71994379b81c65db111f652e747a00b599b5456c2a8242e9a0d6f379f560a14e",
+      "license": "CC-BY-SA-4.0"
+    },
+    {
+      "file": "hybrid_reference_spectrum_1nm_resolution_c2022-11-30_with_unc.nc",
+      "url": "https://lasp.colorado.edu/lisird/resources/lasp/hsrs/v2/hybrid_reference_spectrum_1nm_resolution_c2022-11-30_with_unc.nc",
+      "sha256": "84073a2b0fb5088fae75348f9204b8e6894dfccd16ef991303e545fcd966b84f",
+      "license": "CC-BY-4.0"
+    }
+  ],
+  "rgb2spec": {
+    "repository": "https://github.com/mitsuba-renderer/rgb2spec",
+    "commit": "721145dedf2491851bd46ab8fd165955cb38ddaf",
+    "license": "BSD-3-Clause",
+    "generation": {
+      "method": "official rgb2spec_opt",
+      "resolution": 64,
+      "gamut": "sRGB",
+      "arguments": [
+        "64",
+        "srgb.coeff",
+        "sRGB"
+      ],
+      "compiler": "g++ (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0",
+      "flags": [
+        "-O3",
+        "-std=c++11",
+        "-pthread"
+      ],
+      "architecture": "x86_64",
+      "byte_order": "little",
+      "note": "Generated from the pinned unmodified official source."
+    }
+  },
+  "files": {
+    "cie_1931_2deg.csv": {
+      "sha256": "b841c7e91e12167e61eace9468afd82eac3937da98aaecc5b4c0a119d2a6f2a9",
+      "bytes": 23570
+    },
+    "solar_am0.csv": {
+      "sha256": "1c083f893fdd985c3423f25c73d17ec63aa87b77d46411c9af8e3429f607bb22",
+      "bytes": 116284
+    },
+    "d65_normalized.csv": {
+      "sha256": "706e21fd9f3a2c542c2071ec77359beac1c636aa7de45d1aa4a020707746f101",
+      "bytes": 11129
+    },
+    "srgb.coeff": {
+      "sha256": "1bb2e8bc757bdd90f2a8ae74e08011906697fcfa850e6e5534861577a9befeff",
+      "bytes": 9442108
+    }
+  },
+  "supporting_files": {
+    "raw/TSIS_HSRS_v2_catalog_entry.json": {
+      "sha256": "0dfaa8a70335be90ac51b946f460b5ed6b90f5e56f4d07b0b1a6045c16761a21",
+      "bytes": 10242
+    },
+    "raw/TSIS_CSV_NETCDF_VERIFICATION.json": {
+      "sha256": "7ce2585b6fa0fd4aa299f44471684ef48c13de5423081adf8572b3e68fc7c36f",
+      "bytes": 950
+    },
+    "licenses/CIE-DATA-NOTICE.md": {
+      "sha256": "8187f7ffd6cabc51541982a2bca5df94f669dfe60f5c45878d0d5729b02d9123",
+      "bytes": 1757
+    },
+    "licenses/TSIS-1-HSRS-NOTICE.md": {
+      "sha256": "130fa6c794bad66e38443ecab06e504a34ac9b1483603f7be13cbad2bbbd4c70",
+      "bytes": 2239
+    }
+  }
+}

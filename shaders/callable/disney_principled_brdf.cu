@@ -149,7 +149,7 @@ extern "C" __device__ float __direct_callable__brdf_principled_eval_spectral(con
 
     prd->pdf.bxdf = pdf;
 
-    const float F0 = lerp(0.04f, baseColor, metallic);
+    const float F0 = 0.04f + metallic * (baseColor - 0.04f);
 
     const float diffuseColor = evalLambertBRDF_Spectral(baseColor, wo, wi);
     const float specularColor = evalSpecularBRDF_Spectral(alpha, F0, wo, wi);

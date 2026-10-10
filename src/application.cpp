@@ -1,4 +1,6 @@
 #include "application.hpp"
+#include <fstream>
+#include <limits>
 
 
 Application::~Application()
@@ -21,7 +23,9 @@ void Application::save(std::string fileName)
     // レンダリング結果を CPU のメモリに転送
     m_renderer.downloadPixels(m_pixels.data());
     
-    const std::string saveFileName = "output\\" + fileName + std::string(".png");
+    const std::filesystem::path stem = std::filesystem::path("output") / fileName;
+    if (!stem.parent_path().empty()) std::filesystem::create_directories(stem.parent_path());
+    const std::string saveFileName = stem.string() + ".png";
 
     // 反転
     std::vector<uint32_t> flipped = m_pixels;
@@ -41,7 +45,66 @@ void Application::save(std::string fileName)
     uint32_t sizeY = (uint32_t)m_fbSize.y;
     uint32_t channel = 4;
 
-    fpng::fpng_encode_image_to_file(saveFileName.c_str(), pixels.data(), (uint32_t)m_fbSize.x, (uint32_t)m_fbSize.y, (uint32_t)4);
+    if (!fpng::fpng_encode_image_to_file(saveFileName.c_str(), pixels.data(), sizeX, sizeY, channel))
+        throw std::runtime_error("Could not write image: " + saveFileName);
+
+    if (m_scene.integrator.m1Surface) {
+        // The existing display/PNG path is tonemapped. Save the actual film
+        // separately for MIS/BSDF/NEE comparisons, including negative RGB values.
+        std::vector<float4> linear(m_pixels.size());
+        m_renderer.downloadLinearPixels(linear.data());
+        static_assert(sizeof(float) == 4 && std::numeric_limits<float>::is_iec559,
+                      "PFM export requires IEEE-754 binary32");
+        const uint32_t endianProbe = 1;
+        const bool littleEndian = *reinterpret_cast<const unsigned char*>(&endianProbe) == 1;
+        const std::string pfmPath = stem.string() + ".linear.pfm";
+        std::ofstream pfm(pfmPath, std::ios::binary);
+        if (!pfm) throw std::runtime_error("Could not open linear image: " + pfmPath);
+        pfm << "PF\n" << sizeX << ' ' << sizeY << '\n' << (littleEndian ? "-1.0\n" : "1.0\n");
+        // PFM rows run bottom to top; the existing framebuffer has that order.
+        for (const auto& p : linear) {
+            const float rgb[3] = {p.x, p.y, p.z};
+            pfm.write(reinterpret_cast<const char*>(rgb), sizeof(rgb));
+        }
+        pfm.close();
+        if (!pfm) throw std::runtime_error("Could not finish linear image: " + pfmPath);
+
+        const auto params = m_renderer.getLaunchParams();
+        nlohmann::ordered_json info;
+        info["schema"] = "NeuralPFRenderer-M1-film-v1";
+        info["encoding"] = "float32 linear sRGB from raw CIE XYZ integrals";
+        info["wavelength_nm"] = {params.spectral.wavelengthMin, params.spectral.wavelengthMax};
+        info["wavelength_pdf"] = "uniform; compensated exactly once in the film";
+        info["xyz_normalization"] = "none; no division by integral(ybar) and no 683 factor";
+        info["width"] = sizeX;
+        info["height"] = sizeY;
+        info["accumulated_frames"] = params.frame.frameID;
+        info["spp_per_frame"] = params.frame.numPixelSamples;
+        info["total_spp"] = uint64_t(params.frame.frameID) * uint64_t(params.frame.numPixelSamples);
+        info["direct_mode"] = m_scene.integrator.m1DirectMode;
+        info["seed"] = params.m1.seed;
+        info["max_bounce"] = params.frame.maxBounce;
+        info["rr_depth"] = params.m1.rrDepth;
+        info["sun_scale"] = params.m1.sunScale;
+        info["sun_enabled"] = bool(params.m1.sunEnabled);
+        info["sun_angular_radius_rad"] = params.m1.sunAngularRadiusRad;
+        info["sun_zenith_rad"] = params.sunParams.sunZenithRad;
+        info["sun_azimuth_rad"] = params.sunParams.sunAzimuthRad;
+        info["light_intensity_factor"] = params.light.lightIntensityFactor;
+        info["ray_epsilon"] = params.m1.rayEpsilon;
+        info["camera"] = {
+            {"from", {params.camera.position.x, params.camera.position.y, params.camera.position.z}},
+            {"direction", {params.camera.direction.x, params.camera.direction.y, params.camera.direction.z}},
+            {"mode", params.camera.cameraMode}, {"fov_degrees", params.camera.fov},
+            {"focal_length_mm", params.camera.focalLength}, {"f_value", params.camera.fValue},
+            {"focus_distance", params.camera.pintDist}, {"sensitivity", params.camera.sensitivity}
+        };
+        std::ofstream metadata(stem.string() + ".linear.json");
+        metadata << std::setw(2) << info << '\n';
+        metadata.close();
+        if (!metadata) throw std::runtime_error("Could not write linear image metadata");
+        std::cout << "Saved " << pfmPath << " (" << info["total_spp"] << " spp)" << std::endl;
+    }
 }
 
 void Application::draw() {

@@ -1,0 +1,24 @@
+{
+  "timestamp_utc": "2026-10-10T07:57:53.105997+00:00",
+  "command": [
+    "g++",
+    "-std=c++20",
+    "-O2",
+    "-Wall",
+    "-Wextra",
+    "-Wpedantic",
+    "-Werror",
+    "-Iinclude",
+    "tests/test_m1_bsdf.cpp",
+    "-o",
+    "/tmp/test_npr_m1_bsdf"
+  ],
+  "returncode": 0,
+  "stdout": "GGX alpha=1: albedo=0.3068528424 exact=0.3068528194 acceptance=0.5\nGGX alpha=0.200000003 cos_o=0.8999999762 albedo quadrature=0.6967915198 sampled=0.6967906612 PDF mass=0.9600190732 accepted=0.9600067139\nGGX alpha=0.200000003 cos_o=0.200000003 albedo quadrature=0.6673431858 sampled=0.6673428151 PDF mass=0.9487273378 accepted=0.9487495422\nGGX alpha=0.6999999881 cos_o=0.8999999762 albedo quadrature=0.3801558832 sampled=0.3801558749 PDF mass=0.6848344995 accepted=0.6848487854\nGGX alpha=0.6999999881 cos_o=0.200000003 albedo quadrature=0.5471985694 sampled=0.5471984207 PDF mass=0.8831377176 accepted=0.8831520081\nMIS + RR constant illumination estimate=0.7004681698 expected=0.6999999881\nExisting metallic model: albedo quadrature=0.6164091377 sampled=0.6167723749 PDF mass=0.9557935299 accepted=0.9563331604\nShading-normal support: acceptance=0.7499885559 exact=0.75\nM1 BSDF tests: 9 groups passed\n",
+  "gpu_executed": false,
+  "source_sha256": {
+    "tests/test_m1_bsdf.cpp": "a698234acaeed25807c16f49dbc838c41f74c8b906bc678fb8edec0416e4edaf",
+    "include/m1/bsdf.hpp": "80152334dbec0590b31c1dcb83269af5e5124bc114e84525e53b5190bde56c8f",
+    "include/m1/math.hpp": "8081b03e222391c384ecd98742ff85bfef7b178949776b86794d901dc628c604"
+  }
+}

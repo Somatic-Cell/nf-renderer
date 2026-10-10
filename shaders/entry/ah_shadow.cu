@@ -17,11 +17,17 @@ extern "C" __global__ void __anyhit__shadow()
     const TriangleMeshGeomData* __restrict__ mesh = &optixLaunchParams.meshes[meshIndex];
     const MaterialData* __restrict__ material = &optixLaunchParams.materials[materialIndex];
    
-    if(material->materialType == MATERIAL_TYPE_GLASS){
+    if(!optixLaunchParams.m1.enabled && material->materialType == MATERIAL_TYPE_GLASS){
         optixIgnoreIntersection();
         return;
     }
     ShadowPRD &prd = *getPRD<ShadowPRD>();
+
+    if(optixLaunchParams.m1.enabled && material->diffuseTexture.texture && !mesh->texcoord) {
+        prd.m1Invalid=true;
+        optixTerminateRay();
+        return;
+    }
 
     float opacity = 1.0f;     
     if(material->diffuseTexture.texture > 0){
@@ -46,6 +52,11 @@ extern "C" __global__ void __anyhit__shadow()
         opacity = tex2D<float4>(material->diffuseTexture.texture, diffuseTextureCoordinate.x, 1.0f - diffuseTextureCoordinate.y).w;
     }
 
+    if(optixLaunchParams.m1.enabled && (!isfinite(opacity)||opacity<0.0f||opacity>1.0f)) {
+        prd.m1Invalid=true;
+        optixTerminateRay();
+        return;
+    }
     if(opacity < 1.0f && opacity <= prd.random()){
         optixIgnoreIntersection();
         return;

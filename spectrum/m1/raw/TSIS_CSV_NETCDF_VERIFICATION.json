@@ -1,0 +1,22 @@
+{
+  "source_url": "https://lasp.colorado.edu/lisird/resources/lasp/hsrs/v2/hybrid_reference_spectrum_1nm_resolution_c2022-11-30_with_unc.nc",
+  "sha256": "84073a2b0fb5088fae75348f9204b8e6894dfccd16ef991303e545fcd966b84f",
+  "bytes": 622448,
+  "dataset_id": "final-v2_hybrid_reference_spectrum_1nm_resolution_c2022-11-30_with_unc.nc",
+  "date_created": "2022-11-30",
+  "csv_api": "https://lasp.colorado.edu/lisird/latis/dap/tsis1_hsrs_1nm.csv",
+  "columns": {
+    "wavelength": "Vacuum Wavelength",
+    "irradiance": "SSI",
+    "uncertainty": "SSI_UNC",
+    "bandwidth": "Wavelength_Band_Width"
+  },
+  "maximum_absolute_difference_csv_vs_netcdf": {
+    "wavelength": 4.547473508864641e-13,
+    "irradiance": 0.0,
+    "uncertainty": 0.0,
+    "bandwidth": 0.0
+  },
+  "samples_compared": 25281,
+  "result": "Irradiance, uncertainty, and bandwidth agree exactly in float64. Wavelength difference is below 5e-13 nm due to LaTiS decimal grid formatting."
+}

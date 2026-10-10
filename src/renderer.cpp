@@ -1,12 +1,17 @@
 #include "renderer.hpp"
 #include "texture.hpp"
+#include "m1/spectral_assets.hpp"
 #include <optix_function_table_definition.h>
+#include <optix_stack_size.h>
 #include <optix_types.h>
 // #include <filesystem>
 // #include <iostream>
 // #include <fstream>
 #include <algorithm>
+#include <cmath>
+#include <limits>
 #include <mutex>
+#include <stdexcept>
 #include <string.h>
 
 
@@ -51,9 +56,147 @@ struct __align__( OPTIX_SBT_RECORD_ALIGNMENT ) HitgroupRecord
     HitgroupSBTData data;
 };
 
+namespace {
+void validateM1Geometry(const std::vector<const Model*>& models)
+{
+    size_t meshCount = 0;
+    const auto finite3 = [](float3 p) {
+        return std::isfinite(p.x) && std::isfinite(p.y) && std::isfinite(p.z);
+    };
+    for (const auto* model : models) {
+        if (!model) throw std::invalid_argument("M1 model pointer is null");
+        meshCount += model->meshes.size();
+        // OptiX instance IDs use 24 bits; the existing renderer assigns one ID
+        // and two hitgroup records to each flat mesh.
+        if (meshCount > 0x01000000u) {
+            throw std::overflow_error("M1 mesh count exceeds the OptiX instance ID range");
+        }
+        const auto& matrix = model->modelMatrix;
+        for (const float4 row : {matrix.row0, matrix.row1, matrix.row2}) {
+            if (!finite3(make_float3(row)) || !std::isfinite(row.w)) {
+                throw std::invalid_argument("M1 instance transform contains a non-finite value");
+            }
+        }
+        const float determinant = dot(make_float3(matrix.row0),
+                                      cross(make_float3(matrix.row1), make_float3(matrix.row2)));
+        if (!std::isfinite(determinant) || determinant == 0.0f) {
+            throw std::invalid_argument("M1 instance transform must be invertible");
+        }
+        for (const auto* texture : model->textures) {
+            if (!texture || !texture->pixel || texture->resolution.x <= 0 || texture->resolution.y <= 0 ||
+                texture->resolution.x > std::numeric_limits<int32_t>::max() / 4) {
+                throw std::invalid_argument("M1 texture data or dimensions are invalid");
+            }
+        }
+        for (const auto* material : model->materials) {
+            if (!material) throw std::invalid_argument("M1 material pointer is null");
+            for (int id : {material->diffuseTextureID, material->normalTextureID,
+                           material->rmTextureID, material->emissiveTextureID}) {
+                if (id >= 0 && static_cast<size_t>(id) >= model->textures.size()) {
+                    throw std::invalid_argument("M1 material texture index is outside its model");
+                }
+            }
+        }
+        for (const auto* mesh : model->meshes) {
+            if (!mesh || mesh->vertex.empty() || mesh->index.empty() ||
+                mesh->vertex.size() > std::numeric_limits<uint32_t>::max() ||
+                mesh->index.size() > std::numeric_limits<uint32_t>::max()) {
+                throw std::invalid_argument("M1 requires nonempty, representable triangle meshes");
+            }
+            if (mesh->materialID < 0 || static_cast<size_t>(mesh->materialID) >= model->materials.size()) {
+                throw std::invalid_argument("M1 mesh material index is outside its model");
+            }
+            const Material& material = *model->materials[mesh->materialID];
+            if ((mesh->hasNormal && mesh->normal.size() != mesh->vertex.size()) ||
+                (mesh->hasTangentSpace && mesh->tangent.size() != mesh->vertex.size())) {
+                throw std::invalid_argument("M1 normal/tangent flags require matching vertex attributes");
+            }
+            if ((material.diffuseTextureID >= 0 || material.rmTextureID >= 0) &&
+                mesh->diffuseTexcoord.size() != mesh->vertex.size()) {
+                throw std::invalid_argument("M1 textured surface needs a diffuse UV per vertex");
+            }
+            if (material.emissiveTextureID >= 0 && mesh->emissiveTexcoord.size() != mesh->vertex.size()) {
+                throw std::invalid_argument("M1 textured emission needs an emissive UV per vertex");
+            }
+            if (material.normalTextureID >= 0 && mesh->normalTexcoord.size() != mesh->vertex.size()) {
+                throw std::invalid_argument("M1 normal map needs a normal UV per vertex");
+            }
+            if (material.rmTextureID >= 0 && material.rmUVIndex != material.diffuseUVIndex) {
+                throw std::invalid_argument("M1 roughness/metallic texture must use the diffuse UV set");
+            }
+            for (const float3 vertex : mesh->vertex) {
+                if (!finite3(vertex)) throw std::invalid_argument("M1 vertex contains a non-finite value");
+            }
+            for (const uint3 index : mesh->index) {
+                if (index.x >= mesh->vertex.size() || index.y >= mesh->vertex.size() ||
+                    index.z >= mesh->vertex.size()) {
+                    throw std::invalid_argument("M1 triangle index is outside its vertex array");
+                }
+            }
+        }
+    }
+    if (meshCount == 0) throw std::invalid_argument("M1 requires at least one triangle mesh");
+}
+} // namespace
+
 
 Renderer::Renderer(std::vector<const Model*> models, sceneIO::Scene sceneDesc) : m_models(models), m_sceneDesc(sceneDesc)
 {
+    if (m_sceneDesc.integrator.m1Surface) {
+        validateM1Geometry(m_models);
+        if (!m_sceneDesc.environment.file.empty()) {
+            throw std::invalid_argument("M1 surface rendering requires environment.file to be empty");
+        }
+        if (m_sceneDesc.enableGroundRendering) {
+            throw std::invalid_argument("M1 requires enableGroundRendering=false; supply ground as an ordinary mesh");
+        }
+        // M1 is the surface-only spectral milestone in the existing renderer.
+        // Reject volumes rather than silently switching them off in an image.
+        for (const auto& object : m_sceneDesc.objects) {
+            const std::string objectType = sceneIO::toLower(object.type);
+            if (objectType == "vdb" || objectType == "nvdb" || objectType == "volume" ||
+                sceneIO::isVolumeFile(std::filesystem::path(object.file))) {
+                throw std::invalid_argument("M1 surface rendering does not yet support volume objects");
+            }
+        }
+        if (m_sceneDesc.integrator.spp <= 0 || m_sceneDesc.integrator.maxBounce <= 0) {
+            throw std::invalid_argument("M1 spp and maxBounce must be positive");
+        }
+        const auto& settings = m_sceneDesc.integrator;
+        if (settings.m1RrDepth < 0 || !std::isfinite(settings.m1RayEpsilon) ||
+            !(settings.m1RayEpsilon > 0.0f)) {
+            throw std::invalid_argument("M1 RR depth must be nonnegative and ray epsilon positive and finite");
+        }
+        if (!std::isfinite(settings.m1SunScale) || settings.m1SunScale < 0.0f ||
+            !std::isfinite(settings.m1SunAngularRadiusDeg) ||
+            !(settings.m1SunAngularRadiusDeg > 0.0f && settings.m1SunAngularRadiusDeg < 90.0f) ||
+            !std::isfinite(settings.m1SunZenithDeg) ||
+            settings.m1SunZenithDeg < 0.0f || settings.m1SunZenithDeg > 180.0f ||
+            !std::isfinite(settings.m1SunAzimuthDeg)) {
+            throw std::invalid_argument("M1 sun needs a finite scale >= 0, radius in (0,90) degrees and zenith in [0,180]");
+        }
+        auto& m1 = m_launchParams.m1;
+        m1.enabled = 1;
+        if (settings.m1DirectMode == "mis") m1.directMode = 0;
+        else if (settings.m1DirectMode == "bsdf") m1.directMode = 1;
+        else if (settings.m1DirectMode == "nee") m1.directMode = 2;
+        else throw std::invalid_argument("M1 direct mode must be mis, bsdf or nee");
+        m1.rrDepth = static_cast<uint32_t>(settings.m1RrDepth);
+        m1.seed = settings.m1Seed;
+        m1.sunEnabled = settings.m1SunEnabled ? 1u : 0u;
+        m1.sunScale = settings.m1SunScale;
+        constexpr float radiansPerDegree = 0.01745329251994329577f;
+        m1.sunAngularRadiusRad = settings.m1SunAngularRadiusDeg * radiansPerDegree;
+        const float halfAngleSin = std::sin(0.5f * m1.sunAngularRadiusRad);
+        const float solidAngle = 12.56637061435917295385f * halfAngleSin * halfAngleSin;
+        if (!(solidAngle > 0.0f) || !std::isfinite(1.0f / solidAngle)) {
+            throw std::invalid_argument("M1 sun disk is too small for a finite single-precision sampling PDF");
+        }
+        m1.rayEpsilon = settings.m1RayEpsilon;
+        m_launchParams.sunParams.sunZenithRad = settings.m1SunZenithDeg * radiansPerDegree;
+        m_launchParams.sunParams.sunAzimuthRad = std::fmod(settings.m1SunAzimuthDeg, 360.0f) * radiansPerDegree;
+        m_sceneDesc.integrator.applySpectralRendering = true;
+    }
     m_optixModuleFileNames.resize(static_cast<int>(OptixModuleIdentifier::NUM_OPTIX_MODULE_IDENTIFIERS));
 #if defined(USE_OPTIX_IR)
     m_optixModuleFileNames[static_cast<int>(OptixModuleIdentifier::OPTIX_MODULE_ID_RAYGEN)]             = std::string("raygen.optixir");
@@ -116,12 +259,17 @@ Renderer::Renderer(std::vector<const Model*> models, sceneIO::Scene sceneDesc) :
     createPipeline();
     
     
-    std::cout << "# Atmospheric RT: load VDB data..." << std::endl;
-    loadVDB();
+    if (!m_sceneDesc.integrator.m1Surface) {
+        std::cout << "# Atmospheric RT: load VDB data..." << std::endl;
+        loadVDB();
+    }
 
     std::cout << "# Atmospheric RT: Building accelelation structure..." << std::endl;
     buildAccel();
     m_launchParams.traversable = m_iasHandle;
+
+    // MaterialData stores CUDA texture handles, so create them before its upload.
+    createTextures();
 
     std::cout << "# Atmospheric RT: Loading assets to GPU..." << std::endl;
     loadAssets();
@@ -129,9 +277,9 @@ Renderer::Renderer(std::vector<const Model*> models, sceneIO::Scene sceneDesc) :
     std::cout << "# Atmospheric RT: building shader binding table..." << std::endl;
     buildSBT();
 
-    createTextures();
-
-    loadAtmosphere();
+    if (!m_sceneDesc.integrator.m1Surface) {
+        loadAtmosphere();
+    }
     
     m_launchParamsBuffer.alloc(sizeof(m_launchParams)); 
     std::cout << "# Atmospheric RT: context, module, pipeline, etc, all set up ..." << std::endl;
@@ -147,13 +295,15 @@ Renderer::Renderer(std::vector<const Model*> models, sceneIO::Scene sceneDesc) :
     std::cout << "# Atmospheric RT: uploading spectrum data..." << std::endl;
     uploadSpectrumData();
 
-    std::cout << "# Atmospheric RT: uploading Mie data..." << std::endl;
-    loadMieData();
+    if (!m_sceneDesc.integrator.m1Surface) {
+        std::cout << "# Atmospheric RT: uploading Mie data..." << std::endl;
+        loadMieData();
 
 #if defined(PHASE_FUNCTION_NEURAL)
-    std::cout << "# Atmospheric RT: uploading Network Weights..." << std::endl;
-    buildNsfPackedWeightsCoopVec();
+        std::cout << "# Atmospheric RT: uploading Network Weights..." << std::endl;
+        buildNsfPackedWeightsCoopVec();
 #endif
+    }
     std::cout << "# Atmospheric RT: CUDA kernel fully set up..." << std::endl;
 
 
@@ -297,7 +447,9 @@ bool Renderer::buildAccel()
             triangleInput.triangleArray.numIndexTriplets    = (int)mesh.index.size();
             triangleInput.triangleArray.indexBuffer         = d_indices;
 
-            triangleInputFlags = OPTIX_GEOMETRY_FLAG_DISABLE_ANYHIT;  // 特別な設定を行わない
+            // Stochastic texture coverage must run once per primitive, even if
+            // a BVH build duplicates that primitive internally.
+            triangleInputFlags = OPTIX_GEOMETRY_FLAG_REQUIRE_SINGLE_ANYHIT_CALL;
             // MEMO: 
             // OPTIX_GEOMETRY_FLAG_NONE;  // 特別な設定を行わない
             // OPTIX_GEOMETRY_FLAG_DISABLE_ANYHIT : any_hit シェーダを無効化
@@ -544,7 +696,7 @@ bool Renderer::buildAccel()
         inst.instanceId     = meshID;
         inst.sbtOffset      = meshID * RAY_TYPE_COUNT;
         inst.visibilityMask = (unsigned int)MASK_SURFACE;
-        inst.flags          = OPTIX_INSTANCE_FLAG_DISABLE_ANYHIT;     // インスタンスの挙動を指定．
+        inst.flags          = OPTIX_INSTANCE_FLAG_NONE;     // Alpha coverage is handled by any-hit.
                                                             // OPTIX_INSTANCE_FLAG_NONE:                 デフォルト
                                                             // OPTIX_INSTANCE_FLAG_DISABLE_TRANSFORM:    transform 行列を無視 (ワールド座標に直置き)
                                                             // OPTIX_INSTANCE_FLAG_DISABLE_ANYHIT:       AnyHit シェーダを無視
@@ -1131,21 +1283,26 @@ void Renderer::createPipeline()
     ));
     if (sizeOfLog > 1) PRINT(log);
 
-    OPTIX_CHECK(optixPipelineSetStackSize
-                    (
-                        // スタックサイズを設定するパイプライン
-                        m_pipeline,
-                        // IS AH から呼び出される Direct callable のスタックサイズの要件
-                        2*1024,
-                        // Raygen, Miss, Hit から呼び出される Direct callable のスタックサイズの要件
-                        2*1024,
-                        // レイトレの深さや Any0Hit に備えるスタックの要件
-                        2*1024,
-                        // トレースに渡される操作可能なグラフの最大深さ
-                        2 // SINGLE IAS
-                    )
-    );
-    if(sizeOfLog > 1) PRINT(log);
+    // Preserve this renderer's program groups and trace-depth budget, but size
+    // the stacks from their compiled requirements instead of a fixed 2 KiB.
+    // Lens/BSDF/light direct callables do not invoke another OptiX callable;
+    // the call graph contains no continuation callables.
+    OptixStackSizes stackSizes{};
+    for (const auto programGroup : programGroups) {
+        OPTIX_CHECK(optixUtilAccumulateStackSizes(programGroup, &stackSizes, m_pipeline));
+    }
+    unsigned int directFromTraversal = 0;
+    unsigned int directFromState = 0;
+    unsigned int continuation = 0;
+    OPTIX_CHECK(optixUtilComputeStackSizes(
+        &stackSizes, m_pipelineLinkOptions.maxTraceDepth,
+        0, 1, // maximum continuation/direct callable depths
+        &directFromTraversal, &directFromState, &continuation));
+    OPTIX_CHECK(optixPipelineSetStackSize(
+        m_pipeline, directFromTraversal, directFromState, continuation,
+        2)); // Single IAS -> triangle/custom-primitive GAS.
+    std::cout << "# OptiX stack bytes: traversal=" << directFromTraversal
+              << ", state=" << directFromState << ", continuation=" << continuation << std::endl;
     
 }
 
@@ -1259,6 +1416,13 @@ void Renderer::render()
     if(! m_isAccumulate){
         m_launchParams.frame.frameID = 0;
     }
+    if (m_launchParams.m1.enabled) {
+        if (m_launchParams.frame.frameID == std::numeric_limits<int>::max()) {
+            throw std::overflow_error("M1 frame counter is exhausted; restart accumulation");
+        }
+        const uint32_t zero = 0;
+        m_m1InvalidSampleCountBuffer.upload(&zero, 1);
+    }
     m_launchParamsBuffer.upload(&m_launchParams, 1);
     m_launchParams.frame.frameID ++;
 
@@ -1272,7 +1436,18 @@ void Renderer::render()
         1
     ));
 
-    // CUDA_SYNC_CHECK();
+    if (m_launchParams.m1.enabled) {
+        // The frame is never presented as successful after a rejected sample.
+        // This also makes launch/runtime errors visible before tonemapping.
+        CUDA_CHECK(cudaStreamSynchronize(m_stream));
+        uint32_t invalidSamples = 0;
+        m_m1InvalidSampleCountBuffer.download(&invalidSamples, 1);
+        if (invalidSamples != 0) {
+            m_launchParams.frame.frameID = 0;
+            throw std::runtime_error("M1 reported " + std::to_string(invalidSamples) +
+                                     " invalid path/film events; the frame was not accepted");
+        }
+    }
 
     computeFinalPixelColors();
 
@@ -1307,15 +1482,39 @@ void Renderer::downloadPixels(uint32_t m_h_pixels[])
     m_finalColorBuffer.download(m_h_pixels, m_launchParams.frame.size.x * m_launchParams.frame.size.y);
 }
 
+void Renderer::downloadLinearPixels(float4* pixels)
+{
+    if (!pixels) throw std::invalid_argument("Linear pixel destination is null");
+    CUDA_CHECK(cudaStreamSynchronize(m_stream));
+    const size_t pixelCount = static_cast<size_t>(m_launchParams.frame.size.x) *
+                              static_cast<size_t>(m_launchParams.frame.size.y);
+    m_fbColor.download(pixels, pixelCount);
+}
+
 void Renderer::resize(const int2 &newSize)
 {
     if ((newSize.x == 0) || (newSize.y == 0)) return;
 
-    m_denoisedBuffer.resize(newSize.x * newSize.y * sizeof(float4));
-    m_fbColor.resize(newSize.x * newSize.y * sizeof(float4));
-    m_fbNormal.resize(newSize.x * newSize.y * sizeof(float4));
-    m_fbAlbedo.resize(newSize.x * newSize.y * sizeof(float4));
-    m_finalColorBuffer.resize(newSize.x * newSize.y * sizeof(uint32_t));
+    if (newSize.x < 0 || newSize.y < 0) {
+        throw std::invalid_argument("Framebuffer dimensions must be nonnegative");
+    }
+    const size_t pixelCount = static_cast<size_t>(newSize.x) * static_cast<size_t>(newSize.y);
+    if (pixelCount > static_cast<size_t>(std::numeric_limits<int>::max()) ||
+        pixelCount > std::numeric_limits<size_t>::max() / sizeof(float4)) {
+        throw std::overflow_error("Framebuffer dimensions exceed this renderer's index range");
+    }
+    if (m_launchParams.m1.enabled &&
+        pixelCount > std::numeric_limits<uint32_t>::max() /
+                     (static_cast<size_t>(m_launchParams.frame.numPixelSamples) + 1u)) {
+        // At most one diagnostic per path, plus one final film check per pixel.
+        throw std::overflow_error("M1 launch exceeds the diagnostic counter range");
+    }
+
+    m_denoisedBuffer.resize(pixelCount * sizeof(float4));
+    m_fbColor.resize(pixelCount * sizeof(float4));
+    m_fbNormal.resize(pixelCount * sizeof(float4));
+    m_fbAlbedo.resize(pixelCount * sizeof(float4));
+    m_finalColorBuffer.resize(pixelCount * sizeof(uint32_t));
 
     m_launchParams.frame.size           = newSize;
     m_launchParams.frame.colorBuffer    = (float4*)m_fbColor.getDevicePointer(); 
@@ -1439,6 +1638,14 @@ int Renderer::getRenderBufferType() const{
 
 void Renderer::setEnvMap(const std::string& envMapFileName)
 {
+    if (m_launchParams.m1.enabled) {
+        if (!envMapFileName.empty()) {
+            throw std::invalid_argument("M1 has no environment-map sampling strategy");
+        }
+        m_launchParams.envMapInfo.hasEnvMap = false;
+        m_launchParams.envMap = 0;
+        return;
+    }
 
     std::filesystem::path exePath;
     char pathBuffer[MAX_PATH] = {};
@@ -1624,78 +1831,99 @@ void Renderer::setEnvMap(const std::string& envMapFileName)
 
 void Renderer::createLightTable()
 {
-    //環境マップを光源として登録 (1枚だけ) 
-    // LightDefinition lightDefinition;
-    // lightDefinition.lightType = LIGHT_TYPE_ENV_SPHERE;
-    // lightDefinition.lightIndexInType = 0;
-
-    // m_lightDefinitionTable.push_back(lightDefinition);
-
-    // 空の LUT を登録
-    LightDefinition lightDefinition;
-    lightDefinition.lightType = LIGHT_TYPE_SKY;
-    lightDefinition.lightIndexInType = 0;
-    m_lightDefinitionTable.push_back(lightDefinition);
-
-    // 三角形の面光源を登録
+    m_lightDefinitionTable.clear();
     m_triangleLightDataTable.clear();
-
-    int numMeshes = 0;
-
-    for(auto* mdl : m_models){
-        for(int meshID = 0; meshID < (int)mdl->meshes.size(); ++meshID){
-            const TriangleMesh &mesh = *mdl->meshes[meshID];
-            const int materialID = mesh.materialID;
-            const Material& material = *mdl->materials[materialID];
-
-            
-            if(material.isLight ==  true){
-                const float3 constantEmission = material.emissive;
-                const bool hasEmissiveTexture = (material.emissiveTextureID >= 0);
-                for(int triangleID = 0; triangleID < mesh.index.size(); triangleID++){
-                    
-                    const uint3 index = mesh.index[triangleID]; 
-                    
-                    TriangleLightData triangleLightData;
-                    const float3 v0 = mesh.vertex[index.x];
-                    const float3 v1 = mesh.vertex[index.y];
-                    const float3 v2 = mesh.vertex[index.z];
-                    triangleLightData.v0 = v0;
-                    triangleLightData.v1 = v1;
-                    triangleLightData.v2 = v2;
-                    triangleLightData.normal = normalize(cross(v1 - v0, v2 - v0));
-                    triangleLightData.area = 0.5f * length(cross(v1 - v0, v2 - v0));
-                    triangleLightData.constantEmission = constantEmission;
-                    triangleLightData.uv0 = mesh.emissiveTexcoord[index.x];
-                    triangleLightData.uv1 = mesh.emissiveTexcoord[index.y];
-                    triangleLightData.uv2 = mesh.emissiveTexcoord[index.z];
-                    if(hasEmissiveTexture){
-                        triangleLightData.emissiveTexture.texture = m_textureObjects[material.emissiveTextureID];
-                    }
-
-                    LightDefinition lightDefinition;
-                    lightDefinition.lightType = LIGHT_TYPE_TRIANGLE;
-                    lightDefinition.lightIndexInType = m_triangleLightDataTable.size();
-
-                    m_triangleLightDataTable.push_back(triangleLightData);
-                    m_lightDefinitionTable.push_back(lightDefinition);
-                }
-                
-            }
-
-        }
+    // M1 samples the finite sun separately. Its area-light strategy selects
+    // uniformly from this triangle-only table, including at an emitter hit.
+    if (!m_sceneDesc.integrator.m1Surface) {
+        m_lightDefinitionTable.push_back({LIGHT_TYPE_SKY, 0u});
     }
 
-    std::cout << m_lightDefinitionTable.size() << " of lights and " << m_triangleLightDataTable.size() << "of emissive triangles." << std::endl;
-    // バッファのアップロード
-    m_lightDefinitionBuffer.allocAndUpload(m_lightDefinitionTable);
-    m_triangleLightDataBuffer.allocAndUpload(m_triangleLightDataTable);
+    size_t flatMesh = 0;
+    size_t textureBase = 0;
+    for (const auto* mdl : m_models) {
+        const auto textureAt = [&](int localID) -> cudaTextureObject_t {
+            if (localID < 0) return 0;
+            if (static_cast<size_t>(localID) >= mdl->textures.size()) {
+                throw std::runtime_error("Area light texture index is outside its model");
+            }
+            return m_textureObjects.at(textureBase + static_cast<size_t>(localID));
+        };
+        for (const auto* meshPtr : mdl->meshes) {
+            const size_t meshIndex = flatMesh++;
+            const TriangleMesh& mesh = *meshPtr;
+            if (mesh.materialID < 0 ||
+                static_cast<size_t>(mesh.materialID) >= mdl->materials.size()) {
+                throw std::runtime_error("Mesh material index is outside its model");
+            }
+            const Material& material = *mdl->materials[mesh.materialID];
+            if (!material.isLight) continue;
 
-    // コンスタントメモリに登録し，GPU から読み込めるようにする
-    m_launchParams.light.lightDefinition = (LightDefinition*)m_lightDefinitionBuffer.getDevicePointer();
-    m_launchParams.light.triangleLightData = (TriangleLightData*)m_triangleLightDataBuffer.getDevicePointer();
-    m_launchParams.light.numLights = m_lightDefinitionTable.size();
+            const cudaTextureObject_t emissionTexture = textureAt(material.emissiveTextureID);
+            const cudaTextureObject_t opacityTexture = textureAt(material.diffuseTextureID);
+            if (emissionTexture && mesh.emissiveTexcoord.size() != mesh.vertex.size()) {
+                throw std::runtime_error("Textured area light needs an emissive UV per vertex");
+            }
+            if (opacityTexture && mesh.diffuseTexcoord.size() != mesh.vertex.size()) {
+                throw std::runtime_error("Alpha textured area light needs a diffuse UV per vertex");
+            }
 
+            for (size_t triangleID = 0; triangleID < mesh.index.size(); ++triangleID) {
+                const uint3 index = mesh.index[triangleID];
+                if (index.x >= mesh.vertex.size() || index.y >= mesh.vertex.size() ||
+                    index.z >= mesh.vertex.size()) {
+                    throw std::runtime_error("Area light triangle index is outside its vertex array");
+                }
+
+                TriangleLightData light{};
+                light.v0 = mymath::mul3x4(mdl->modelMatrix, make_float4(mesh.vertex[index.x], 1.0f));
+                light.v1 = mymath::mul3x4(mdl->modelMatrix, make_float4(mesh.vertex[index.y], 1.0f));
+                light.v2 = mymath::mul3x4(mdl->modelMatrix, make_float4(mesh.vertex[index.z], 1.0f));
+                const float3 crossEdges = cross(light.v1 - light.v0, light.v2 - light.v0);
+                const float twiceArea = length(crossEdges);
+                if (!std::isfinite(twiceArea) || !(twiceArea > 0.0f)) {
+                    throw std::runtime_error("Area light has a degenerate or non-finite world-space triangle");
+                }
+                light.normal = crossEdges / twiceArea;
+                light.area = 0.5f * twiceArea;
+                light.constantEmission = material.emissive;
+                light.meshIndex = static_cast<uint32_t>(meshIndex);
+                // The existing IAS creates one instance per flat mesh, with
+                // instanceId == meshIndex. Preserve that same identity here.
+                light.instanceID = static_cast<uint32_t>(meshIndex);
+                light.primitiveIndex = static_cast<uint32_t>(triangleID);
+                if (emissionTexture) {
+                    light.uv0 = mesh.emissiveTexcoord[index.x];
+                    light.uv1 = mesh.emissiveTexcoord[index.y];
+                    light.uv2 = mesh.emissiveTexcoord[index.z];
+                    light.emissiveTexture.texture = emissionTexture;
+                }
+                if (opacityTexture) {
+                    light.opacityUV0 = mesh.diffuseTexcoord[index.x];
+                    light.opacityUV1 = mesh.diffuseTexcoord[index.y];
+                    light.opacityUV2 = mesh.diffuseTexcoord[index.z];
+                    light.opacityTexture.texture = opacityTexture;
+                }
+                if (m_lightDefinitionTable.size() >= static_cast<size_t>(std::numeric_limits<int>::max())) {
+                    throw std::overflow_error("Area light count exceeds the launch parameter range");
+                }
+                const auto lightIndex = static_cast<uint32_t>(m_triangleLightDataTable.size());
+                m_triangleLightDataTable.push_back(light);
+                m_lightDefinitionTable.push_back({LIGHT_TYPE_TRIANGLE, lightIndex});
+            }
+        }
+        textureBase += mdl->textures.size();
+    }
+
+    m_lightDefinitionBuffer.free();
+    m_triangleLightDataBuffer.free();
+    if (!m_lightDefinitionTable.empty()) m_lightDefinitionBuffer.allocAndUpload(m_lightDefinitionTable);
+    if (!m_triangleLightDataTable.empty()) m_triangleLightDataBuffer.allocAndUpload(m_triangleLightDataTable);
+    m_launchParams.light.lightDefinition = reinterpret_cast<LightDefinition*>(m_lightDefinitionBuffer.getDevicePointer());
+    m_launchParams.light.triangleLightData = reinterpret_cast<TriangleLightData*>(m_triangleLightDataBuffer.getDevicePointer());
+    m_launchParams.light.numLights = static_cast<int>(m_lightDefinitionTable.size());
+    std::cout << m_lightDefinitionTable.size() << " lights and "
+              << m_triangleLightDataTable.size() << " world-space emissive triangles." << std::endl;
 }
 
 const LaunchParams Renderer::getLaunchParams() const
@@ -1727,6 +1955,9 @@ float Renderer::getExposure() const{
 
 void Renderer::setZenith(float zenithRad)
 {
+    if (m_launchParams.m1.enabled && m_launchParams.sunParams.sunZenithRad != zenithRad) {
+        m_launchParams.frame.frameID = 0;
+    }
     m_launchParams.sunParams.sunZenithRad = zenithRad;
 }
 
@@ -1737,6 +1968,9 @@ float Renderer::getZenith() const
 
 void Renderer::setAzimuth(float azimuthRad)
 {
+    if (m_launchParams.m1.enabled && m_launchParams.sunParams.sunAzimuthRad != azimuthRad) {
+        m_launchParams.frame.frameID = 0;
+    }
     m_launchParams.sunParams.sunAzimuthRad = azimuthRad;
 }
 
@@ -1747,6 +1981,57 @@ float Renderer::getAzimuth() const
 
 void Renderer::uploadSpectrumData()
 {
+    if (m_sceneDesc.integrator.m1Surface) {
+        const std::filesystem::path assetDirectory(m_sceneDesc.spectrum.m1AssetDirectory);
+        const m1::SpectralAssets assets = m1::load_spectral_assets(assetDirectory);
+        const m1::RgbToSpectrum model(assetDirectory / "srgb.coeff");
+        const auto count = [](size_t n) -> uint32_t {
+            if (n < 2 || n > std::numeric_limits<uint32_t>::max()) {
+                throw std::runtime_error("M1 spectral table has an invalid entry count");
+            }
+            return static_cast<uint32_t>(n);
+        };
+        const uint32_t cieCount = count(assets.cie.size());
+        const uint32_t solarCount = count(assets.solar.size());
+        const uint32_t d65Count = count(assets.d65.size());
+        m_wavelengthMin = assets.cie.front().wavelength_nm;
+        m_wavelengthMax = assets.cie.back().wavelength_nm;
+        if (!(m_wavelengthMin < m_wavelengthMax) ||
+            assets.solar.front().wavelength_nm > m_wavelengthMin ||
+            assets.solar.back().wavelength_nm < m_wavelengthMax ||
+            assets.d65.front().wavelength_nm > m_wavelengthMin ||
+            assets.d65.back().wavelength_nm < m_wavelengthMax) {
+            throw std::runtime_error("M1 illuminant tables must cover the entire CIE wavelength interval");
+        }
+
+        m_m1CieBuffer.allocAndUpload(assets.cie);
+        m_m1SolarBuffer.allocAndUpload(assets.solar);
+        m_m1D65Buffer.allocAndUpload(assets.d65);
+        m_m1Rgb2SpecScaleBuffer.alloc(model.scale_count() * sizeof(float));
+        m_m1Rgb2SpecScaleBuffer.upload(model.scale_data(), model.scale_count());
+        m_m1Rgb2SpecDataBuffer.alloc(model.coefficients_count() * sizeof(float));
+        m_m1Rgb2SpecDataBuffer.upload(model.coefficients_data(), model.coefficients_count());
+        const uint32_t zero = 0;
+        m_m1InvalidSampleCountBuffer.alloc(sizeof(zero));
+        m_m1InvalidSampleCountBuffer.upload(&zero, 1);
+
+        auto& m1Params = m_launchParams.m1;
+        m1Params.cie = reinterpret_cast<const m1::CieSample*>(m_m1CieBuffer.getDevicePointer());
+        m1Params.cieCount = cieCount;
+        m1Params.solar = reinterpret_cast<const m1::SolarSample*>(m_m1SolarBuffer.getDevicePointer());
+        m1Params.solarCount = solarCount;
+        m1Params.d65 = reinterpret_cast<const m1::IlluminantSample*>(m_m1D65Buffer.getDevicePointer());
+        m1Params.d65Count = d65Count;
+        m1Params.rgb2specResolution = model.resolution();
+        m1Params.rgb2specScale = reinterpret_cast<const float*>(m_m1Rgb2SpecScaleBuffer.getDevicePointer());
+        m1Params.rgb2specData = reinterpret_cast<const float*>(m_m1Rgb2SpecDataBuffer.getDevicePointer());
+        m1Params.invalidSamples = reinterpret_cast<uint32_t*>(m_m1InvalidSampleCountBuffer.getDevicePointer());
+        m_launchParams.spectral.wavelengthMin = m_wavelengthMin;
+        m_launchParams.spectral.wavelengthMax = m_wavelengthMax;
+        std::cout << "# M1: CIE/AM0/D65 tables and RGB2Spec uploaded; one wavelength per path in ["
+                  << m_wavelengthMin << ", " << m_wavelengthMax << "] nm." << std::endl;
+        return;
+    }
     std::filesystem::path exePath;
     char pathBuffer[MAX_PATH] = {};
 #if defined(_WIN32)
@@ -1978,14 +2263,17 @@ float Renderer::getWavelengthMax() const
 
 float Renderer::getDensityScale() const
 {
-    if(m_launchParams.vdbs){
-        return m_launchParams.vdbs[0].densityScale;
-    }
+    return m_vdbTable.empty() ? 0.0f : m_vdbTable.front().densityScale;
 }
 void Renderer::setDensityScale(const float densityScale)
 {
-    if(m_launchParams.vdbs){
-        m_launchParams.vdbs[0].densityScale = densityScale;
+    if (!std::isfinite(densityScale) || densityScale < 0.0f) {
+        throw std::invalid_argument("Volume density scale must be finite and nonnegative");
+    }
+    if (!m_vdbTable.empty()) {
+        m_vdbTable.front().densityScale = densityScale;
+        m_vdbTableBuffer.upload(m_vdbTable.data(), m_vdbTable.size());
+        m_launchParams.frame.frameID = 0;
     }
 }
 
@@ -2082,6 +2370,8 @@ void Renderer::loadAssets()
             m_meshTable[flat].normal            = (float3*)m_normalBuffer[flat].getDevicePointer();
             m_meshTable[flat].tangent           = (float4*)m_tangentBuffer[flat].getDevicePointer();
             m_meshTable[flat].texcoord          = (float2*)m_diffuseTexcoordBuffer[flat].getDevicePointer();
+            m_meshTable[flat].normalTexcoord    = (float2*)m_normalTexcoordBuffer[flat].getDevicePointer();
+            m_meshTable[flat].emissiveTexcoord  = (float2*)m_emissiveTexcoordBuffer[flat].getDevicePointer();
             m_meshTable[flat].hasTangent        = mesh->hasTangentSpace;
             m_meshTable[flat].hasNormal         = mesh->hasNormal;
             

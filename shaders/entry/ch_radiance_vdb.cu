@@ -409,7 +409,8 @@ extern "C" __global__ void __closesthit__vdb_radiance_spectral()
             //     nfCacheBuilt = true;
             // }
             // pdfPhase = fmaxf(evalPhaseFunctionNF_phiCached(nfCache, cosTheta), 1e-20f);
-            pdfPhase = fmaxf(evalPhaseFunctionNF_rqsCached(nfCache, cosTheta), 1e-20f);
+            // This branch builds NSFPhiCache above; use its matching evaluator.
+            pdfPhase = fmaxf(evalPhaseFunctionNF_phiCached(nfCache, cosTheta), 1e-20f);
 #endif
 
             // const float phaseValue  = phasePdf;

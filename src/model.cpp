@@ -12,6 +12,7 @@
 #include <filesystem>
 #include <assert.h>
 #include <string>
+#include <memory>
 
 class MeshLoader 
 {
@@ -243,7 +244,7 @@ void MeshLoader::parseMaterial(Material& dstMaterial, const aiMaterial* pSrcMate
     if(pSrcMaterial->Get(AI_MATKEY_COLOR_EMISSIVE, color) == AI_SUCCESS)
     {
         dstMaterial.emissive    = make_float3(color.r, color.g, color.b);
-        if(color.r > 0.01f || color.g > 0.01f || color.b > 0.01f ){
+        if(color.r > 0.0f || color.g > 0.0f || color.b > 0.0f ){
             dstMaterial.isLight     = true;
         }
     } else {
@@ -366,7 +367,11 @@ void MeshLoader::parseMaterial(Material& dstMaterial, const aiMaterial* pSrcMate
                 std::memcpy(emissiveTexture->pixel, tmpTextureDst.pixels.data(), tmpTextureDst.width * tmpTextureDst.height * sizeof(uint32_t));
                 dstMaterial.emissiveTextureID = textures.size();
                 emissiveTexture->resolution = make_int2(tmpTextureDst.width, tmpTextureDst.height);
+                // RGB colour textures are encoded sRGB; CUDA decodes them once.
+                // Alpha remains linear. This flag is historical (also emission).
+                emissiveTexture->isDiffuseTexture = true;
                 textures.push_back(emissiveTexture);
+                dstMaterial.isLight = true;
             }
         } 
     }
@@ -478,33 +483,38 @@ void MeshLoader::parseMaterial(Material& dstMaterial, const aiMaterial* pSrcMate
 }                    
 
 Model *loadModel(const std::string &modelFileName, const sceneIO::Object objectDesc){
-    Model *model = new Model;
+    auto model = std::make_unique<Model>();
     MeshLoader loader;
 
     std::filesystem::path exePath;
-    char pathBuffer[MAX_PATH] = {};
 #if defined(_WIN32)
+    char pathBuffer[MAX_PATH] = {};
     if(GetModuleFileNameA(NULL, pathBuffer, MAX_PATH) == 0){
         std::cerr << "ERROR: GetModuleFileNameA failed" << std::endl;
     }
     exePath = std::filesystem::path(pathBuffer);
 #else
-    ssize_t count = readlink("/proc/self/exe", exePath, PATH_MAX);
-    if(count == -1) {
-        std::cerr << "ERROR: readlink() failed" << std::endl;
-    }
+    char pathBuffer[PATH_MAX] = {};
+    const ssize_t count = readlink("/proc/self/exe", pathBuffer, sizeof(pathBuffer)-1);
+    if(count < 0) throw std::runtime_error("readlink(/proc/self/exe) failed");
+    pathBuffer[count] = '\0';
+    exePath = std::filesystem::path(pathBuffer);
 #endif
 
     std::filesystem::path fbxDir = exePath.parent_path().parent_path().parent_path().parent_path() / "model/mesh" / modelFileName;
+    if (std::filesystem::path(modelFileName).is_absolute() || std::filesystem::exists(modelFileName))
+        fbxDir = std::filesystem::absolute(modelFileName);
+    else if (std::filesystem::exists(std::filesystem::path("model/mesh") / modelFileName))
+        fbxDir = std::filesystem::absolute(std::filesystem::path("model/mesh") / modelFileName);
     std::cout << "Model Path:" << fbxDir << std::endl;
 
     std::string err = "";
-    bool readOk = loader.load(fbxDir.string(), model, objectDesc);
+    bool readOk = loader.load(fbxDir.string(), model.get(), objectDesc);
 
     if(!readOk) {
         throw std::runtime_error("Could not read model from " + fbxDir.string() + " : " + err);
     }
 
-    return model;
+    return model.release();
 
 }

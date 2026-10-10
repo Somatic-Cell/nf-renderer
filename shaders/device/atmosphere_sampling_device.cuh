@@ -147,7 +147,7 @@ __device__ __forceinline__ float sampleSkyFamilyNoPhase(
 
     const float v0 = tex3D<float>(handles[li.i0], x, y, z);
     const float v1 = tex3D<float>(handles[li.i1], x, y, z);
-    return lerp(v0, v1, li.t);
+    return v0 + li.t * (v1 - v0);
 }
 
 __device__ __forceinline__ float phaseRayleigh(float nu)
@@ -412,7 +412,7 @@ __device__ __forceinline__ float3 sampleSunDiskUniform(
     float u2)
 {
     const float cosThetaMax = cosf(sunAngularRadiusRad);
-    const float cosTheta = lerp(1.0f, cosThetaMax, u1);
+    const float cosTheta = 1.0f + u1 * (cosThetaMax - 1.0f);
     const float sinTheta = sqrtf(fmaxf(0.0f, 1.0f - cosTheta * cosTheta));
     const float phi = 2.0f * kPi * u2;
 

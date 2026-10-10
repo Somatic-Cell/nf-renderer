@@ -45,17 +45,17 @@ struct Material {
     //     }
     // }
 
-    float3 diffuse;
+    float3 diffuse {make_float3(0.5f)};
 
     // Phong モデルに基づくマテリアル表現のパラメタ
-    float3 specular;
-    float3 shininess;
+    float3 specular {make_float3(0.0f)};
+    float3 shininess {make_float3(0.0f)};
 
     // PBR のマテリアル表現のパラメタ
-    float   roughness;
-    float   metallic;
+    float   roughness {0.5f};
+    float   metallic {0.0f};
 
-    float3  emissive;
+    float3  emissive {make_float3(0.0f)};
 
     bool    isLight                 {false};
     bool    isGlass                 {false};

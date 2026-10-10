@@ -71,9 +71,12 @@ public:
         );
 
         m_renderer.setCamera(camera);
-        m_renderer.setEnvMap(scene.environment.file);
+        if (!scene.integrator.m1Surface)
+            m_renderer.setEnvMap(scene.environment.file);
 
         m_scene = scene;
+        if (m_scene.integrator.m1Surface)
+            m_scene.integrator.applySpectralRendering = true;
 
 
         // 結果を描画するテクスチャの作成
@@ -198,7 +201,7 @@ public:
 
         {
             static int mode = COLOR;
-            static char* suffix = "";
+            static const char* suffix = "";
             ImGui::Begin("Render Mode");
             ImGui::Text("Display buffer:");
             ImGui::RadioButton("COLOR", &mode, COLOR); ImGui::SameLine(); 
@@ -231,7 +234,7 @@ public:
             ImGui::Text("Save image:");
             static char text[256] = "filename";
             ImGui::InputText("file name:", text, sizeof(text));
-            if (ImGui::Button("save as .jpg")) {
+            if (ImGui::Button(m_scene.integrator.m1Surface ? "Save PNG + linear PFM" : "Save PNG")) {
                 save(std::string(text) + std::string(suffix));
 	        }
             ImGui::End();
@@ -256,9 +259,20 @@ public:
         if(m_scene.integrator.applySpectralRendering){
             ImGui::Begin("For Spectral Rendering");
             ImGui::Text("Spectrum Data:");
+            if (m_scene.integrator.m1Surface) {
+                ImGui::Text("M1: one wavelength per path, 360-830 nm");
+                const auto progress = m_renderer.getLaunchParams();
+                ImGui::Text("Accumulated: %llu spp", static_cast<unsigned long long>(progress.frame.frameID) *
+                            static_cast<unsigned long long>(progress.frame.numPixelSamples));
+                ImGui::Text("Reflectance: RGB2Spec / linear sRGB");
+                ImGui::Text("Sun: TSIS-1 HSRS v2; RGB emitters: CIE D65");
+                ImGui::Text("Direct lighting: %s", m_scene.integrator.m1DirectMode.c_str());
+                ImGui::Text("Vacuum (no atmospheric scattering in M1)");
+            } else {
             ImGui::Text("XYZ CMF: %s\n", m_scene.spectrum.xyzFuncFile.c_str());
             ImGui::Text("Basis function for reflectance: %s\n",  m_scene.spectrum.upSampleBasisFile.c_str());
             ImGui::Text("Illumination: %s\n", m_scene.spectrum.D65File.c_str());
+            }
             ImGui::Text("Spectrum Data:");
             ImGui::Text("Wavelength range:");
             ImGui::Text("Min: %f nm, ", m_renderer.getWavelengthMin()); ImGui::SameLine();
@@ -287,9 +301,11 @@ public:
 
     virtual void resize(const int2 &newSize) 
     {
-        m_fbSize = newSize;
-        m_pixels.resize(newSize.x * newSize.y);
+        if (newSize.x == 0 || newSize.y == 0) return;
+        // Validate dimensions before the host allocation and signed product.
         m_renderer.resize(newSize);
+        m_fbSize = newSize;
+        m_pixels.resize(static_cast<size_t>(newSize.x) * static_cast<size_t>(newSize.y));
         
     }
 
@@ -309,8 +325,8 @@ protected:
     std::vector<CUfunction>     m_cudaFunction;
     std::vector<std::string>    m_cudaModuleFileNames;     // cuda 用の.ptx のコード一覧
 
-    cudaSurfaceObject_t     m_surf;
-    cudaArray_t             m_surfaceArray;
+    cudaSurfaceObject_t     m_surf {0};
+    cudaArray_t             m_surfaceArray {nullptr};
 
     sceneIO::Scene          m_scene;
 };

@@ -1,4 +1,5 @@
 #include <cuda_runtime.h>
+#include <cstdint>
 #include "../utils/helper_math.h"
 
 extern "C" __global__ void copyBufferToSurfaceKernel(uint32_t   *finalColorBuffer,

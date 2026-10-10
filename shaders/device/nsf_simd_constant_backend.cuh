@@ -12,9 +12,8 @@
 // This backend intentionally keeps the legacy function name
 // `evalHyperMLP_phi62_vec(...)` so the rest of the file can remain unchanged.
 
-#ifndef NSF_T
-#error "Include nsf_simd_constant_backend.cuh from neural_phase_function.cuh after NSF_T/C/H/K/PHI/PHI_PAD are defined."
-#endif
+// NSF_T is a C++ constexpr, not a preprocessor macro. The static_asserts below
+// validate it (and all the other dimensions) against the generated table.
 
 #include <cuda_fp16.h>
 

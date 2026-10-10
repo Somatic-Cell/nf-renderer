@@ -1,0 +1,61 @@
+{
+  "repository": "https://github.com/mitsuba-renderer/rgb2spec",
+  "commit": "721145dedf2491851bd46ab8fd165955cb38ddaf",
+  "license": "BSD-3-Clause",
+  "files": [
+    {
+      "path": "LICENSE",
+      "url": "https://raw.githubusercontent.com/mitsuba-renderer/rgb2spec/721145dedf2491851bd46ab8fd165955cb38ddaf/LICENSE",
+      "sha256": "a855e7bff0b6ebbc4caffbe2050d220226b1cc25913975cbeda53cfb432f38c9",
+      "size": 1521
+    },
+    {
+      "path": "README.md",
+      "url": "https://raw.githubusercontent.com/mitsuba-renderer/rgb2spec/721145dedf2491851bd46ab8fd165955cb38ddaf/README.md",
+      "sha256": "c2c3d620b5c06e488b951c38bcc6c3dfcb160043a8466a55474366541c0a27eb",
+      "size": 539
+    },
+    {
+      "path": "CMakeLists.txt",
+      "url": "https://raw.githubusercontent.com/mitsuba-renderer/rgb2spec/721145dedf2491851bd46ab8fd165955cb38ddaf/CMakeLists.txt",
+      "sha256": "fade53ba367a2b8342a5128493062c1f7d0e98b5e4dc86e4220e366bde889e84",
+      "size": 1133
+    },
+    {
+      "path": "rgb2spec.c",
+      "url": "https://raw.githubusercontent.com/mitsuba-renderer/rgb2spec/721145dedf2491851bd46ab8fd165955cb38ddaf/rgb2spec.c",
+      "sha256": "673ce771e0ebb4ff1aace2c5e26de64a0fbda672bfabb6a98cfd64013cca5ff1",
+      "size": 16081
+    },
+    {
+      "path": "rgb2spec.h",
+      "url": "https://raw.githubusercontent.com/mitsuba-renderer/rgb2spec/721145dedf2491851bd46ab8fd165955cb38ddaf/rgb2spec.h",
+      "sha256": "10ee6f4cee620502511f9c7f7daf69e8d553bd837a8edbd43e0376a563a43092",
+      "size": 2117
+    },
+    {
+      "path": "rgb2spec_opt.cpp",
+      "url": "https://raw.githubusercontent.com/mitsuba-renderer/rgb2spec/721145dedf2491851bd46ab8fd165955cb38ddaf/rgb2spec_opt.cpp",
+      "sha256": "510ac713dfec6edcf77eb6f6815cf9f3e7d4bfc420466e76394326f32d74f82f",
+      "size": 18718
+    },
+    {
+      "path": "macros.h",
+      "url": "https://raw.githubusercontent.com/mitsuba-renderer/rgb2spec/721145dedf2491851bd46ab8fd165955cb38ddaf/macros.h",
+      "sha256": "eec38fe9e6fadbf1b5ca41ea8f92564c0ecde1c1b953b747abaded3ad271ce89",
+      "size": 719
+    },
+    {
+      "path": "details/cie1931.h",
+      "url": "https://raw.githubusercontent.com/mitsuba-renderer/rgb2spec/721145dedf2491851bd46ab8fd165955cb38ddaf/details/cie1931.h",
+      "sha256": "42d88cefdf33201e39ef9e3e4478fbc443c0b41c6f7eb9bad6764901e3d86282",
+      "size": 13051
+    },
+    {
+      "path": "details/lu.h",
+      "url": "https://raw.githubusercontent.com/mitsuba-renderer/rgb2spec/721145dedf2491851bd46ab8fd165955cb38ddaf/details/lu.h",
+      "sha256": "a7097d2b5d9bf070e5fd6a8fb3d6106fdb4623a201082d5cdd571127f30b3760",
+      "size": 2271
+    }
+  ]
+}

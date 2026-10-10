@@ -65,7 +65,7 @@ struct CoopVecPackedGpu {
 
     void free() {
         if (d_blob) {
-            CUDA_CHECK(cudaFree((void*)d_blob), "cudaFree(d_blob)");
+            CUDA_CHECK(cudaFree((void*)d_blob));
             d_blob = 0;
             bytes = 0;
         }
@@ -89,10 +89,9 @@ struct CoopVecPackedGpu {
     void upload(const CoopVecPackedHost& host, cudaStream_t stream = 0) {
         free();
         bytes = host.blob.size();
-        CUDA_CHECK(cudaMalloc((void**)&d_blob, bytes), "cudaMalloc(d_blob)");
-        CUDA_CHECK(cudaMemcpyAsync((void*)d_blob, host.blob.data(), bytes, cudaMemcpyHostToDevice, stream),
-                   "cudaMemcpyAsync(blob)");
-        CUDA_CHECK(cudaStreamSynchronize(stream), "cudaStreamSynchronize");
+        CUDA_CHECK(cudaMalloc((void**)&d_blob, bytes));
+        CUDA_CHECK(cudaMemcpyAsync((void*)d_blob, host.blob.data(), bytes, cudaMemcpyHostToDevice, stream));
+        CUDA_CHECK(cudaStreamSynchronize(stream));
     }
 };
 

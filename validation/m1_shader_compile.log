@@ -1,0 +1,98 @@
+shaders/entry/raygen.cu
+shaders/entry/raygen.cu(18): warning #177-D: variable "accumID" was declared but never referenced
+      const int accumID = optixLaunchParams.frame.accumID;
+                ^
+
+Remark: The warnings can be suppressed with "-diag-suppress <warning-number>"
+
+shaders/entry/raygen.cu(19): warning #177-D: variable "frameID" was declared but never referenced
+      const int frameID = optixLaunchParams.frame.frameID;
+                ^
+
+shaders/entry/raygen.cu(20): warning #177-D: variable "camera" was declared but never referenced
+      const auto &camera = optixLaunchParams.camera;
+                  ^
+
+
+
+shaders/entry/ah_radiance.cu
+
+
+shaders/entry/ah_shadow.cu
+
+
+shaders/entry/ch_radiance.cu
+shaders/entry/ch_radiance.cu(460): warning #177-D: variable "uWavelength" was declared but never referenced
+              const float uWavelength = prd.waveLengthNormalized;
+                          ^
+
+Remark: The warnings can be suppressed with "-diag-suppress <warning-number>"
+
+shaders/entry/ch_radiance.cu(549): warning #177-D: variable "uNormalized" was declared but never referenced
+                  const float uNormalized = prd.waveLengthNormalized;
+                              ^
+
+shaders/entry/ch_radiance.cu(604): warning #177-D: variable "uNormalized" was declared but never referenced
+      const float uNormalized = prd.waveLengthNormalized;
+                  ^
+
+
+
+shaders/entry/ch_radiance_vdb.cu
+shaders/entry/ch_radiance_vdb.cu(391): warning #177-D: variable "uNormalized" was declared but never referenced
+              const float uNormalized = prd.waveLengthNormalized;
+                          ^
+
+Remark: The warnings can be suppressed with "-diag-suppress <warning-number>"
+
+shaders/entry/ch_radiance_vdb.cu(243): warning #550-D: variable "nfCacheBuilt" was set but never used
+      bool nfCacheBuilt = false;
+           ^
+
+shaders/entry/ch_radiance_vdb.cu(246): warning #550-D: variable "miePhaseTex" was set but never used
+      MiePhaseTex miePhaseTex = {};
+                  ^
+
+shaders/entry/ch_radiance_vdb.cu(453): warning #177-D: variable "uHero" was declared but never referenced
+      const float uHero = prd.waveLengthNormalized;
+                  ^
+
+
+
+shaders/entry/ch_shadow.cu
+
+
+shaders/entry/miss_radiance.cu
+
+
+shaders/entry/miss_shadow.cu
+
+
+shaders/entry/intersection_vdb.cu
+
+
+shaders/callable/disney_principled_brdf.cu
+
+
+shaders/callable/diffuse_brdf.cu
+
+
+shaders/callable/glass_bsdf.cu
+
+
+shaders/callable/light_sample.cu
+
+
+shaders/callable/lens.cu
+shaders/callable/lens.cu(40): warning #177-D: variable "fValue" was declared but never referenced
+      const float fValue = camera.fValue;
+                  ^
+
+Remark: The warnings can be suppressed with "-diag-suppress <warning-number>"
+
+
+
+kernels/toneMap.cu
+
+
+kernels/copy_buffer_to_surface.cu

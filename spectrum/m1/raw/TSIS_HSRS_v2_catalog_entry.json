@@ -1,0 +1,113 @@
+{
+  "source_url": "https://lasp.colorado.edu/lisird/latis/catalog",
+  "retrieved_date_utc": "2026-10-10",
+  "catalog_sha256": "9b7de1edb715f1f6797dc19fe556c9f6b5682b3fd1381eaab5293b78ff4967c7",
+  "extraction": "One complete TSIS-1 HSRS dataset entry, including all listed resolution variants and license. Other dataset entries omitted.",
+  "entry": {
+    "@id": "https://lasp.colorado.edu/lemr/lds#tsis1_hsrs_p1nm",
+    "@type": "Dataset",
+    "acknowledgment": "The results presented in this document rely on data from the TSIS-1 Hybrid Solar Reference Spectrum (HSRS) model described in Coddington et al. 2023 (https://doi.org/10.1029/2022EA002637).",
+    "alerts": "Please note that these data are available at various resolutions. LISIRD uses the 0.1 nm spectral resolution (0.025 sampling resolution) variant for plotting and default downloading.",
+    "date_added": "2020-12-03",
+    "description": "<p>Version 2 of the Total and Spectral Solar Irradiance Sensor-1 (TSIS-1) Hybrid Solar Reference Spectrum (HSRS) is an update of the original TSIS-1 HSRS (<a href=\"https://lasp.colorado.edu/lisird/data/tsis1_hsrs_files\" target=\"_blank\">https://lasp.colorado.edu/lisird/data/tsis1_hsrs_files</a>) that was recommended as the new solar irradiance reference spectrum standard by the Committee on Earth Observation Satellites (CEOS) Working Group on Calibration and Validation (WGCV) in March 2022. It is a hybrid solar irradiance reference spectrum representative of solar minimum conditions between solar cycles 24 and 25.</p><p>Like the original version, Version 2 of the TSIS-1 HSRS is developed by applying a modified spectral ratio method to normalize very high spectral resolution solar line data to the absolute irradiance scale of the TSIS-1 Spectral Irradiance Monitor (SIM) and the CubeSat Compact SIM (CSIM). Version 2 contains three updates relative to the original version:</p><ol><li>It corrects an error in the radiometric baseline between 202 and 210 nm that resulted from the incorrect application of the TSIS-1 SIM instrument line shape used to convolve the high-resolution solar line data to match that of the TSIS-1 SIM. This correction reaches 1% at 202 nm and is vanishingly small at 210 nm.</li><li>It updates the Solar Pseudo-Transmittance Spectrum (SPTS) solar lines to their latest release. SPTS solar line data are used in the TSIS-1 HSRS at wavelengths longward of 0.743 µm. This correction predominantly affects a subset of the tens of thousands of individual lines in the 1100 to 1300 nm region.</li><li>It adjusts (reduces) the irradiance at all wavelengths by &lt; 0.1%, which is a magnitude change that falls within the uncertainties of the TSIS-1 HSRS. The adjustment to TSI is supported by the development of the HSRS Extension (<a href=\"https://lasp.colorado.edu/lisird/data/tsis1_hsrs_fs\" target=\"_blank\">https://lasp.colorado.edu/lisird/data/tsis1_hsrs_fs</a>) that provides a solar spectrum that spans “all wavelengths” and integrates to TSI. The HSRS Extension spans 115 nm to 200 microns and was developed using additional solar irradiance and solar line data sources as well as theoretical knowledge where no observations exist.</li></ol><h3>Summary of TSIS-1 HSRS variants</h3><table><thead><tr><th>File name</th><th>Low resolution data sets and wavelength coverage (nm)</th><th>High resolution datasets and wavelength coverage (nm)</th><th>Spectral resolution (nm)</th><th>Sampling resolution</th><th>Uncertainty (%)</th></tr></thead><tbody><tr><td><a href=\"https://lasp.colorado.edu/lisird/resources/lasp/hsrs/v2/hybrid_reference_spectrum_c2022-11-30_with_unc.nc\" target=\"_blank\">TSIS-1 HSRS</a></td><td><p>TSIS-1 SIM: 202&ndash;2365</p><p>CSIM: 2365&ndash;2730</p></td><td><p>AFGL: 202&ndash;306.5</p><p>QASUMEFTS: 305.5&ndash;373.6</p><p>KPNO: 373.5&ndash;745</p><p>SPTS: 743&ndash;2730</p></td><td>Varies; equal to that of the high resolution datasets</td><td>0.001 nm</td><td><p>&le;400 nm = 1.3%</p><p>400&ndash;460 nm = 0.5%</p><p>460&ndash;2365 nm = 0.3%</p><p>&gt;2365 nm = 1.3%</p></td></tr><tr><td><a href=\"https://lasp.colorado.edu/lisird/resources/lasp/hsrs/v2/hybrid_reference_spectrum_p005nm_resolution_c2022-11-30_with_unc.nc\" target=\"_blank\">TSIS-1 HSRS \"p005 nm\"</a></td><td>As above</td><td>As above</td><td><p>0.025 nm (below 374 nm)</p><p>0.005 nm (above 374 nm)</p></td><td>0.001 nm</td><td>As above</td></tr><tr><td><a href=\"https://lasp.colorado.edu/lisird/resources/lasp/hsrs/v2/hybrid_reference_spectrum_p025nm_resolution_c2022-11-30_with_unc.nc\" target=\"_blank\">TSIS-1 HSRS \"p025 nm\"</a></td><td>As above</td><td>As above</td><td>0.025 nm</td><td>0.005 nm</td><td>As above</td></tr><tr><td><a href=\"https://lasp.colorado.edu/lisird/resources/lasp/hsrs/v2/hybrid_reference_spectrum_p1nm_resolution_c2022-11-30_with_unc.nc\" target=\"_blank\">TSIS-1 HSRS \"p1 nm\"</a></td><td>As above</td><td>As above</td><td>0.1 nm</td><td>0.025 nm</td><td>As above</td></tr><tr><td><a href=\"https://lasp.colorado.edu/lisird/resources/lasp/hsrs/v2/hybrid_reference_spectrum_1nm_resolution_c2022-11-30_with_unc.nc\" target=\"_blank\">TSIS-1 HSRS \"1 nm\"</a></td><td>As above</td><td>As above</td><td>1 nm</td><td>0.1 nm</td><td>As above</td></tr></tbody></table>",
+    "download_from_source": "FALSE",
+    "from_Model": {
+      "@id": "https://lasp.colorado.edu/lemr/lds#tsis1_hsrs_model",
+      "@type": "Model",
+      "link": "https://doi.org/10.1029/2022EA002637",
+      "title": "TSIS-1 Hybrid Solar Reference Spectrum (HSRS)"
+    },
+    "identifier": "tsis1_hsrs_p1nm",
+    "is_active": "FALSE",
+    "is_deprecated": false,
+    "is_referenced_by": [
+      "Coddington, O. M., Richard, E. C., Harber, D., Pilewskie, P., Woods, T. N., Chance, K., et al. (2021). The TSIS-1 hybrid solar reference spectrum. Geophysical Research Letters, 48, e2020GL091709. <a href=\"https://doi.org/10.1029/2020GL091709\" target=\"_blank\">https://doi.org/10.1029/2020GL091709</a>",
+      "Coddington, O. M., Richard, E. C., Harber, D., Pilewskie, P., Woods, T. N., Snow, M., et al. (2023). Version 2 of the TSIS-1 Hybrid Solar Reference Spectrum and Extension to the Full Spectrum. Earth and Space Science, 10, e2022EA002637. <a href=\"https://doi.org/10.1029/2022EA002637\" target=\"_blank\">https://doi.org/10.1029/2022EA002637</a>"
+    ],
+    "is_removed": false,
+    "license": {
+      "@id": "https://lasp.colorado.edu/lemr/lds#cc_by_4.0",
+      "@type": "License",
+      "icon": "https://mirrors.creativecommons.org/presskit/buttons/88x31/svg/by.svg",
+      "link": "https://creativecommons.org/licenses/by/4.0/",
+      "name": "Creative Commons - Attribution 4.0 International",
+      "short_name": "CC BY 4.0"
+    },
+    "model": "wavelength -> (irradiance, uncertainty, bandwidth)",
+    "publisher": {
+      "@id": "https://lasp.colorado.edu/lemr/lds#lasp",
+      "@type": "Publisher",
+      "link": "https://lasp.colorado.edu/",
+      "name": "Laboratory for Atmospheric and Space Physics (LASP)"
+    },
+    "release_notes": "<p>Coddington, O. M., Richard, E. C., Harber, D., Pilewskie, P., Woods, T. N., Snow, M., et al. (2023). Version 2 of the TSIS-1 Hybrid Solar Reference Spectrum and Extension to the Full Spectrum. Earth and Space Science, 10, e2022EA002637. <a href=\"https://doi.org/10.1029/2022EA002637\" target=\"_blank\">https://doi.org/10.1029/2022EA002637</a></p>",
+    "source": [
+      "Full resolution (60.7 MB): https://lasp.colorado.edu/lisird/resources/lasp/hsrs/v2/hybrid_reference_spectrum_c2022-11-30_with_unc.nc",
+      "1 nm spectral resolution; 0.1 nm sampling resolution (622 KB): https://lasp.colorado.edu/lisird/resources/lasp/hsrs/v2/hybrid_reference_spectrum_1nm_resolution_c2022-11-30_with_unc.nc",
+      "0.025 nm spectral resolution; 0.005 nm sampling resolution (12.2 MB): https://lasp.colorado.edu/lisird/resources/lasp/hsrs/v2/hybrid_reference_spectrum_p025nm_resolution_c2022-11-30_with_unc.nc",
+      "0.005 nm spectral resolution; 0.001 nm sampling resolution (60.7 MB): https://lasp.colorado.edu/lisird/resources/lasp/hsrs/v2/hybrid_reference_spectrum_p005nm_resolution_c2022-11-30_with_unc.nc",
+      "0.1 nm spectral resolution; 0.025 nm sampling resolution (2.4 MB): https://lasp.colorado.edu/lisird/resources/lasp/hsrs/v2/hybrid_reference_spectrum_p1nm_resolution_c2022-11-30_with_unc.nc"
+    ],
+    "version": "2",
+    "default_y_axis_type": "linear",
+    "title": "TSIS-1 Hybrid Solar Reference Spectrum (HSRS)",
+    "displayCategory": [
+      "solar_spectral_irradiance",
+      "reference_spectra",
+      "composite"
+    ],
+    "viewAs": "analog",
+    "distribution": [
+      {
+        "accessURL": "https://lasp.colorado.edu/lisird/latis/dap/tsis1_hsrs_p1nm"
+      }
+    ],
+    "variable": [
+      {
+        "@id": "https://lasp.colorado.edu/lemr/lds#tsis1_hsrs_p1nm_wavelength",
+        "@type": [
+          "Wavelength_Domain_Variable",
+          "Independent_Variable",
+          "Variable"
+        ],
+        "coverage_max": "2730",
+        "coverage_min": "202",
+        "description": "Wavelength grid center (in vacuum) with a spectral resolution of 0.1 nm and a sampling resolution of 0.025 nm.",
+        "identifier": "wavelength",
+        "resolution": "0.025",
+        "title": "Wavelength",
+        "units": "nm"
+      },
+      {
+        "@id": "https://lasp.colorado.edu/lemr/lds#tsis1_hsrs_p1nm_irradiance",
+        "@type": [
+          "Variable",
+          "Dependent_Variable"
+        ],
+        "band_end": "2019-12-07",
+        "band_start": "2019-12-01",
+        "band_type": "time",
+        "band_units": "yyyy-MM-dd",
+        "description": "Solar Spectral Irradiance Reference Spectrum.",
+        "identifier": "irradiance",
+        "title": "Irradiance",
+        "units": "W/m^2/nm"
+      },
+      {
+        "@id": "https://lasp.colorado.edu/lemr/lds#tsis1_hsrs_p1nm_uncertainty",
+        "@type": [
+          "Variable",
+          "Dependent_Variable"
+        ],
+        "band_end": "2019-12-07",
+        "band_start": "2019-12-01",
+        "band_type": "time",
+        "band_units": "yyyy-MM-dd",
+        "description": "Uncertainty in Solar Spectral Irradiance.",
+        "identifier": "uncertainty",
+        "title": "Uncertainty",
+        "units": "W/m^2/nm"
+      }
+    ]
+  }
+}

@@ -8,6 +8,7 @@
 #include <vector>
 
 #include <nlohmann/json.hpp>
+#include <iostream>
 
 enum class DType { F16, F32, I32, I64, U8, UNKNOWN };
 

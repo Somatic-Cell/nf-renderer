@@ -56,6 +56,13 @@ extern "C" __global__ void __anyhit__radiance_spectral()
     const MaterialData & material = optixLaunchParams.materials[materialIndex];
 
     PRDSpectral &prd = *getPRD<PRDSpectral>();
+
+    if(optixLaunchParams.m1.enabled && material.diffuseTexture.texture && !mesh.texcoord) {
+        prd.m1Invalid=true;
+        prd.continueTrace=0;
+        optixTerminateRay();
+        return;
+    }
     
     float opacity = 1.0f;     
     if(material.diffuseTexture.texture > 0){
@@ -77,6 +84,12 @@ extern "C" __global__ void __anyhit__radiance_spectral()
         opacity = tex2D<float4>(material.diffuseTexture.texture, diffuseTextureCoordinate.x, 1.0f - diffuseTextureCoordinate.y).w;
     }
 
+    if(optixLaunchParams.m1.enabled && (!isfinite(opacity)||opacity<0.0f||opacity>1.0f)) {
+        prd.m1Invalid=true;
+        prd.continueTrace=0;
+        optixTerminateRay();
+        return;
+    }
     if(opacity < 1.0f && opacity <= prd.random()){
         optixIgnoreIntersection();
         return;

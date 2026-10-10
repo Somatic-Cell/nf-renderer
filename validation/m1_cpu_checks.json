@@ -1,0 +1,75 @@
+{
+  "schema": "m1-cpu-validation-v1",
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+  "gpu_executed": false,
+  "full_windows_app_built": false,
+  "steps": [
+    {
+      "command": [
+        "/workspace/scratch/6fbbff5708b2/m1-toolchain/cmake/data/bin/cmake",
+        "-S",
+        "/workspace/scratch/6fbbff5708b2/NeuralPFRenderer-m1/tests/m1",
+        "-B",
+        "/workspace/scratch/6fbbff5708b2/NeuralPFRenderer-m1/build-m1-cpu-validated",
+        "-G",
+        "Unix Makefiles",
+        "-DCMAKE_BUILD_TYPE=Release",
+        "-DM1_JSON_INCLUDE_DIR=/workspace/scratch/6fbbff5708b2/m1-deps/json/include"
+      ],
+      "exit_code": 0,
+      "seconds": 0.02090366599986737,
+      "log": "validation/m1_cpu_step_0.log"
+    },
+    {
+      "command": [
+        "/workspace/scratch/6fbbff5708b2/m1-toolchain/cmake/data/bin/cmake",
+        "--build",
+        "/workspace/scratch/6fbbff5708b2/NeuralPFRenderer-m1/build-m1-cpu-validated",
+        "--config",
+        "Release",
+        "--parallel",
+        "4"
+      ],
+      "exit_code": 0,
+      "seconds": 3.215728487999513,
+      "log": "validation/m1_cpu_step_1.log"
+    },
+    {
+      "command": [
+        "/workspace/scratch/6fbbff5708b2/m1-toolchain/cmake/data/bin/ctest",
+        "--test-dir",
+        "/workspace/scratch/6fbbff5708b2/NeuralPFRenderer-m1/build-m1-cpu-validated",
+        "-C",
+        "Release",
+        "--verbose",
+        "--output-on-failure"
+      ],
+      "exit_code": 0,
+      "seconds": 0.7400435609997658,
+      "log": "validation/m1_cpu_step_2.log"
+    },
+    {
+      "command": [
+        "python",
+        "/workspace/scratch/6fbbff5708b2/NeuralPFRenderer-m1/tools/prepare_spectral_assets.py",
+        "--verify-only"
+      ],
+      "exit_code": 0,
+      "seconds": 0.21563197300019965,
+      "log": "validation/m1_cpu_step_3.log"
+    }
+  ],
+  "source_sha256": {
+    "include/m1/bsdf.hpp": "80152334dbec0590b31c1dcb83269af5e5124bc114e84525e53b5190bde56c8f",
+    "include/m1/spectral_types.hpp": "864ea7847c3cd0b3a125a22ed42472e4bd33b3c6fe005eb6776b87d8437da610",
+    "include/m1/spectral_assets.hpp": "0d9e82f19ac36bf52fc7732899d3bdcfd77dbea240f81375e9151646812ba998",
+    "include/m1/rgb2spec_device.hpp": "2c10031cd751aeac1adbe43c6c31d8b0ec1be594e4b9b3dbab97387469d2008b",
+    "include/m1/math.hpp": "8081b03e222391c384ecd98742ff85bfef7b178949776b86794d901dc628c604",
+    "include/sceneDescIO.hpp": "946f2e1514b1bb5922152d82590ad3d13097af4055108cee4594096d9391b8c4",
+    "src/m1/spectral_assets.cpp": "ecf2a90e01ce807a1dec29ecf453284dd6eb843ef275bccbe463f4b496496bb1",
+    "tests/test_m1_bsdf.cpp": "a698234acaeed25807c16f49dbc838c41f74c8b906bc678fb8edec0416e4edaf",
+    "tests/test_m1_spectral_assets.cpp": "e2e31402b0470447367fdbc825b1d113de42a9d3a963f2fd4b70e1b39ffb5c6d",
+    "tests/test_m1_scene.cpp": "950004a3a83a60a37bd651a3845c54eef0a21b8fa9b3064e44007bddf505cec2"
+  },
+  "success": true
+}

@@ -7,7 +7,7 @@
 cmake_minimum_required(VERSION 3.18)
 
 ### CUDA
-set(CMAKE_CUDA_ARCHITECTURES 86)
+set(CMAKE_CUDA_ARCHITECTURES 86 CACHE STRING "CUDA architectures for host CUDA targets")
 
 set(PROJECT_NAME "NeuralPFRenderer")
 set(TARGET_NAME ${PROJECT_NAME})
@@ -101,7 +101,6 @@ set(IMGUI_SOURCE_DIR ${PROJECT_SOURCE_DIR}/ext/imgui)
 set(IMGUI_BACKENDS_DIR ${IMGUI_SOURCE_DIR}/backends)
 
 set(IMGUI_SOURCES
-    ${IMGUI_SOURCE_DIR}/examples/example_glfw_opengl3/main.cpp
     ${IMGUI_SOURCE_DIR}/imgui_demo.cpp
     ${IMGUI_SOURCE_DIR}/imgui_draw.cpp
     ${IMGUI_SOURCE_DIR}/imgui_tables.cpp
@@ -168,7 +167,7 @@ target_link_libraries(viewer
 
 set(CPP_VER_CUDA c++20)
 set(USE_OPTIX_IR FALSE)
-set(CUDA_CC 86)
+set(CUDA_CC 86 CACHE STRING "Virtual CUDA architecture for OptiX/PTX modules")
 
 
 ### コンパイルするファイルを列挙
@@ -223,26 +222,36 @@ set(
     ${PROJECT_SOURCE_DIR}/shaders/device/neural_phase_function.cuh
     ${PROJECT_SOURCE_DIR}/shaders/device/atmosphere_sampling_device.cuh
     ${PROJECT_SOURCE_DIR}/shaders/device/nsf_simd_constant_flow_flexible_data.cuh
-    ${PROJECT_SOURCE_DIR}/shaders/device/nsf_simd_constantbackend.cuh
+    ${PROJECT_SOURCE_DIR}/shaders/device/nsf_simd_constant_backend.cuh
     ${PROJECT_SOURCE_DIR}/shaders/device/atmosphere_sampling_device.cuh
     ${PROJECT_SOURCE_DIR}/shaders/config.cuh
+    ${PROJECT_SOURCE_DIR}/shaders/device/m1_surface.cuh
+    ${PROJECT_SOURCE_DIR}/include/m1/render_params.h
+    ${PROJECT_SOURCE_DIR}/include/m1/spectral_types.hpp
+    ${PROJECT_SOURCE_DIR}/include/m1/rgb2spec_device.hpp
+    ${PROJECT_SOURCE_DIR}/include/m1/bsdf.hpp
+    ${PROJECT_SOURCE_DIR}/include/m1/math.hpp
 )
 
 # .cu ファイルを .ptx ファイルにコンパイル (実装は nvcuda_compile_module.cmake モジュール内)
 set(CUDA_NVCC_OPTIONS
-    "-Xcompiler=/utf-8"                         # 警告無視
-    "-Xcompiler=/Zc:__cplusplus"                # 標準準拠オプション
     "--generate-line-info"                      # 行番号を付与し，デバッグツール等でどの行が実行中か追跡可能にするオプション
     "--gpu-architecture=compute_${CUDA_CC}"     # GPU の構成
     "--gpu-code=sm_${CUDA_CC}" 
     "-std=${CPP_VER_CUDA}"                  
-    "-cudart" "hybrid"
-    "--use_fast_math"                           # 精度を犠牲に高速な近似計算を実行
+    "-cudart" "none"                          # PTX module, no host runtime stub
     "--relocatable-device-code=true"
     "-I${OPTIX_INCLUDE_DIR}"
-    "-Xptxas=-v, --warn-spills"
+    "-Xptxas=-v" "-Xptxas=--warn-spills"
     "-I${NANOVDB_INCLUDE_DIR}"
+    "-I${PROJECT_SOURCE_DIR}/include"
 )
+
+# Accurate sqrt/division are used by the shared spectral BSDF and PDF code.
+# A fast-math build is not part of the M1 numerical validation.
+if(MSVC)
+    list(APPEND CUDA_NVCC_OPTIONS "-Xcompiler=/utf-8" "-Xcompiler=/Zc:__cplusplus")
+endif()
 
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")   # Debug ビルドのときだけ
@@ -272,11 +281,11 @@ if(USE_OPTIX_IR)
         "--generate-line-info"                      # 行番号を付与し，デバッグツール等でどの行が実行中か追跡可能にするオプション
         "--gpu-architecture=compute_${CUDA_CC}"     # GPU の構成
         "-std=${CPP_VER_CUDA}"
-        "-cudart" "hybrid"
-        "--use_fast_math"                           # 精度を犠牲に高速な近似計算を実行
+        "-cudart" "none"
         "--relocatable-device-code=true"
         "-I${OPTIX_INCLUDE_DIR}"
-        "-Xptxas=-v, --warn-spills"
+        "-Xptxas=-v" "-Xptxas=--warn-spills"
+        "-I${PROJECT_SOURCE_DIR}/include"
     )
 
     set(NANOVDB_INCLUDE_DIR "${EXT_DIR}/openvdb/nanovdb")
@@ -317,6 +326,17 @@ set(BUILD_CUDA_KERNELS
 set(SOURCE_DIR src)
 set(INCLUDE_DIR include)
 
+# The pinned upstream RGB2Spec runtime is compiled as C. The optimizer and its
+# source CMake settings are not part of the renderer build; the model is shipped.
+add_library(m1_rgb2spec STATIC third_party/rgb2spec/rgb2spec.c)
+set_target_properties(m1_rgb2spec PROPERTIES C_STANDARD 99 C_STANDARD_REQUIRED YES)
+target_include_directories(m1_rgb2spec PUBLIC third_party/rgb2spec)
+
+add_library(m1_spectral_assets STATIC src/m1/spectral_assets.cpp)
+target_compile_features(m1_spectral_assets PUBLIC cxx_std_17)
+target_include_directories(m1_spectral_assets PUBLIC include)
+target_link_libraries(m1_spectral_assets PRIVATE m1_rgb2spec)
+
 add_executable(${TARGET_NAME}
     "${BUILD_CUDA_KERNELS}"
     "${SOURCE_DIR}/main.cpp"
@@ -348,7 +368,7 @@ add_executable(${TARGET_NAME}
 # ターゲットの設定
 # -----------------------------------------------------
 # コンパイル時のマクロ定義の追加
-target_compile_definitions(
+target_compile_options(
     ${TARGET_NAME} PRIVATE
     $<$<CXX_COMPILER_ID:MSVC>:/utf-8>
     $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<CONFIG:Release>>:/O2>
@@ -395,6 +415,7 @@ target_link_libraries(
     CUDA::cuda_driver   # FindCudaToolkit の成果物 (cuCtxGetCurrent() はここにいる)
     openvdb
     nanovdb
+    m1_spectral_assets
 )
 
 

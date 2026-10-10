@@ -1,4 +1,5 @@
 #include "../config.cuh"
+#include "../device/m1_surface.cuh"
 
 #include <optix.h>
 
@@ -282,6 +283,7 @@ extern "C" __global__ void __closesthit__radiance_rgb()
 
 extern "C" __global__ void __closesthit__radiance_spectral()
 {
+    if(optixLaunchParams.m1.enabled) { m1surface::hit(*getPRD<PRDSpectral>()); return; }
     const HitgroupSBTData &sbtData =*(const HitgroupSBTData*) optixGetSbtDataPointer();
     PRDSpectral &prd = *getPRD<PRDSpectral>();
 

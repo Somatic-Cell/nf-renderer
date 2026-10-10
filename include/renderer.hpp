@@ -93,6 +93,8 @@ public:
     void render();
     void resize(const int2 & newSize);
     void downloadPixels(uint32_t m_h_pixels[]);
+    // Unclamped, untonemapped linear sRGB from the existing accumulation buffer.
+    void downloadLinearPixels(float4* pixels);
     void setCamera(const Camera &camera);
     void setEnvMap(const std::string& envMapFileName);
     void setNumDevices(const int numDevices);
@@ -192,7 +194,7 @@ protected:
     CUDABuffer                      m_callableRecordsBuffer {};
     OptixShaderBindingTable         m_sbt                   {};
 
-    LaunchParams    m_launchParams;
+    LaunchParams    m_launchParams{};
     CUDABuffer      m_launchParamsBuffer;
 
     // デノイザに入れるバッファ
@@ -273,6 +275,15 @@ protected:
     SpectrumData                    m_D65;
     float                           m_wavelengthMin;
     float                           m_wavelengthMax;
+
+    // M1 reuses this renderer's existing resource path. These buffers contain
+    // measured spectral data and the official RGB2Spec lookup model.
+    CUDABuffer                      m_m1CieBuffer;
+    CUDABuffer                      m_m1SolarBuffer;
+    CUDABuffer                      m_m1D65Buffer;
+    CUDABuffer                      m_m1Rgb2SpecScaleBuffer;
+    CUDABuffer                      m_m1Rgb2SpecDataBuffer;
+    CUDABuffer                      m_m1InvalidSampleCountBuffer;
 
     std::vector<float>              m_wavelengthPdfHost;
     std::vector<float>              m_wavelengthCdfHost;

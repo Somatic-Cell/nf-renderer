@@ -1,5 +1,6 @@
 #ifndef RANDOM_NUMBER_GENERATOR_CUH_
 #define RANDOM_NUMBER_GENERATOR_CUH_
+#include <cstdint>
 
 template<unsigned int N=16>
 class LCG {

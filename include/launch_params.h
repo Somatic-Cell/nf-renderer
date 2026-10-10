@@ -3,6 +3,7 @@
 
 #include "optix8.hpp"
 #include "../utils/my_math.hpp"
+#include "m1/render_params.h"
 #include <cuda_runtime.h>
 
 
@@ -97,8 +98,8 @@ struct TriangleMeshGeomData {
     float3* normal;
     float4* tangent;
     float2* texcoord;
-    // float2* normalTexcoord;
-    // float2* emissiveTexcoord;
+    float2* normalTexcoord;
+    float2* emissiveTexcoord;
     uint3*  index;
 
     bool hasTangent;
@@ -135,14 +136,24 @@ struct LightDefinition{
 };
 
 struct TriangleLightData {
+    // Geometry is already in world space, including the emitter's own instance
+    // transform. The identity reproduces the area-light PDF at a BSDF hit.
     float3 v0, v1, v2;
     float3 normal;
     float area;
     float3 constantEmission;
+    uint32_t meshIndex;
+    uint32_t instanceID;
+    uint32_t primitiveIndex;
 
     // emissive テクスチャ用
     float2 uv0, uv1, uv2;
     TextureSlot emissiveTexture;
+
+    // Match the stochastic any-hit coverage, which uses diffuse texture alpha.
+    // Diffuse and emissive textures may use distinct UV sets.
+    float2 opacityUV0, opacityUV1, opacityUV2;
+    TextureSlot opacityTexture;
 };
 
 struct SpectralParams {
@@ -247,6 +258,7 @@ struct alignas(16) LaunchParams {
 
     // spectral rendering
     SpectralParams spectral;
+    M1RenderParams m1{};
 
     TriangleMeshGeomData* meshes;
     int numMeshes       {0};

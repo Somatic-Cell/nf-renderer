@@ -9,14 +9,20 @@
 #include <sstream>
 #include <iomanip>
 #include <unordered_set>
+#include <array>
+#include <vector>
+#include <cstdint>
+#include <cctype>
+#include <stdexcept>
 
 #if defined(_WIN32)
-#include <windows.h>
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
+#include <windows.h>
 #else
 #include <unistd.h>
+#include <limits.h>
 #endif
 
 namespace sceneIO {
@@ -47,6 +53,18 @@ namespace sceneIO {
         int         spp  = 1;
         int         maxBounce = 8;
         bool        isAccumulate  = true;
+
+        // M1 is opt-in: existing scenes continue to select the legacy integrator.
+        bool        m1Surface = false;
+        std::string m1DirectMode = "mis"; // mis, bsdf, nee
+        int         m1RrDepth = 5;
+        uint32_t    m1Seed = 1;
+        bool        m1SunEnabled = true;
+        float       m1SunScale = 1.0f;
+        float       m1SunAngularRadiusDeg = 0.25f;
+        float       m1SunZenithDeg = 35.0f;
+        float       m1SunAzimuthDeg = 130.0f;
+        float       m1RayEpsilon = 1.0e-4f;
     };
 
     struct Outputs {
@@ -72,6 +90,7 @@ namespace sceneIO {
         std::string upSampleBasisFile = "basis_rgb.csv";
         // std::string D65File = "CIE_std_illum_D65.csv";
         std::string D65File = "PVL_Spectrum.csv";
+        std::string m1AssetDirectory = "spectrum/m1";
     };
 
     struct Scene {
@@ -117,6 +136,7 @@ namespace sceneIO {
         v.TRS                       = j.value("TRS", v.TRS);
         v.placeCenterBBoxAtOrigin   = j.value("placeCenterBBoxAtOrigin", v.placeCenterBBoxAtOrigin);
         v.placeOnGround             = j.value("placeOnGround", v.placeOnGround);
+        v.normalizeScale            = j.value("normalizeScale", v.normalizeScale);
     }
 
     inline void to_json(nlohmann::ordered_json& j, const Object& v){
@@ -127,6 +147,7 @@ namespace sceneIO {
             {"TRS",                     v.TRS},
             {"placeCenterBBoxAtOrigin", v.placeCenterBBoxAtOrigin},
             {"placeOnGround",           v.placeOnGround},
+            {"normalizeScale",          v.normalizeScale},
         };
     }
 
@@ -137,6 +158,16 @@ namespace sceneIO {
         v.spp                       = j.value("spp", v.spp);
         v.maxBounce                 = j.value("maxBounce", v.maxBounce);
         v.isAccumulate              = j.value("isAccumulate", v.isAccumulate);
+        v.m1Surface                 = j.value("m1Surface", v.m1Surface);
+        v.m1DirectMode              = j.value("m1DirectMode", v.m1DirectMode);
+        v.m1RrDepth                 = j.value("m1RrDepth", v.m1RrDepth);
+        v.m1Seed                    = j.value("m1Seed", v.m1Seed);
+        v.m1SunEnabled              = j.value("m1SunEnabled", v.m1SunEnabled);
+        v.m1SunScale                = j.value("m1SunScale", v.m1SunScale);
+        v.m1SunAngularRadiusDeg     = j.value("m1SunAngularRadiusDeg", v.m1SunAngularRadiusDeg);
+        v.m1SunZenithDeg            = j.value("m1SunZenithDeg", v.m1SunZenithDeg);
+        v.m1SunAzimuthDeg           = j.value("m1SunAzimuthDeg", v.m1SunAzimuthDeg);
+        v.m1RayEpsilon              = j.value("m1RayEpsilon", v.m1RayEpsilon);
     }
 
     inline void to_json(nlohmann::ordered_json& j, const Integrator& v){
@@ -145,7 +176,17 @@ namespace sceneIO {
             {"applySpectralRendering", v.applySpectralRendering},
             {"spp", v.spp},
             {"maxBounce", v.maxBounce},
-            {"isAccumulate", v.isAccumulate}
+            {"isAccumulate", v.isAccumulate},
+            {"m1Surface", v.m1Surface},
+            {"m1DirectMode", v.m1DirectMode},
+            {"m1RrDepth", v.m1RrDepth},
+            {"m1Seed", v.m1Seed},
+            {"m1SunEnabled", v.m1SunEnabled},
+            {"m1SunScale", v.m1SunScale},
+            {"m1SunAngularRadiusDeg", v.m1SunAngularRadiusDeg},
+            {"m1SunZenithDeg", v.m1SunZenithDeg},
+            {"m1SunAzimuthDeg", v.m1SunAzimuthDeg},
+            {"m1RayEpsilon", v.m1RayEpsilon}
         };
     }
 
@@ -191,6 +232,7 @@ namespace sceneIO {
         v.upSampleBasisFile = j.value("upSampleBasisFile", v.upSampleBasisFile);
         v.xyzFuncFile       = j.value("xyzFuncFile", v.xyzFuncFile);
         v.D65File           = j.value("D65File", v.D65File);
+        v.m1AssetDirectory  = j.value("m1AssetDirectory", v.m1AssetDirectory);
     }
 
     inline void to_json(nlohmann::ordered_json& j, const Spectrum& v){
@@ -198,6 +240,7 @@ namespace sceneIO {
             {"upSampleBasisFile", v.upSampleBasisFile},
             {"xyzFuncFile", v.xyzFuncFile},
             {"D65File", v.D65File},
+            {"m1AssetDirectory", v.m1AssetDirectory},
         };
     }
 
@@ -284,6 +327,10 @@ namespace sceneIO {
         bool writeBackDefaults=true)
     {
         if(!std::filesystem::exists(jsonPath)){
+            if (!writeBackDefaults) {
+                if (err) *err = "Scene file does not exist: " + jsonPath.string();
+                return false;
+            }
             nlohmann::ordered_json j = defaultJson();
             if(writeBackDefaults){
                 std::string werr;
@@ -305,6 +352,10 @@ namespace sceneIO {
 
         nlohmann::ordered_json j;
         if(!parseJson(text, j, &lerr)){
+            if (!writeBackDefaults) {
+                if (err) *err = "Scene JSON parse error: " + lerr;
+                return false;
+            }
             try {
                 std::filesystem::rename(jsonPath, jsonPath.string()+".bad"); 
             } catch(...){}
@@ -325,18 +376,25 @@ namespace sceneIO {
     }
 
     static std::filesystem::path getJsonAbsPath(const std::filesystem::path& p){
+        // An explicit absolute path, or a path relative to the working directory,
+        // takes precedence over the original executable-relative scene folder.
+        if (p.is_absolute()) return p;
+        if (std::filesystem::exists(p)) return std::filesystem::absolute(p);
+        if (std::filesystem::exists(std::filesystem::path("scene") / p))
+            return std::filesystem::absolute(std::filesystem::path("scene") / p);
         std::filesystem::path exePath;
-        char pathBuffer[MAX_PATH] = {};
 #if defined(_WIN32)
+        char pathBuffer[MAX_PATH] = {};
         if(GetModuleFileNameA(NULL, pathBuffer, MAX_PATH) == 0){
             std::cerr << "ERROR: GetModuleFileNameA failed" << std::endl;
         }
         exePath = std::filesystem::path(pathBuffer);
 #else
-        ssize_t count = readlink("/proc/self/exe", exePath, PATH_MAX);
-        if(count == -1) {
-            std::cerr << "ERROR: readlink() failed" << std::endl;
-        }
+        char pathBuffer[PATH_MAX] = {};
+        const ssize_t count = readlink("/proc/self/exe", pathBuffer, sizeof(pathBuffer)-1);
+        if(count < 0) throw std::runtime_error("readlink(/proc/self/exe) failed");
+        pathBuffer[count] = '\0';
+        exePath = std::filesystem::path(pathBuffer);
 #endif
         std::filesystem::path jsonAbsPath = exePath.parent_path().parent_path().parent_path().parent_path() / "scene" / p;
         // std::cout << "Json path (abs): " << jsonAbsPath << std::endl;

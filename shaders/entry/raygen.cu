@@ -1,4 +1,5 @@
 #include "../config.cuh"
+#include "../device/m1_surface.cuh"
 
 #include <optix.h>
 
@@ -107,6 +108,7 @@ extern "C" __global__ void __raygen__renderFrame_rgb()
 //Spectral rendering
 extern "C" __global__ void __raygen__renderFrame_spectral()
 {
+    if(optixLaunchParams.m1.enabled) { m1surface::render_frame(); return; }
     // // ピクセル位置の取得
     const int ix = optixGetLaunchIndex().x;
     const int iy = optixGetLaunchIndex().y;

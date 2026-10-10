@@ -95,14 +95,10 @@ extern "C" __device__ LightSample_RGB __direct_callable__light_triangle_rgb(Ligh
     TriangleLightData& triangleLightData = optixLaunchParams.light.triangleLightData[light.lightIndexInType];
     
     // 三角形上の一様サンプリング
-    mymath::matrix3x4 matrixO2WPoint = optixLaunchParams.frame.objectMatrixBuffer[prd->instanceID];
-    const float3 V0 = triangleLightData.v0;
-    const float3 V1 = triangleLightData.v1;
-    const float3 V2 = triangleLightData.v2;
-
-    const float3 v0 = mymath::mul3x4(matrixO2WPoint, make_float4(V0, 1.0f));
-    const float3 v1 = mymath::mul3x4(matrixO2WPoint, make_float4(V1, 1.0f));
-    const float3 v2 = mymath::mul3x4(matrixO2WPoint, make_float4(V2, 1.0f));
+    // Host light table stores the EMITTER instance in world space.
+    const float3 v0 = triangleLightData.v0;
+    const float3 v1 = triangleLightData.v1;
+    const float3 v2 = triangleLightData.v2;
     
 
     const float3 a = v1 - v0;
@@ -233,14 +229,10 @@ extern "C" __device__ LightSample_Spectral __direct_callable__light_triangle_spe
     TriangleLightData& triangleLightData = optixLaunchParams.light.triangleLightData[light.lightIndexInType];
     
     // 三角形上の一様サンプリング
-    mymath::matrix3x4 matrixO2WPoint = optixLaunchParams.frame.objectMatrixBuffer[prd->instanceID];
-    const float3 V0 = triangleLightData.v0;
-    const float3 V1 = triangleLightData.v1;
-    const float3 V2 = triangleLightData.v2;
-
-    const float3 v0 = mymath::mul3x4(matrixO2WPoint, make_float4(V0, 1.0f));
-    const float3 v1 = mymath::mul3x4(matrixO2WPoint, make_float4(V1, 1.0f));
-    const float3 v2 = mymath::mul3x4(matrixO2WPoint, make_float4(V2, 1.0f));
+    // Host light table stores the EMITTER instance in world space.
+    const float3 v0 = triangleLightData.v0;
+    const float3 v1 = triangleLightData.v1;
+    const float3 v2 = triangleLightData.v2;
     
 
     const float3 a = v1 - v0;
