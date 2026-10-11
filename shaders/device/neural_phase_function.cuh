@@ -900,7 +900,7 @@ float evalPhaseFunctionNF_phiCached(const NSFPhiCache& cache, float cosTheta)
     // const float logp_t = flow_logpdf_t_phiCached(cache, t);
     const float logp_t = profile_flow_logpdf_cached(cache, t);
 
-    const float denom = (2.0f * float(M_PI)) * NSF_SCALE * fmaxf(1.0f - mu * mu, 1e-30f);
+    const float denom = (2.0f * m1::pi) * NSF_SCALE * fmaxf(1.0f - mu * mu, 1e-30f);
     return __expf(logp_t) / denom;
 }
 
@@ -920,9 +920,9 @@ PhaseSample samplePhaseFunctionNF_phiCached(const NSFPhiCache& cache,
 
     const float sinTheta = sqrtf(fmaxf(0.0f, 1.0f - mu * mu));
 
-    const float phi = 2.0f * M_PI * u2;
-    float sinPhi, cosPhi;
-    sincosf(phi, &sinPhi, &cosPhi);
+    const float phi = 2.0f * m1::pi * u2;
+    const auto phiAngle = m1::bounded_sincos(phi);
+    const float sinPhi = phiAngle.sine, cosPhi = phiAngle.cosine;
 
     const float3 local = make_float3(cosPhi * sinTheta, sinPhi * sinTheta, mu);
 
@@ -930,7 +930,7 @@ PhaseSample samplePhaseFunctionNF_phiCached(const NSFPhiCache& cache,
     makeONB(wo, tvec, bvec);
     ps.wi = normalize(local.x * tvec + local.y * bvec + local.z * wo);
 
-    const float denom = (2.0f * M_PI) * NSF_SCALE * fmaxf(1.0f - mu * mu, 1e-30f);
+    const float denom = (2.0f * m1::pi) * NSF_SCALE * fmaxf(1.0f - mu * mu, 1e-30f);
     ps.pdf = __expf(logp_t) / denom;
 
     return ps;
@@ -1160,7 +1160,7 @@ float evalPhaseFunctionNF_rqsCached(const NSFFixedXRqsCache& cache, float cosThe
     float t = atanhf(mu) / NSF_SCALE;
     float logp_t = flow_logpdf_t_rqsCached(cache, t);
 
-    float denom = (2.0f * float(M_PI)) * NSF_SCALE * fmaxf(1.0f - mu * mu, 1e-30f);
+    float denom = (2.0f * m1::pi) * NSF_SCALE * fmaxf(1.0f - mu * mu, 1e-30f);
     return __expf(logp_t) / denom;
 }
 
@@ -1179,10 +1179,10 @@ PhaseSample samplePhaseFunctionNF_rqsCached(const NSFFixedXRqsCache& cache,
     mu = fminf(fmaxf(mu, -1.0f + NSF_EPS), 1.0f - NSF_EPS);
 
     float sinTheta = sqrtf(fmaxf(0.0f, 1.0f - mu * mu));
-    float phi = 2.0f * float(M_PI) * u2;
+    float phi = 2.0f * m1::pi * u2;
 
-    float sinPhi, cosPhi;
-    sincosf(phi, &sinPhi, &cosPhi);
+    const auto phiAngle = m1::bounded_sincos(phi);
+    const float sinPhi = phiAngle.sine, cosPhi = phiAngle.cosine;
 
     float3 tvec, bvec;
     makeONB(wo, tvec, bvec);
@@ -1190,7 +1190,7 @@ PhaseSample samplePhaseFunctionNF_rqsCached(const NSFFixedXRqsCache& cache,
     float3 local = make_float3(cosPhi * sinTheta, sinPhi * sinTheta, mu);
     ps.wi = normalize(local.x * tvec + local.y * bvec + local.z * wo);
 
-    float denom = (2.0f * float(M_PI)) * NSF_SCALE * fmaxf(1.0f - mu * mu, 1e-30f);
+    float denom = (2.0f * m1::pi) * NSF_SCALE * fmaxf(1.0f - mu * mu, 1e-30f);
     ps.pdf = __expf(logp_t) / denom;
     return ps;
 }
@@ -1269,7 +1269,7 @@ float evalPhaseFunctionNF(
     const float logp_t = flow_logpdf_t(lp, t, c0, c1, g);
 
     // p_omega = p_t / (2π * scale * (1-mu^2))
-    const float denom = (2.0f * float(M_PI)) * NSF_SCALE * fmaxf(1.0f - mu * mu, 1e-30f);
+    const float denom = (2.0f * m1::pi) * NSF_SCALE * fmaxf(1.0f - mu * mu, 1e-30f);
     const float pdf = __expf(logp_t) / denom;
     return pdf;
 }
@@ -1291,9 +1291,9 @@ PhaseSample samplePhaseFunctionNF(const LaunchParams& lp,
 
     const float sinTheta = sqrtf(fmaxf(0.0f, 1.0f - mu * mu));
 
-    const float phi = 2.0f * M_PI * u2;
-    float sinPhi, cosPhi;
-    sincosf(phi, &sinPhi, &cosPhi);
+    const float phi = 2.0f * m1::pi * u2;
+    const auto phiAngle = m1::bounded_sincos(phi);
+    const float sinPhi = phiAngle.sine, cosPhi = phiAngle.cosine;
 
     // wo を z 軸にしたローカル方向（z=mu）
     const float3 local = make_float3(cosPhi * sinTheta, sinPhi * sinTheta, mu);
@@ -1303,7 +1303,7 @@ PhaseSample samplePhaseFunctionNF(const LaunchParams& lp,
     ps.wi = normalize(local.x * tvec + local.y * bvec + local.z * wo);
 
     // pdf over solid angle
-    const float denom = (2.0f * M_PI) * NSF_SCALE * fmaxf(1.0f - mu * mu, 1e-30f);
+    const float denom = (2.0f * m1::pi) * NSF_SCALE * fmaxf(1.0f - mu * mu, 1e-30f);
     ps.pdf = __expf(logp_t) / denom;
 
     return ps;

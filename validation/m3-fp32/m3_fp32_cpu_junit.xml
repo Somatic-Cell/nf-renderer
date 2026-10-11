@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="(empty)"
+	tests="12"
+	failures="0"
+	disabled="0"
+	skipped="0"
+	hostname=""
+	time="4"
+	timestamp="2026-10-10T23:09:46"
+	>
+	<testcase name="m1_bsdf_check" classname="m1_bsdf_check" time="0.692625" status="run">
+		<properties/>
+		<system-out>GGX alpha=1: albedo=0.3068528424 exact=0.3068528194 acceptance=0.5
+GGX alpha=0.200000003 cos_o=0.8999999762 albedo quadrature=0.6967915198 sampled=0.6967906612 PDF mass=0.9600190732 accepted=0.9600067139
+GGX alpha=0.200000003 cos_o=0.200000003 albedo quadrature=0.6673431858 sampled=0.6673428151 PDF mass=0.9487273378 accepted=0.9487495422
+GGX alpha=0.6999999881 cos_o=0.8999999762 albedo quadrature=0.3801558832 sampled=0.3801558749 PDF mass=0.6848344995 accepted=0.6848487854
+GGX alpha=0.6999999881 cos_o=0.200000003 albedo quadrature=0.5471985694 sampled=0.5471984207 PDF mass=0.8831377176 accepted=0.8831520081
+MIS + RR constant illumination estimate=0.7004681698 expected=0.6999999881
+Existing metallic model: albedo quadrature=0.6164091377 sampled=0.6167723749 PDF mass=0.9557935299 accepted=0.9563331604
+Shading-normal support: acceptance=0.7499885559 exact=0.75
+M1 BSDF tests: 9 groups passed
+</system-out>
+	</testcase>
+	<testcase name="m1_light_pdf_check" classname="m1_light_pdf_check" time="0.00227308" status="run">
+		<properties/>
+		<system-out>offset triangle hit: traced cosine=0.009999500588 connection cosine=-0.005385788158 competing PDF=0
+FP32 PDF exponent sweep: finite=3724 range_rejections=2324 max_normal_relative_error=8.94069689e-08 max_subnormal_absolute_error=7.171628505e-46
+M1 area-light PDF: finite offset support, analytic Jacobian, intermediate range, invalid geometry and mode checks passed
+</system-out>
+	</testcase>
+	<testcase name="m1_diagnostics_check" classname="m1_diagnostics_check" time="0.00188513" status="run">
+		<properties/>
+		<system-out>M1/M2 failure report checks passed
+</system-out>
+	</testcase>
+	<testcase name="m2_alpha_check" classname="m2_alpha_check" time="0.0014298" status="run">
+		<properties/>
+		<system-out>legacy alpha: BSDF=4 NEE=4 MIS=4 exact=4; double-alpha mutation=1.4375
+M2 alpha: cutoff boundaries, opacity composition, endpoint/MIS consistency, double-weighting sensitivity and invalid-input rejection passed
+</system-out>
+	</testcase>
+	<testcase name="m2_tangent_frame_check" classname="m2_tangent_frame_check" time="0.00135578" status="run">
+		<properties/>
+		<system-out>FP32 frame reference: scaled_charts=64 max_component_error=8.99521489294e-08
+M2 tangent frame: mixed-sign interior regression, non-flat normal map, mirrored UV, world transforms, smooth normal, tiny regular UV, pinned Assimp degenerate-UV chart and invalid-input checks passed
+</system-out>
+	</testcase>
+	<testcase name="m3_atmosphere_check" classname="m3_atmosphere_check" time="0.0460262" status="run">
+		<properties/>
+		<system-out>METRIC tangent_tau=4.8720163769784541 independent_tau=4.8720163769784524 evaluations=30
+METRIC high_altitude_max_distance_error_m=0.00093780079623684287 high_altitude_max_estimate_m=0.00095208452733417629
+METRIC near_tangent_float_direction_cases=126 disagreements=0
+M3 atmosphere: shell/ground, metric conversion, analytic radial, independent tangent/short, additivity, inverse-CDF and explicit-failure checks passed
+</system-out>
+	</testcase>
+	<testcase name="m3_transport_check" classname="m3_transport_check" time="0.026984" status="run">
+		<properties/>
+		<system-out>Rayleigh quantiles: mean=0 second_moment=0.399999999625 max_cdf_error=3.45721126171e-08 max_quantile_error=4.87478122313e-08 max_phase_relative_error=1.20691220573e-07 max_cdf_evaluation_error=4.28783528683e-08
+Rayleigh float directions: max_cdf_error=6.32559402636e-08 max_norm_error=2.38418579102e-07 max_cosine_error=1.8751076214e-07
+Vertical transport: analytic_T=0.449328964117 escaped_fraction=0.44921875 erroneous_T_twice=0.2018469956 max_distance_error_m=5.52847211566e-06 max_tau_residual=9.87533832486e-10 sun_T=0.271309626327 sun_escaped_fraction=0.271484375
+Solar angular MIS: surface_reference=0.749689742811 medium_reference=0.304356481025 max_expected_value_error=4.00626958275e-08
+M3 transport checks passed: Rayleigh normalization/sampling, ballistic survival, sun MIS expectation, and absent medium-to-area NEE support
+</system-out>
+	</testcase>
+	<testcase name="m3_position_check" classname="m3_position_check" time="0.00182139" status="run">
+		<properties/>
+		<system-out>Medium point counterexample: exact_height_m=0.000117409813938 nearest_height_m=-0.000115249068991 represented_height_m=0.000372656108023 y_step_m=0.00048828125
+Spherical representation: checked=35 corrected=20
+M3 position checks passed: real PCG free-flight counterexample, sphere-domain preservation, one-float-step bound, unchanged valid points, and invalid-input rejection
+</system-out>
+	</testcase>
+	<testcase name="m3_tracking_geometry_check" classname="m3_tracking_geometry_check" time="0.00175458" status="run">
+		<properties/>
+		<system-out>METRIC pair_subulp_progress_m=0.999998569590389
+METRIC fp32_height_max_radial_error_m=0.0078125
+METRIC fp32_grazing_cases=126 disagreements=0 max_root_error_t=3.55007500729698e-07
+METRIC fp32_medium_position_directions=35 corrected=20 planet_hits=35
+FP32 tracking geometry checks passed: sub-ULP progress, spherical shell/raw ray metric, stable altitude, 126 grazing cases, 35 spherical representations, and invalid-input rejection
+</system-out>
+	</testcase>
+	<testcase name="m3_tracking_check" classname="m3_tracking_check" time="3.1471" status="run">
+		<properties/>
+		<system-out>deterministic: vacuum, exterior, planet, endpoint, raw RNG, invalid coefficient/ray, budget passed
+case=vertical_6km/360nm N=65536 tau=0.28975753425 expected_T=0.748445017862 escaped=0.747619628906 ratio_mean=0.751057678186 ratio_variance=0.127293346257 expected_ratio_variance=0.128658232168 max_CDF_sigma=0.728662890307 delta_candidates=0.361343383789 delta_nulls=0.108963012695 ratio_candidates=0.419418334961
+case=vertical_6km/550nm N=65536 tau=0.0531855861619 expected_T=0.948204022607 escaped=0.949569702148 ratio_mean=0.947764608192 ratio_variance=0.0351470541688 expected_ratio_variance=0.0347759107112 max_CDF_sigma=1.08604534675 delta_candidates=0.0739898681641 delta_nulls=0.0235595703125 ratio_candidates=0.0784759521484
+case=vertical_6km/830nm N=65536 tau=0.0102549208701 expected_T=0.98979748155 escaped=0.989974975586 ratio_mean=0.989878586421 ratio_variance=0.00716586927329 expected_ratio_variance=0.00719497239576 max_CDF_sigma=0.860339860596 delta_candidates=0.0146636962891 delta_nulls=0.004638671875 rat...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="m1_spectral_check" classname="m1_spectral_check" time="0.0779417" status="run">
+		<properties/>
+		<system-out>RGB2Spec official/common parity: 10126 colors, max evaluation abs error 7.56979e-06
+M1 spectral asset tests passed
+</system-out>
+	</testcase>
+	<testcase name="m1_scene_check" classname="m1_scene_check" time="0.00605392" status="run">
+		<properties/>
+		<system-out>Scene selection: 9 M1 fixtures + 2 M2 + 5 M3 presets + 2 legacy scenes; strict failures preserve inputs
+</system-out>
+	</testcase>
+</testsuite>

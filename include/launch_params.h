@@ -4,6 +4,7 @@
 #include "optix8.hpp"
 #include "../utils/my_math.hpp"
 #include "m1/render_params.h"
+#include "m3/tracking_parameters.hpp"
 #include <cuda_runtime.h>
 
 
@@ -267,6 +268,7 @@ struct alignas(16) LaunchParams {
     // spectral rendering
     SpectralParams spectral;
     M1RenderParams m1{};
+    m3::TrackingParameters rayleigh{};
 
     TriangleMeshGeomData* meshes;
     int numMeshes       {0};

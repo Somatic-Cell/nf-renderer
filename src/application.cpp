@@ -78,6 +78,7 @@ void Application::save(std::string fileName)
         info["xyz_normalization"] = "none; no division by integral(ybar) and no 683 factor";
         info["width"] = sizeX;
         info["height"] = sizeY;
+        info["requested_initial_resolution"] = m_scene.outputs.resolution;
         info["accumulated_frames"] = params.frame.frameID;
         info["spp_per_frame"] = params.frame.numPixelSamples;
         info["total_spp"] = uint64_t(params.frame.frameID) * uint64_t(params.frame.numPixelSamples);
@@ -92,6 +93,27 @@ void Application::save(std::string fileName)
         info["sun_azimuth_rad"] = params.sunParams.sunAzimuthRad;
         info["light_intensity_factor"] = params.light.lightIntensityFactor;
         info["ray_epsilon"] = params.m1.rayEpsilon;
+        info["integrator_model"] = params.rayleigh.enabled ? "M3 spherical Rayleigh path tracing" : "M1/M2 spectral surface path tracing";
+        info["rayleigh"] = sceneIO::rayleighJson(params.rayleigh);
+        if (params.rayleigh.enabled) {
+            info["rayleigh_model"] = {
+                {"coordinates", "metres; +Y up"},
+                {"planet_center_m", {0.0, static_cast<double>(params.rayleigh.groundY) - static_cast<double>(params.rayleigh.planetRadius), 0.0}},
+                {"density", "exp(-altitude/scaleHeight), truncated at atmosphereHeight"},
+                {"scattering", "scalar unpolarized Rayleigh; pure scattering, no absorption"},
+                {"beta_wavelength", "beta550 * (550 / wavelength_nm)^4"},
+                {"ground", "opaque, spectrally neutral Lambertian"},
+                {"medium_area_light_nee", false},
+                {"area_shadow_transmittance_omission", params.rayleigh.areaNeeTransmittance == 0},
+                {"arithmetic", "FP32; compensated FP32 pairs for geometry and ray-parameter accumulation"},
+                {"majorant", "wavelength-dependent global sea-level coefficient"},
+                {"free_flight", "analog delta tracking; distance-sampling throughput is one"},
+                {"shadow_transmittance", "ratio tracking with optional unbiased Russian roulette"},
+                {"random_numbers", "PCG32 stream, 23-bit open-interval midpoint for tracking"},
+                {"tracking_budget", "exhaustion rejects the frame; no accepted truncated product or flight"},
+                {"numerical_reference", "FP64 Gauss-Kronrod / inverse CDF retained in CPU tests only"}
+            };
+        }
         info["display"] = {{"exposure", m_renderer.getExposure()},
                            {"white", m_renderer.getWhite()}};
         info["objects"] = m_scene.objects;

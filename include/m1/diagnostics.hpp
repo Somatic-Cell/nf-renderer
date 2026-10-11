@@ -9,7 +9,7 @@ inline constexpr std::uint32_t no_index = 0xffffffffu;
 
 enum class FailureStage : std::uint32_t {
     Camera, Surface, SunNee, AreaNee, Bsdf, Miss, Film,
-    RadianceAnyHit, ShadowAnyHit
+    RadianceAnyHit, ShadowAnyHit, Atmosphere, AtmosphereSunNee, Planet
 };
 
 // One name per validation condition. Keep the values and their labels together
@@ -32,7 +32,7 @@ enum class FailureStage : std::uint32_t {
     X(NormalTexture, "normal_r, normal_g, uv.x, uv.y") \
     X(TangentHandedness, "tangent.w, w0, w1, w2, b0, b1, b2") \
     X(TangentFrame, "tangent.x, tangent.y, tangent.z, bitangent.x, bitangent.y, bitangent.z, normal.x, normal.y, normal.z, t_length2, b_length2, object_tangent.x, object_tangent.y, object_tangent.z") \
-    X(TriangleTangentFrame, "uv_determinant, normal.x, normal.y, normal.z, uv0.x, uv0.y, uv1.x, uv1.y, uv2.x, uv2.y, edge1.x, edge1.y, edge1.z, edge2.x, edge2.y, edge2.z") \
+    X(TriangleTangentFrame, "uv_det_mantissa, uv_det_exponent, normal.x, normal.y, normal.z, uv0.x, uv0.y, uv1.x, uv1.y, uv2.x, uv2.y, edge1_max_abs, edge2_max_abs") \
     X(MappedNormal, "normal.x, normal.y, normal.z, map.x, map.y, map.z") \
     X(HitSbt, "geometry_type, mesh_count, material_count") \
     X(HitGeometry, "twice_area, cross.x, cross.y, cross.z") \
@@ -61,7 +61,18 @@ enum class FailureStage : std::uint32_t {
     X(RadianceOpacity, "texture_alpha, opacity_factor, cutoff, uv.x, uv.y") \
     X(ShadowSbt, "geometry_type, mesh_count, material_count") \
     X(ShadowUV, "has_diffuse_texture") \
-    X(ShadowOpacity, "texture_alpha, opacity_factor, cutoff, uv.x, uv.y")
+    X(ShadowOpacity, "texture_alpha, opacity_factor, cutoff, uv.x, uv.y") \
+    X(AtmosphereGeometry, "status, ray_t_max, origin.x, origin.y, origin.z, direction.x, direction.y, direction.z") \
+    X(AtmosphereIntegral, "status, begin_m, end_m, optical_depth, error_estimate, density_evaluations, wavelength_nm") \
+    X(AtmosphereInverse, "status, uniform_24bit, distance_m, target_tau, optical_depth, residual_tau, error_estimate, inverse_iterations, density_evaluations") \
+    X(AtmospherePhase, "direction.x, direction.y, direction.z, phase_value, phase_pdf, u_mu, u_phi") \
+    X(AtmospherePosition, "status, candidates, ray_t, precise.x, precise.y, precise.z, rounded.x, rounded.y, rounded.z") \
+    X(AtmosphereDirect, "radiance, sun_pdf, phase_value, transmittance, mis_weight") \
+    X(AtmosphereContinuation, "position.x, position.y, position.z, direction.x, direction.y, direction.z, phase_value, phase_pdf") \
+    X(PlanetIntersection, "ray_t, position.x, position.y, position.z, normal.x, normal.y, normal.z, tracking_status, root_height_m, root_height_bound_m, root_t_hi, root_t_lo, radial_correction_m, root_position.x, root_position.y, root_position.z") \
+    X(AtmosphereCoefficient, "wavelength_nm, beta550") \
+    X(AtmosphereTracking, "status, ray_t, begin_t, end_t, candidates, null_collisions, beta_lambda, wavelength_nm") \
+    X(AtmosphereRatio, "status, begin_t, end_t, transmittance, candidates, roulette_tests, wavelength_nm")
 
 enum class FailureReason : std::uint32_t {
 #define M1_ENUM_REASON(name, labels) name,
@@ -99,6 +110,9 @@ inline const char* failure_stage_name(FailureStage stage) {
     case FailureStage::Film: return "film";
     case FailureStage::RadianceAnyHit: return "radiance_anyhit";
     case FailureStage::ShadowAnyHit: return "shadow_anyhit";
+    case FailureStage::Atmosphere: return "atmosphere";
+    case FailureStage::AtmosphereSunNee: return "atmosphere_sun_nee";
+    case FailureStage::Planet: return "planet";
     }
     return "unknown";
 }

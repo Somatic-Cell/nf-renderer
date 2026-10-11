@@ -1,0 +1,2953 @@
+{
+  "timestamp_utc": "2026-10-11T04:10:10.084362+00:00",
+  "root": "/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32",
+  "reproduction_script": "/workspace/scratch/6fbbff5708b2/m3-fp32-validation/compile_m3_fp32_shaders.py",
+  "reproduction_script_sha256": "1f2dea52caf4581e3229c1a128dc747433a0b8a523694c41f08c299d731a26cd",
+  "compiler_version": "nvcc: NVIDIA (R) Cuda compiler driver\nCopyright (c) 2005-2025 NVIDIA Corporation\nBuilt on Wed_Aug_20_01:58:59_PM_PDT_2025\nCuda compilation tools, release 13.0, V13.0.88\nBuild cuda_13.0.r13.0/compiler.36424714_0\n",
+  "previous_validation_manifest": "/workspace/scratch/6fbbff5708b2/NeuralPFRenderer-m1/validation/m1_shader_compile.json",
+  "command_policy": "M1 commands with source/include/output roots updated to M3; C++20, compute_86/sm_86, cudart none, RDC true, line info, no fast math",
+  "temporary_preinclude_or_stubs": false,
+  "gpu_runtime_executed": false,
+  "windows_application_compiled": false,
+  "input_hash_scope": "Every translation unit and its recursively resolved literal repository includes; conservative over inactive preprocessor branches",
+  "input_sha256_before": {
+    "include/atmosphere_lut.h": "270d154110f8df35cf3031f0b1536851d9a89eb83cc517e1ffcc92ca40337fe8",
+    "include/cuda_buffer.h": "852322bccb627432c66ac7a0287460c35af3505b168c62fda35c7195a7dc96ba",
+    "include/cuda_texture.h": "30c2eeb12fbb17d02e87eb3b7e5e3ae690b1ffb1379ce2f7244c2801fd898fa7",
+    "include/launch_params.h": "a64b02010be9654df9130cdbe51e11cc678ae3f59be5110021a505cfa3a05c0c",
+    "include/m1/bounded_trig.hpp": "929fb43131c607732a0802b81a92be9abc342fb6b554afd4a426d653aec7d5dd",
+    "include/m1/bsdf.hpp": "18928beedfa2eaf18c639f7ee0129ec88a63568d73ad6e588fa6a6fa4f50ccde",
+    "include/m1/diagnostics.hpp": "fcabe9c2ee8243427671aa22230c54cdb30b416e113b75d0bded59db1e810820",
+    "include/m1/fp32_numeric.hpp": "525f743cf3e06bbc35935d27d902c7e856cbf62879d10121baf08e912a6b0e50",
+    "include/m1/light_pdf.hpp": "bb706966a29e68b147b141766789e264d651bb47cfae5c06611071e1f5c9c174",
+    "include/m1/math.hpp": "8081b03e222391c384ecd98742ff85bfef7b178949776b86794d901dc628c604",
+    "include/m1/render_params.h": "917505fd03ebe65edbdf56e510836d8da3d8539c228b228b26cbbd9738844821",
+    "include/m1/rgb2spec_device.hpp": "2c10031cd751aeac1adbe43c6c31d8b0ec1be594e4b9b3dbab97387469d2008b",
+    "include/m1/spectral_types.hpp": "864ea7847c3cd0b3a125a22ed42472e4bd33b3c6fe005eb6776b87d8437da610",
+    "include/m2/alpha.hpp": "d2c2da2497dd3d2a24294d53e5ed61b70f1cd1e7be11ef71a41f4c62b352b9a7",
+    "include/m2/tangent_frame.hpp": "77b5addb599dc6218da37d4f9c0ea7be2a25279793e263267c24e36e77425a71",
+    "include/m3/tracking.hpp": "a3bddfd1053d867631e8eae7ef375d1abf9dcca4a2ff687b0f476da82c920a6b",
+    "include/m3/tracking_float.hpp": "9f4b82dcf1a85a40297460a9424d7eb7595a3d3c28ef5d31fbd16d632f4b6656",
+    "include/m3/tracking_geometry.hpp": "f4e4675393d5f27a0c4062a76a8bc4b5afa5d698456c0a900492810c9f7b5bde",
+    "include/m3/tracking_parameters.hpp": "48cba4ef581d3ef46c5a5cbdb0f4dcaf5e7b8d6ddd4c318f00351df109ebb351",
+    "include/m3/transport.hpp": "9cd1953e177155aa60761395904f9ee2ccb0c4af6ac7892173963660dfcb0327",
+    "include/optix8.hpp": "15891b5a7cd00e8507f6ac410007a7001fcf5ef35bfb33780e35d500c1bdeb59",
+    "kernels/copy_buffer_to_surface.cu": "afddeb02384899446ee5aa3ddb516350b430ac953ef7b14d0005f4a0f7c46a16",
+    "kernels/toneMap.cu": "6d7f203199d4176d1b408c3dc55153e16a30a383e5d25ae3097b235c826ee0d0",
+    "shaders/callable/diffuse_brdf.cu": "75b034d26428e2bdc4c7764d152585a8afb35723fdb7c53f1b6cf429e7a73435",
+    "shaders/callable/disney_principled_brdf.cu": "59af275ad3d2de7782e58a7436372a19476164df4d2c08d3942a08865b63f787",
+    "shaders/callable/glass_bsdf.cu": "769dec1919d6ac3bf334c9cd46901059b510d1c8dc5d907ecee604bcb1442951",
+    "shaders/callable/lens.cu": "0169db46fbb9bdbe61c3a5eaa89771f20684c111510ec062a7efcca06ac72c29",
+    "shaders/callable/light_sample.cu": "11e2319e5673894a2b08d035329cd5b6c7bef079bf95575f545f4e54e18c0ed3",
+    "shaders/config.cuh": "c5ac00ff92d1bbb0ba533a1fe3b5397f2b17141db6cc80efcbad77a5a1303516",
+    "shaders/device/atmosphere_sampling_device.cuh": "0afba86188a1db3c7d9bbf6b8b0ca46ed856f8dd4cd960ae4770c6e331eea70a",
+    "shaders/device/m1_diagnostics.cuh": "2184925fae7427055043b6127940ec684ccedcc3acd6c58c381bdcec7ff6c248",
+    "shaders/device/m1_surface.cuh": "99c9213eac9b5a7b9805a41876decc57db5f610ed208c682f010e82b431c92c4",
+    "shaders/device/m3_atmosphere.cuh": "8c293758b8c38c442802b5ed53f5451e374cd73ea70d5008856cb8433af0f398",
+    "shaders/device/neural_phase_function.cuh": "a913590c1607aa6e8099609f847e727fff2ae36fa6f1ebd17a19c0d72d81ce43",
+    "shaders/device/nsf_simd_constant_backend.cuh": "31a0567a5a86f1a9023df6631a45a132a2a596e0fe855c6938f175b3e1cca656",
+    "shaders/device/phase_function.cuh": "cfe61d519d57846a830bdc3e4ad4a3c23933d2e39c30ccb746d33f4d1724050e",
+    "shaders/device/random_number_generator.cuh": "b7f5ffa2fcb742be33aaa542d84f55c58d7d87bf2a91c2b7ac57c6259fe60c9d",
+    "shaders/device/shader_common.cuh": "beee0415658e94b5627f88cc09389123d08b752e9f1d4e17347826177a7f2da8",
+    "shaders/device/trace_volume.cuh": "7441c82b15acf7ccaa170c8e0fe50a15cc7521c8739a0fe5f99e30fa3b73db67",
+    "shaders/entry/ah_radiance.cu": "1ca8cc904a851f73100f435bed76be283f4dcc2963c8e42696cff8c00b1f4b6d",
+    "shaders/entry/ah_shadow.cu": "05a9fbf3042e17d6c9aca87363f1fd11061e09822a4f68944c95a1d8a726c30d",
+    "shaders/entry/ch_radiance.cu": "85e4f927bb6997e63d4fcc6cd94a11c5ceebcfa1ea30d17b253871a7d575d5f4",
+    "shaders/entry/ch_radiance_vdb.cu": "22963b300c388c98c5d71d22b7a3edc493323daf77d39bdff146dcf4735ca4a8",
+    "shaders/entry/ch_shadow.cu": "ac3827798b9fa58c8857db0d852a24219f2a07c2d3c0713abf37d0ab5588f99e",
+    "shaders/entry/intersection_vdb.cu": "5b71b51c794a3ef85a2eee754a17822f240b08b1da95bfb9c7a72e02805b30eb",
+    "shaders/entry/miss_radiance.cu": "1e026e0512492b4f01285ee176aa60c96854a06a60f6a77867061024732424e4",
+    "shaders/entry/miss_shadow.cu": "fa0c56c46bd1a6c526d21ae559cfa576ad5bf79fe289b8847e095fe9f727dce9",
+    "shaders/entry/raygen.cu": "bd608f1c6ffed4823f8bed6e816272d2b21d26e78858f6f1a49f86b738039a17",
+    "shaders/params/per_ray_data.cuh": "f6ff4990564cd029bdc3b2992596be08e3986bdd679590f88f6eccde76daff14",
+    "utils/helper_math.h": "83970551dc121ca26252bb735823fa217af90fc348571cf785ed477f5681eafe",
+    "utils/my_math.hpp": "3f578c9c6f6894a81ac914a767ca9c4fec421517e273b96094a292c877c84657"
+  },
+  "input_sha256_after": {
+    "include/atmosphere_lut.h": "270d154110f8df35cf3031f0b1536851d9a89eb83cc517e1ffcc92ca40337fe8",
+    "include/cuda_buffer.h": "852322bccb627432c66ac7a0287460c35af3505b168c62fda35c7195a7dc96ba",
+    "include/cuda_texture.h": "30c2eeb12fbb17d02e87eb3b7e5e3ae690b1ffb1379ce2f7244c2801fd898fa7",
+    "include/launch_params.h": "a64b02010be9654df9130cdbe51e11cc678ae3f59be5110021a505cfa3a05c0c",
+    "include/m1/bounded_trig.hpp": "929fb43131c607732a0802b81a92be9abc342fb6b554afd4a426d653aec7d5dd",
+    "include/m1/bsdf.hpp": "18928beedfa2eaf18c639f7ee0129ec88a63568d73ad6e588fa6a6fa4f50ccde",
+    "include/m1/diagnostics.hpp": "fcabe9c2ee8243427671aa22230c54cdb30b416e113b75d0bded59db1e810820",
+    "include/m1/fp32_numeric.hpp": "525f743cf3e06bbc35935d27d902c7e856cbf62879d10121baf08e912a6b0e50",
+    "include/m1/light_pdf.hpp": "bb706966a29e68b147b141766789e264d651bb47cfae5c06611071e1f5c9c174",
+    "include/m1/math.hpp": "8081b03e222391c384ecd98742ff85bfef7b178949776b86794d901dc628c604",
+    "include/m1/render_params.h": "917505fd03ebe65edbdf56e510836d8da3d8539c228b228b26cbbd9738844821",
+    "include/m1/rgb2spec_device.hpp": "2c10031cd751aeac1adbe43c6c31d8b0ec1be594e4b9b3dbab97387469d2008b",
+    "include/m1/spectral_types.hpp": "864ea7847c3cd0b3a125a22ed42472e4bd33b3c6fe005eb6776b87d8437da610",
+    "include/m2/alpha.hpp": "d2c2da2497dd3d2a24294d53e5ed61b70f1cd1e7be11ef71a41f4c62b352b9a7",
+    "include/m2/tangent_frame.hpp": "77b5addb599dc6218da37d4f9c0ea7be2a25279793e263267c24e36e77425a71",
+    "include/m3/tracking.hpp": "a3bddfd1053d867631e8eae7ef375d1abf9dcca4a2ff687b0f476da82c920a6b",
+    "include/m3/tracking_float.hpp": "9f4b82dcf1a85a40297460a9424d7eb7595a3d3c28ef5d31fbd16d632f4b6656",
+    "include/m3/tracking_geometry.hpp": "f4e4675393d5f27a0c4062a76a8bc4b5afa5d698456c0a900492810c9f7b5bde",
+    "include/m3/tracking_parameters.hpp": "48cba4ef581d3ef46c5a5cbdb0f4dcaf5e7b8d6ddd4c318f00351df109ebb351",
+    "include/m3/transport.hpp": "9cd1953e177155aa60761395904f9ee2ccb0c4af6ac7892173963660dfcb0327",
+    "include/optix8.hpp": "15891b5a7cd00e8507f6ac410007a7001fcf5ef35bfb33780e35d500c1bdeb59",
+    "kernels/copy_buffer_to_surface.cu": "afddeb02384899446ee5aa3ddb516350b430ac953ef7b14d0005f4a0f7c46a16",
+    "kernels/toneMap.cu": "6d7f203199d4176d1b408c3dc55153e16a30a383e5d25ae3097b235c826ee0d0",
+    "shaders/callable/diffuse_brdf.cu": "75b034d26428e2bdc4c7764d152585a8afb35723fdb7c53f1b6cf429e7a73435",
+    "shaders/callable/disney_principled_brdf.cu": "59af275ad3d2de7782e58a7436372a19476164df4d2c08d3942a08865b63f787",
+    "shaders/callable/glass_bsdf.cu": "769dec1919d6ac3bf334c9cd46901059b510d1c8dc5d907ecee604bcb1442951",
+    "shaders/callable/lens.cu": "0169db46fbb9bdbe61c3a5eaa89771f20684c111510ec062a7efcca06ac72c29",
+    "shaders/callable/light_sample.cu": "11e2319e5673894a2b08d035329cd5b6c7bef079bf95575f545f4e54e18c0ed3",
+    "shaders/config.cuh": "c5ac00ff92d1bbb0ba533a1fe3b5397f2b17141db6cc80efcbad77a5a1303516",
+    "shaders/device/atmosphere_sampling_device.cuh": "0afba86188a1db3c7d9bbf6b8b0ca46ed856f8dd4cd960ae4770c6e331eea70a",
+    "shaders/device/m1_diagnostics.cuh": "2184925fae7427055043b6127940ec684ccedcc3acd6c58c381bdcec7ff6c248",
+    "shaders/device/m1_surface.cuh": "99c9213eac9b5a7b9805a41876decc57db5f610ed208c682f010e82b431c92c4",
+    "shaders/device/m3_atmosphere.cuh": "8c293758b8c38c442802b5ed53f5451e374cd73ea70d5008856cb8433af0f398",
+    "shaders/device/neural_phase_function.cuh": "a913590c1607aa6e8099609f847e727fff2ae36fa6f1ebd17a19c0d72d81ce43",
+    "shaders/device/nsf_simd_constant_backend.cuh": "31a0567a5a86f1a9023df6631a45a132a2a596e0fe855c6938f175b3e1cca656",
+    "shaders/device/phase_function.cuh": "cfe61d519d57846a830bdc3e4ad4a3c23933d2e39c30ccb746d33f4d1724050e",
+    "shaders/device/random_number_generator.cuh": "b7f5ffa2fcb742be33aaa542d84f55c58d7d87bf2a91c2b7ac57c6259fe60c9d",
+    "shaders/device/shader_common.cuh": "beee0415658e94b5627f88cc09389123d08b752e9f1d4e17347826177a7f2da8",
+    "shaders/device/trace_volume.cuh": "7441c82b15acf7ccaa170c8e0fe50a15cc7521c8739a0fe5f99e30fa3b73db67",
+    "shaders/entry/ah_radiance.cu": "1ca8cc904a851f73100f435bed76be283f4dcc2963c8e42696cff8c00b1f4b6d",
+    "shaders/entry/ah_shadow.cu": "05a9fbf3042e17d6c9aca87363f1fd11061e09822a4f68944c95a1d8a726c30d",
+    "shaders/entry/ch_radiance.cu": "85e4f927bb6997e63d4fcc6cd94a11c5ceebcfa1ea30d17b253871a7d575d5f4",
+    "shaders/entry/ch_radiance_vdb.cu": "22963b300c388c98c5d71d22b7a3edc493323daf77d39bdff146dcf4735ca4a8",
+    "shaders/entry/ch_shadow.cu": "ac3827798b9fa58c8857db0d852a24219f2a07c2d3c0713abf37d0ab5588f99e",
+    "shaders/entry/intersection_vdb.cu": "5b71b51c794a3ef85a2eee754a17822f240b08b1da95bfb9c7a72e02805b30eb",
+    "shaders/entry/miss_radiance.cu": "1e026e0512492b4f01285ee176aa60c96854a06a60f6a77867061024732424e4",
+    "shaders/entry/miss_shadow.cu": "fa0c56c46bd1a6c526d21ae559cfa576ad5bf79fe289b8847e095fe9f727dce9",
+    "shaders/entry/raygen.cu": "bd608f1c6ffed4823f8bed6e816272d2b21d26e78858f6f1a49f86b738039a17",
+    "shaders/params/per_ray_data.cuh": "f6ff4990564cd029bdc3b2992596be08e3986bdd679590f88f6eccde76daff14",
+    "utils/helper_math.h": "83970551dc121ca26252bb735823fa217af90fc348571cf785ed477f5681eafe",
+    "utils/my_math.hpp": "3f578c9c6f6894a81ac914a767ca9c4fec421517e273b96094a292c877c84657"
+  },
+  "inputs_changed_during_compile": [],
+  "all_succeeded": true,
+  "fp64_scan": {
+    "scope": "Every generated PTX: instructions, declarations and conversions with .f64; ignores comments",
+    "translation_units": 16,
+    "occurrences": 483,
+    "hardware_sass_inspected": false
+  },
+  "results": [
+    {
+      "source": "shaders/entry/raygen.cu",
+      "source_sha256": "bd608f1c6ffed4823f8bed6e816272d2b21d26e78858f6f1a49f86b738039a17",
+      "kind": "optixir",
+      "command": [
+        "/workspace/scratch/6fbbff5708b2/m1-toolchain/nvidia/cu13/bin/nvcc",
+        "--optix-ir",
+        "--std=c++20",
+        "--gpu-architecture=compute_86",
+        "--gpu-code=sm_86",
+        "--cudart",
+        "none",
+        "--relocatable-device-code=true",
+        "--generate-line-info",
+        "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/include",
+        "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32",
+        "-I/workspace/scratch/6fbbff5708b2/m1-deps/optix9/include",
+        "-I/workspace/scratch/6fbbff5708b2/m1-deps/openvdb/nanovdb",
+        "shaders/entry/raygen.cu",
+        "-o",
+        "/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/validation/m3-fp32/m3_fp32_shader_objects/raygen.optixir"
+      ],
+      "returncode": 0,
+      "duration_seconds": 5.005,
+      "stdout": "shaders/entry/raygen.cu(18): warning #177-D: variable \"accumID\" was declared but never referenced\n      const int accumID = optixLaunchParams.frame.accumID;\n                ^\n\nRemark: The warnings can be suppressed with \"-diag-suppress <warning-number>\"\n\nshaders/entry/raygen.cu(19): warning #177-D: variable \"frameID\" was declared but never referenced\n      const int frameID = optixLaunchParams.frame.frameID;\n                ^\n\nshaders/entry/raygen.cu(20): warning #177-D: variable \"camera\" was declared but never referenced\n      const auto &camera = optixLaunchParams.camera;\n                  ^\n\n",
+      "artifact": "validation/m3-fp32/m3_fp32_shader_objects/raygen.optixir",
+      "artifact_sha256": "4bb47bce89cce504481d186f3dcf87d3656e988a74b1bb1f5dc9bf8ce19c1860",
+      "artifact_bytes": 776572
+    },
+    {
+      "source": "shaders/entry/ah_radiance.cu",
+      "source_sha256": "1ca8cc904a851f73100f435bed76be283f4dcc2963c8e42696cff8c00b1f4b6d",
+      "kind": "optixir",
+      "command": [
+        "/workspace/scratch/6fbbff5708b2/m1-toolchain/nvidia/cu13/bin/nvcc",
+        "--optix-ir",
+        "--std=c++20",
+        "--gpu-architecture=compute_86",
+        "--gpu-code=sm_86",
+        "--cudart",
+        "none",
+        "--relocatable-device-code=true",
+        "--generate-line-info",
+        "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/include",
+        "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32",
+        "-I/workspace/scratch/6fbbff5708b2/m1-deps/optix9/include",
+        "-I/workspace/scratch/6fbbff5708b2/m1-deps/openvdb/nanovdb",
+        "shaders/entry/ah_radiance.cu",
+        "-o",
+        "/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/validation/m3-fp32/m3_fp32_shader_objects/ah_radiance.optixir"
+      ],
+      "returncode": 0,
+      "duration_seconds": 0.703,
+      "stdout": "",
+      "artifact": "validation/m3-fp32/m3_fp32_shader_objects/ah_radiance.optixir",
+      "artifact_sha256": "b2f9da05266fbe1d397aeda7feb439dcd3ac70159b41c37e9f8f5677edbe8f50",
+      "artifact_bytes": 21900
+    },
+    {
+      "source": "shaders/entry/ah_shadow.cu",
+      "source_sha256": "05a9fbf3042e17d6c9aca87363f1fd11061e09822a4f68944c95a1d8a726c30d",
+      "kind": "optixir",
+      "command": [
+        "/workspace/scratch/6fbbff5708b2/m1-toolchain/nvidia/cu13/bin/nvcc",
+        "--optix-ir",
+        "--std=c++20",
+        "--gpu-architecture=compute_86",
+        "--gpu-code=sm_86",
+        "--cudart",
+        "none",
+        "--relocatable-device-code=true",
+        "--generate-line-info",
+        "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/include",
+        "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32",
+        "-I/workspace/scratch/6fbbff5708b2/m1-deps/optix9/include",
+        "-I/workspace/scratch/6fbbff5708b2/m1-deps/openvdb/nanovdb",
+        "shaders/entry/ah_shadow.cu",
+        "-o",
+        "/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/validation/m3-fp32/m3_fp32_shader_objects/ah_shadow.optixir"
+      ],
+      "returncode": 0,
+      "duration_seconds": 0.827,
+      "stdout": "",
+      "artifact": "validation/m3-fp32/m3_fp32_shader_objects/ah_shadow.optixir",
+      "artifact_sha256": "a60a57c518d009a37c54c6b9116da854c0a1bed22054cefd62838541ca324758",
+      "artifact_bytes": 23948
+    },
+    {
+      "source": "shaders/entry/ch_radiance.cu",
+      "source_sha256": "85e4f927bb6997e63d4fcc6cd94a11c5ceebcfa1ea30d17b253871a7d575d5f4",
+      "kind": "optixir",
+      "command": [
+        "/workspace/scratch/6fbbff5708b2/m1-toolchain/nvidia/cu13/bin/nvcc",
+        "--optix-ir",
+        "--std=c++20",
+        "--gpu-architecture=compute_86",
+        "--gpu-code=sm_86",
+        "--cudart",
+        "none",
+        "--relocatable-device-code=true",
+        "--generate-line-info",
+        "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/include",
+        "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32",
+        "-I/workspace/scratch/6fbbff5708b2/m1-deps/optix9/include",
+        "-I/workspace/scratch/6fbbff5708b2/m1-deps/openvdb/nanovdb",
+        "shaders/entry/ch_radiance.cu",
+        "-o",
+        "/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/validation/m3-fp32/m3_fp32_shader_objects/ch_radiance.optixir"
+      ],
+      "returncode": 0,
+      "duration_seconds": 10.063,
+      "stdout": "shaders/entry/ch_radiance.cu(460): warning #177-D: variable \"uWavelength\" was declared but never referenced\n              const float uWavelength = prd.waveLengthNormalized;\n                          ^\n\nRemark: The warnings can be suppressed with \"-diag-suppress <warning-number>\"\n\nshaders/entry/ch_radiance.cu(549): warning #177-D: variable \"uNormalized\" was declared but never referenced\n                  const float uNormalized = prd.waveLengthNormalized;\n                              ^\n\nshaders/entry/ch_radiance.cu(604): warning #177-D: variable \"uNormalized\" was declared but never referenced\n      const float uNormalized = prd.waveLengthNormalized;\n                  ^\n\n",
+      "artifact": "validation/m3-fp32/m3_fp32_shader_objects/ch_radiance.optixir",
+      "artifact_sha256": "04cf0c9500db94a3e21398a08be4edc74842dccfe5841fe0f84e4b9df6a43db1",
+      "artifact_bytes": 4976316
+    },
+    {
+      "source": "shaders/entry/ch_radiance_vdb.cu",
+      "source_sha256": "22963b300c388c98c5d71d22b7a3edc493323daf77d39bdff146dcf4735ca4a8",
+      "kind": "optixir",
+      "command": [
+        "/workspace/scratch/6fbbff5708b2/m1-toolchain/nvidia/cu13/bin/nvcc",
+        "--optix-ir",
+        "--std=c++20",
+        "--gpu-architecture=compute_86",
+        "--gpu-code=sm_86",
+        "--cudart",
+        "none",
+        "--relocatable-device-code=true",
+        "--generate-line-info",
+        "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/include",
+        "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32",
+        "-I/workspace/scratch/6fbbff5708b2/m1-deps/optix9/include",
+        "-I/workspace/scratch/6fbbff5708b2/m1-deps/openvdb/nanovdb",
+        "shaders/entry/ch_radiance_vdb.cu",
+        "-o",
+        "/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/validation/m3-fp32/m3_fp32_shader_objects/ch_radiance_vdb.optixir"
+      ],
+      "returncode": 0,
+      "duration_seconds": 3.021,
+      "stdout": "shaders/entry/ch_radiance_vdb.cu(391): warning #177-D: variable \"uNormalized\" was declared but never referenced\n              const float uNormalized = prd.waveLengthNormalized;\n                          ^\n\nRemark: The warnings can be suppressed with \"-diag-suppress <warning-number>\"\n\nshaders/entry/ch_radiance_vdb.cu(243): warning #550-D: variable \"nfCacheBuilt\" was set but never used\n      bool nfCacheBuilt = false;\n           ^\n\nshaders/entry/ch_radiance_vdb.cu(246): warning #550-D: variable \"miePhaseTex\" was set but never used\n      MiePhaseTex miePhaseTex = {};\n                  ^\n\nshaders/entry/ch_radiance_vdb.cu(453): warning #177-D: variable \"uHero\" was declared but never referenced\n      const float uHero = prd.waveLengthNormalized;\n                  ^\n\n",
+      "artifact": "validation/m3-fp32/m3_fp32_shader_objects/ch_radiance_vdb.optixir",
+      "artifact_sha256": "ee27d888da1ff01f7d5d647431932296c36685cf4face6d34db37098b1fe82c9",
+      "artifact_bytes": 985316
+    },
+    {
+      "source": "shaders/entry/ch_shadow.cu",
+      "source_sha256": "ac3827798b9fa58c8857db0d852a24219f2a07c2d3c0713abf37d0ab5588f99e",
+      "kind": "optixir",
+      "command": [
+        "/workspace/scratch/6fbbff5708b2/m1-toolchain/nvidia/cu13/bin/nvcc",
+        "--optix-ir",
+        "--std=c++20",
+        "--gpu-architecture=compute_86",
+        "--gpu-code=sm_86",
+        "--cudart",
+        "none",
+        "--relocatable-device-code=true",
+        "--generate-line-info",
+        "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/include",
+        "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32",
+        "-I/workspace/scratch/6fbbff5708b2/m1-deps/optix9/include",
+        "-I/workspace/scratch/6fbbff5708b2/m1-deps/openvdb/nanovdb",
+        "shaders/entry/ch_shadow.cu",
+        "-o",
+        "/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/validation/m3-fp32/m3_fp32_shader_objects/ch_shadow.optixir"
+      ],
+      "returncode": 0,
+      "duration_seconds": 0.63,
+      "stdout": "",
+      "artifact": "validation/m3-fp32/m3_fp32_shader_objects/ch_shadow.optixir",
+      "artifact_sha256": "6f1a4385adb7dfcf2c85405baa15a3e9b9c4bd672a7bbe419d00f8521b81e940",
+      "artifact_bytes": 2156
+    },
+    {
+      "source": "shaders/entry/miss_radiance.cu",
+      "source_sha256": "1e026e0512492b4f01285ee176aa60c96854a06a60f6a77867061024732424e4",
+      "kind": "optixir",
+      "command": [
+        "/workspace/scratch/6fbbff5708b2/m1-toolchain/nvidia/cu13/bin/nvcc",
+        "--optix-ir",
+        "--std=c++20",
+        "--gpu-architecture=compute_86",
+        "--gpu-code=sm_86",
+        "--cudart",
+        "none",
+        "--relocatable-device-code=true",
+        "--generate-line-info",
+        "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/include",
+        "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32",
+        "-I/workspace/scratch/6fbbff5708b2/m1-deps/optix9/include",
+        "-I/workspace/scratch/6fbbff5708b2/m1-deps/openvdb/nanovdb",
+        "shaders/entry/miss_radiance.cu",
+        "-o",
+        "/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/validation/m3-fp32/m3_fp32_shader_objects/miss_radiance.optixir"
+      ],
+      "returncode": 0,
+      "duration_seconds": 5.517,
+      "stdout": "",
+      "artifact": "validation/m3-fp32/m3_fp32_shader_objects/miss_radiance.optixir",
+      "artifact_sha256": "053cace53baca1d28906d99ea9c262ca82d8a44f61ac51cf60c19e6ccf5fe41c",
+      "artifact_bytes": 2243824
+    },
+    {
+      "source": "shaders/entry/miss_shadow.cu",
+      "source_sha256": "fa0c56c46bd1a6c526d21ae559cfa576ad5bf79fe289b8847e095fe9f727dce9",
+      "kind": "optixir",
+      "command": [
+        "/workspace/scratch/6fbbff5708b2/m1-toolchain/nvidia/cu13/bin/nvcc",
+        "--optix-ir",
+        "--std=c++20",
+        "--gpu-architecture=compute_86",
+        "--gpu-code=sm_86",
+        "--cudart",
+        "none",
+        "--relocatable-device-code=true",
+        "--generate-line-info",
+        "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/include",
+        "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32",
+        "-I/workspace/scratch/6fbbff5708b2/m1-deps/optix9/include",
+        "-I/workspace/scratch/6fbbff5708b2/m1-deps/openvdb/nanovdb",
+        "shaders/entry/miss_shadow.cu",
+        "-o",
+        "/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/validation/m3-fp32/m3_fp32_shader_objects/miss_shadow.optixir"
+      ],
+      "returncode": 0,
+      "duration_seconds": 0.589,
+      "stdout": "",
+      "artifact": "validation/m3-fp32/m3_fp32_shader_objects/miss_shadow.optixir",
+      "artifact_sha256": "112593ae516ab62c381ddc65aa1c768399f4351f8d8b3dcc398390fca437b22d",
+      "artifact_bytes": 3040
+    },
+    {
+      "source": "shaders/entry/intersection_vdb.cu",
+      "source_sha256": "5b71b51c794a3ef85a2eee754a17822f240b08b1da95bfb9c7a72e02805b30eb",
+      "kind": "optixir",
+      "command": [
+        "/workspace/scratch/6fbbff5708b2/m1-toolchain/nvidia/cu13/bin/nvcc",
+        "--optix-ir",
+        "--std=c++20",
+        "--gpu-architecture=compute_86",
+        "--gpu-code=sm_86",
+        "--cudart",
+        "none",
+        "--relocatable-device-code=true",
+        "--generate-line-info",
+        "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/include",
+        "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32",
+        "-I/workspace/scratch/6fbbff5708b2/m1-deps/optix9/include",
+        "-I/workspace/scratch/6fbbff5708b2/m1-deps/openvdb/nanovdb",
+        "shaders/entry/intersection_vdb.cu",
+        "-o",
+        "/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/validation/m3-fp32/m3_fp32_shader_objects/intersection_vdb.optixir"
+      ],
+      "returncode": 0,
+      "duration_seconds": 0.596,
+      "stdout": "",
+      "artifact": "validation/m3-fp32/m3_fp32_shader_objects/intersection_vdb.optixir",
+      "artifact_sha256": "4eca0c5ad79e8a448395309c1e27dcc4b22cafa0c5fbb74d60ab00276c37c74f",
+      "artifact_bytes": 7748
+    },
+    {
+      "source": "shaders/callable/disney_principled_brdf.cu",
+      "source_sha256": "59af275ad3d2de7782e58a7436372a19476164df4d2c08d3942a08865b63f787",
+      "kind": "optixir",
+      "command": [
+        "/workspace/scratch/6fbbff5708b2/m1-toolchain/nvidia/cu13/bin/nvcc",
+        "--optix-ir",
+        "--std=c++20",
+        "--gpu-architecture=compute_86",
+        "--gpu-code=sm_86",
+        "--cudart",
+        "none",
+        "--relocatable-device-code=true",
+        "--generate-line-info",
+        "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/include",
+        "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32",
+        "-I/workspace/scratch/6fbbff5708b2/m1-deps/optix9/include",
+        "-I/workspace/scratch/6fbbff5708b2/m1-deps/openvdb/nanovdb",
+        "shaders/callable/disney_principled_brdf.cu",
+        "-o",
+        "/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/validation/m3-fp32/m3_fp32_shader_objects/disney_principled_brdf.optixir"
+      ],
+      "returncode": 0,
+      "duration_seconds": 0.637,
+      "stdout": "",
+      "artifact": "validation/m3-fp32/m3_fp32_shader_objects/disney_principled_brdf.optixir",
+      "artifact_sha256": "48733600fa791606738c16c8dcde21179e7624afcb42b1f099353e02903263f7",
+      "artifact_bytes": 35916
+    },
+    {
+      "source": "shaders/callable/diffuse_brdf.cu",
+      "source_sha256": "75b034d26428e2bdc4c7764d152585a8afb35723fdb7c53f1b6cf429e7a73435",
+      "kind": "optixir",
+      "command": [
+        "/workspace/scratch/6fbbff5708b2/m1-toolchain/nvidia/cu13/bin/nvcc",
+        "--optix-ir",
+        "--std=c++20",
+        "--gpu-architecture=compute_86",
+        "--gpu-code=sm_86",
+        "--cudart",
+        "none",
+        "--relocatable-device-code=true",
+        "--generate-line-info",
+        "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/include",
+        "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32",
+        "-I/workspace/scratch/6fbbff5708b2/m1-deps/optix9/include",
+        "-I/workspace/scratch/6fbbff5708b2/m1-deps/openvdb/nanovdb",
+        "shaders/callable/diffuse_brdf.cu",
+        "-o",
+        "/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/validation/m3-fp32/m3_fp32_shader_objects/diffuse_brdf.optixir"
+      ],
+      "returncode": 0,
+      "duration_seconds": 0.577,
+      "stdout": "",
+      "artifact": "validation/m3-fp32/m3_fp32_shader_objects/diffuse_brdf.optixir",
+      "artifact_sha256": "f5dfa639bc155b860a3032217759bcba42f6f87ac08c783cbcebf50b7695ac68",
+      "artifact_bytes": 13624
+    },
+    {
+      "source": "shaders/callable/glass_bsdf.cu",
+      "source_sha256": "769dec1919d6ac3bf334c9cd46901059b510d1c8dc5d907ecee604bcb1442951",
+      "kind": "optixir",
+      "command": [
+        "/workspace/scratch/6fbbff5708b2/m1-toolchain/nvidia/cu13/bin/nvcc",
+        "--optix-ir",
+        "--std=c++20",
+        "--gpu-architecture=compute_86",
+        "--gpu-code=sm_86",
+        "--cudart",
+        "none",
+        "--relocatable-device-code=true",
+        "--generate-line-info",
+        "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/include",
+        "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32",
+        "-I/workspace/scratch/6fbbff5708b2/m1-deps/optix9/include",
+        "-I/workspace/scratch/6fbbff5708b2/m1-deps/openvdb/nanovdb",
+        "shaders/callable/glass_bsdf.cu",
+        "-o",
+        "/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/validation/m3-fp32/m3_fp32_shader_objects/glass_bsdf.optixir"
+      ],
+      "returncode": 0,
+      "duration_seconds": 0.58,
+      "stdout": "",
+      "artifact": "validation/m3-fp32/m3_fp32_shader_objects/glass_bsdf.optixir",
+      "artifact_sha256": "89bbfb582c29fe8b087b421b78dc1cfcf527cdd9330a57cbf96b27ea401a9606",
+      "artifact_bytes": 13416
+    },
+    {
+      "source": "shaders/callable/light_sample.cu",
+      "source_sha256": "11e2319e5673894a2b08d035329cd5b6c7bef079bf95575f545f4e54e18c0ed3",
+      "kind": "optixir",
+      "command": [
+        "/workspace/scratch/6fbbff5708b2/m1-toolchain/nvidia/cu13/bin/nvcc",
+        "--optix-ir",
+        "--std=c++20",
+        "--gpu-architecture=compute_86",
+        "--gpu-code=sm_86",
+        "--cudart",
+        "none",
+        "--relocatable-device-code=true",
+        "--generate-line-info",
+        "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/include",
+        "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32",
+        "-I/workspace/scratch/6fbbff5708b2/m1-deps/optix9/include",
+        "-I/workspace/scratch/6fbbff5708b2/m1-deps/openvdb/nanovdb",
+        "shaders/callable/light_sample.cu",
+        "-o",
+        "/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/validation/m3-fp32/m3_fp32_shader_objects/light_sample.optixir"
+      ],
+      "returncode": 0,
+      "duration_seconds": 0.785,
+      "stdout": "",
+      "artifact": "validation/m3-fp32/m3_fp32_shader_objects/light_sample.optixir",
+      "artifact_sha256": "8660bb42e74f1fb7901dc8cf7d3e51ae7e908f792c66e5a3000659e1a6bbb2b6",
+      "artifact_bytes": 111552
+    },
+    {
+      "source": "shaders/callable/lens.cu",
+      "source_sha256": "0169db46fbb9bdbe61c3a5eaa89771f20684c111510ec062a7efcca06ac72c29",
+      "kind": "optixir",
+      "command": [
+        "/workspace/scratch/6fbbff5708b2/m1-toolchain/nvidia/cu13/bin/nvcc",
+        "--optix-ir",
+        "--std=c++20",
+        "--gpu-architecture=compute_86",
+        "--gpu-code=sm_86",
+        "--cudart",
+        "none",
+        "--relocatable-device-code=true",
+        "--generate-line-info",
+        "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/include",
+        "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32",
+        "-I/workspace/scratch/6fbbff5708b2/m1-deps/optix9/include",
+        "-I/workspace/scratch/6fbbff5708b2/m1-deps/openvdb/nanovdb",
+        "shaders/callable/lens.cu",
+        "-o",
+        "/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/validation/m3-fp32/m3_fp32_shader_objects/lens.optixir"
+      ],
+      "returncode": 0,
+      "duration_seconds": 0.675,
+      "stdout": "shaders/callable/lens.cu(41): warning #177-D: variable \"fValue\" was declared but never referenced\n      const float fValue = camera.fValue;\n                  ^\n\nRemark: The warnings can be suppressed with \"-diag-suppress <warning-number>\"\n\n",
+      "artifact": "validation/m3-fp32/m3_fp32_shader_objects/lens.optixir",
+      "artifact_sha256": "1a841fa24447604c0a5e79914217d7cb15e5c13ae720cda9dc7f95cb28503eb3",
+      "artifact_bytes": 13480
+    },
+    {
+      "source": "kernels/toneMap.cu",
+      "source_sha256": "6d7f203199d4176d1b408c3dc55153e16a30a383e5d25ae3097b235c826ee0d0",
+      "kind": "ptx",
+      "command": [
+        "/workspace/scratch/6fbbff5708b2/m1-toolchain/nvidia/cu13/bin/nvcc",
+        "--ptx",
+        "--std=c++20",
+        "--gpu-architecture=compute_86",
+        "--gpu-code=sm_86",
+        "--cudart",
+        "none",
+        "--relocatable-device-code=true",
+        "--generate-line-info",
+        "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/include",
+        "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32",
+        "-I/workspace/scratch/6fbbff5708b2/m1-deps/optix9/include",
+        "-I/workspace/scratch/6fbbff5708b2/m1-deps/openvdb/nanovdb",
+        "kernels/toneMap.cu",
+        "-o",
+        "/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/validation/m3-fp32/m3_fp32_shader_objects/toneMap.ptx"
+      ],
+      "returncode": 0,
+      "duration_seconds": 0.295,
+      "stdout": "",
+      "artifact": "validation/m3-fp32/m3_fp32_shader_objects/toneMap.ptx",
+      "artifact_sha256": "576598feeecf2411a6a92a95e85e3fb85cad106b6f1c94b2d6d48d3c2a956236",
+      "artifact_bytes": 20392,
+      "fp64_occurrences": []
+    },
+    {
+      "source": "kernels/copy_buffer_to_surface.cu",
+      "source_sha256": "afddeb02384899446ee5aa3ddb516350b430ac953ef7b14d0005f4a0f7c46a16",
+      "kind": "ptx",
+      "command": [
+        "/workspace/scratch/6fbbff5708b2/m1-toolchain/nvidia/cu13/bin/nvcc",
+        "--ptx",
+        "--std=c++20",
+        "--gpu-architecture=compute_86",
+        "--gpu-code=sm_86",
+        "--cudart",
+        "none",
+        "--relocatable-device-code=true",
+        "--generate-line-info",
+        "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/include",
+        "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32",
+        "-I/workspace/scratch/6fbbff5708b2/m1-deps/optix9/include",
+        "-I/workspace/scratch/6fbbff5708b2/m1-deps/openvdb/nanovdb",
+        "kernels/copy_buffer_to_surface.cu",
+        "-o",
+        "/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/validation/m3-fp32/m3_fp32_shader_objects/copy_buffer_to_surface.ptx"
+      ],
+      "returncode": 0,
+      "duration_seconds": 0.28,
+      "stdout": "",
+      "artifact": "validation/m3-fp32/m3_fp32_shader_objects/copy_buffer_to_surface.ptx",
+      "artifact_sha256": "a5e77cb78e10e7aafdc316993fae0112c095b857e5ee2eafbfc3c16a9996d4cb",
+      "artifact_bytes": 2722,
+      "fp64_occurrences": []
+    },
+    {
+      "source": "shaders/entry/raygen.cu",
+      "source_sha256": "bd608f1c6ffed4823f8bed6e816272d2b21d26e78858f6f1a49f86b738039a17",
+      "kind": "ptx",
+      "command": [
+        "/workspace/scratch/6fbbff5708b2/m1-toolchain/nvidia/cu13/bin/nvcc",
+        "--ptx",
+        "--std=c++20",
+        "--gpu-architecture=compute_86",
+        "--gpu-code=sm_86",
+        "--cudart",
+        "none",
+        "--relocatable-device-code=true",
+        "--generate-line-info",
+        "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/include",
+        "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32",
+        "-I/workspace/scratch/6fbbff5708b2/m1-deps/optix9/include",
+        "-I/workspace/scratch/6fbbff5708b2/m1-deps/openvdb/nanovdb",
+        "shaders/entry/raygen.cu",
+        "-o",
+        "/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/validation/m3-fp32/m3_fp32_shader_objects/raygen.ptx"
+      ],
+      "returncode": 0,
+      "duration_seconds": 5.895,
+      "stdout": "shaders/entry/raygen.cu(18): warning #177-D: variable \"accumID\" was declared but never referenced\n      const int accumID = optixLaunchParams.frame.accumID;\n                ^\n\nRemark: The warnings can be suppressed with \"-diag-suppress <warning-number>\"\n\nshaders/entry/raygen.cu(19): warning #177-D: variable \"frameID\" was declared but never referenced\n      const int frameID = optixLaunchParams.frame.frameID;\n                ^\n\nshaders/entry/raygen.cu(20): warning #177-D: variable \"camera\" was declared but never referenced\n      const auto &camera = optixLaunchParams.camera;\n                  ^\n\n",
+      "artifact": "validation/m3-fp32/m3_fp32_shader_objects/raygen.ptx",
+      "artifact_sha256": "eea1d2475e582a7827ab588ef2dd128d0c76f5fcac596cd5778e60b0018073e8",
+      "artifact_bytes": 1892217,
+      "fp64_occurrences": []
+    },
+    {
+      "source": "shaders/entry/ah_radiance.cu",
+      "source_sha256": "1ca8cc904a851f73100f435bed76be283f4dcc2963c8e42696cff8c00b1f4b6d",
+      "kind": "ptx",
+      "command": [
+        "/workspace/scratch/6fbbff5708b2/m1-toolchain/nvidia/cu13/bin/nvcc",
+        "--ptx",
+        "--std=c++20",
+        "--gpu-architecture=compute_86",
+        "--gpu-code=sm_86",
+        "--cudart",
+        "none",
+        "--relocatable-device-code=true",
+        "--generate-line-info",
+        "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/include",
+        "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32",
+        "-I/workspace/scratch/6fbbff5708b2/m1-deps/optix9/include",
+        "-I/workspace/scratch/6fbbff5708b2/m1-deps/openvdb/nanovdb",
+        "shaders/entry/ah_radiance.cu",
+        "-o",
+        "/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/validation/m3-fp32/m3_fp32_shader_objects/ah_radiance.ptx"
+      ],
+      "returncode": 0,
+      "duration_seconds": 0.667,
+      "stdout": "",
+      "artifact": "validation/m3-fp32/m3_fp32_shader_objects/ah_radiance.ptx",
+      "artifact_sha256": "30a8e1f4f98311e1f16c68102c0648a3b592ad5a4eec26c0824004e5e1373aac",
+      "artifact_bytes": 36894,
+      "fp64_occurrences": []
+    },
+    {
+      "source": "shaders/entry/ah_shadow.cu",
+      "source_sha256": "05a9fbf3042e17d6c9aca87363f1fd11061e09822a4f68944c95a1d8a726c30d",
+      "kind": "ptx",
+      "command": [
+        "/workspace/scratch/6fbbff5708b2/m1-toolchain/nvidia/cu13/bin/nvcc",
+        "--ptx",
+        "--std=c++20",
+        "--gpu-architecture=compute_86",
+        "--gpu-code=sm_86",
+        "--cudart",
+        "none",
+        "--relocatable-device-code=true",
+        "--generate-line-info",
+        "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/include",
+        "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32",
+        "-I/workspace/scratch/6fbbff5708b2/m1-deps/optix9/include",
+        "-I/workspace/scratch/6fbbff5708b2/m1-deps/openvdb/nanovdb",
+        "shaders/entry/ah_shadow.cu",
+        "-o",
+        "/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/validation/m3-fp32/m3_fp32_shader_objects/ah_shadow.ptx"
+      ],
+      "returncode": 0,
+      "duration_seconds": 0.671,
+      "stdout": "",
+      "artifact": "validation/m3-fp32/m3_fp32_shader_objects/ah_shadow.ptx",
+      "artifact_sha256": "f39a213513914bf7fa97f8d00fde691fe28f37e2e6b9b2263affefdd1d44eab1",
+      "artifact_bytes": 36626,
+      "fp64_occurrences": []
+    },
+    {
+      "source": "shaders/entry/ch_radiance.cu",
+      "source_sha256": "85e4f927bb6997e63d4fcc6cd94a11c5ceebcfa1ea30d17b253871a7d575d5f4",
+      "kind": "ptx",
+      "command": [
+        "/workspace/scratch/6fbbff5708b2/m1-toolchain/nvidia/cu13/bin/nvcc",
+        "--ptx",
+        "--std=c++20",
+        "--gpu-architecture=compute_86",
+        "--gpu-code=sm_86",
+        "--cudart",
+        "none",
+        "--relocatable-device-code=true",
+        "--generate-line-info",
+        "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/include",
+        "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32",
+        "-I/workspace/scratch/6fbbff5708b2/m1-deps/optix9/include",
+        "-I/workspace/scratch/6fbbff5708b2/m1-deps/openvdb/nanovdb",
+        "shaders/entry/ch_radiance.cu",
+        "-o",
+        "/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/validation/m3-fp32/m3_fp32_shader_objects/ch_radiance.ptx"
+      ],
+      "returncode": 0,
+      "duration_seconds": 17.431,
+      "stdout": "shaders/entry/ch_radiance.cu(460): warning #177-D: variable \"uWavelength\" was declared but never referenced\n              const float uWavelength = prd.waveLengthNormalized;\n                          ^\n\nRemark: The warnings can be suppressed with \"-diag-suppress <warning-number>\"\n\nshaders/entry/ch_radiance.cu(549): warning #177-D: variable \"uNormalized\" was declared but never referenced\n                  const float uNormalized = prd.waveLengthNormalized;\n                              ^\n\nshaders/entry/ch_radiance.cu(604): warning #177-D: variable \"uNormalized\" was declared but never referenced\n      const float uNormalized = prd.waveLengthNormalized;\n                  ^\n\n",
+      "artifact": "validation/m3-fp32/m3_fp32_shader_objects/ch_radiance.ptx",
+      "artifact_sha256": "064810cf8523857f4ea1e2210380e32928dfb8973558a9078555f3950ea2bc80",
+      "artifact_bytes": 9640229,
+      "fp64_occurrences": []
+    },
+    {
+      "source": "shaders/entry/ch_radiance_vdb.cu",
+      "source_sha256": "22963b300c388c98c5d71d22b7a3edc493323daf77d39bdff146dcf4735ca4a8",
+      "kind": "ptx",
+      "command": [
+        "/workspace/scratch/6fbbff5708b2/m1-toolchain/nvidia/cu13/bin/nvcc",
+        "--ptx",
+        "--std=c++20",
+        "--gpu-architecture=compute_86",
+        "--gpu-code=sm_86",
+        "--cudart",
+        "none",
+        "--relocatable-device-code=true",
+        "--generate-line-info",
+        "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/include",
+        "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32",
+        "-I/workspace/scratch/6fbbff5708b2/m1-deps/optix9/include",
+        "-I/workspace/scratch/6fbbff5708b2/m1-deps/openvdb/nanovdb",
+        "shaders/entry/ch_radiance_vdb.cu",
+        "-o",
+        "/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/validation/m3-fp32/m3_fp32_shader_objects/ch_radiance_vdb.ptx"
+      ],
+      "returncode": 0,
+      "duration_seconds": 4.976,
+      "stdout": "shaders/entry/ch_radiance_vdb.cu(391): warning #177-D: variable \"uNormalized\" was declared but never referenced\n              const float uNormalized = prd.waveLengthNormalized;\n                          ^\n\nRemark: The warnings can be suppressed with \"-diag-suppress <warning-number>\"\n\nshaders/entry/ch_radiance_vdb.cu(243): warning #550-D: variable \"nfCacheBuilt\" was set but never used\n      bool nfCacheBuilt = false;\n           ^\n\nshaders/entry/ch_radiance_vdb.cu(246): warning #550-D: variable \"miePhaseTex\" was set but never used\n      MiePhaseTex miePhaseTex = {};\n                  ^\n\nshaders/entry/ch_radiance_vdb.cu(453): warning #177-D: variable \"uHero\" was declared but never referenced\n      const float uHero = prd.waveLengthNormalized;\n                  ^\n\n",
+      "artifact": "validation/m3-fp32/m3_fp32_shader_objects/ch_radiance_vdb.ptx",
+      "artifact_sha256": "72d496b172f8d654e501e5b49ddad3dd2b810e7b67a01d965ccc0a583184e93b",
+      "artifact_bytes": 3731276,
+      "fp64_occurrences": [
+        {
+          "line": 74969,
+          "text": ".reg .f64 \t%fd<7>;"
+        },
+        {
+          "line": 75018,
+          "text": "cvt.f64.f32 \t%fd1, %f22;"
+        },
+        {
+          "line": 75019,
+          "text": "mul.f64 \t%fd2, %fd1, 0d401921FB54442D18;"
+        },
+        {
+          "line": 75020,
+          "text": "cvt.rn.f32.f64 \t%f5, %fd2;"
+        },
+        {
+          "line": 75117,
+          "text": "cvt.rn.f64.s64 \t%fd3, %rd22;"
+        },
+        {
+          "line": 75118,
+          "text": "mul.f64 \t%fd4, %fd3, 0d3BF921FB54442D19;"
+        },
+        {
+          "line": 75119,
+          "text": "cvt.rn.f32.f64 \t%f34, %fd4;"
+        },
+        {
+          "line": 75273,
+          "text": "cvt.f64.f32 \t%fd5, %f134;"
+        },
+        {
+          "line": 75274,
+          "text": "mul.f64 \t%fd6, %fd5, 0d4032D97C7F3321D2;"
+        },
+        {
+          "line": 75275,
+          "text": "cvt.rn.f32.f64 \t%f135, %fd6;"
+        },
+        {
+          "line": 75318,
+          "text": ".reg .f64 \t%fd<43>;"
+        },
+        {
+          "line": 75344,
+          "text": "cvt.f64.f32 \t%fd1, %f177;"
+        },
+        {
+          "line": 75345,
+          "text": "ld.f64 \t%fd2, [%rd113+528];"
+        },
+        {
+          "line": 75346,
+          "text": "sub.f64 \t%fd3, %fd1, %fd2;"
+        },
+        {
+          "line": 75347,
+          "text": "cvt.rn.f32.f64 \t%f186, %fd3;"
+        },
+        {
+          "line": 75348,
+          "text": "ld.f64 \t%fd4, [%rd113+536];"
+        },
+        {
+          "line": 75349,
+          "text": "cvt.f64.f32 \t%fd5, %f178;"
+        },
+        {
+          "line": 75350,
+          "text": "sub.f64 \t%fd6, %fd5, %fd4;"
+        },
+        {
+          "line": 75351,
+          "text": "cvt.rn.f32.f64 \t%f187, %fd6;"
+        },
+        {
+          "line": 75352,
+          "text": "ld.f64 \t%fd7, [%rd113+544];"
+        },
+        {
+          "line": 75353,
+          "text": "cvt.f64.f32 \t%fd8, %f179;"
+        },
+        {
+          "line": 75354,
+          "text": "sub.f64 \t%fd9, %fd8, %fd7;"
+        },
+        {
+          "line": 75355,
+          "text": "cvt.rn.f32.f64 \t%f188, %fd9;"
+        },
+        {
+          "line": 75358,
+          "text": "cvt.f64.f32 \t%fd10, %f186;"
+        },
+        {
+          "line": 75359,
+          "text": "cvt.f64.f32 \t%fd11, %f187;"
+        },
+        {
+          "line": 75360,
+          "text": "cvt.f64.f32 \t%fd12, %f188;"
+        },
+        {
+          "line": 75361,
+          "text": "ld.f64 \t%fd13, [%rd113+472];"
+        },
+        {
+          "line": 75362,
+          "text": "mul.f64 \t%fd14, %fd13, %fd12;"
+        },
+        {
+          "line": 75363,
+          "text": "ld.f64 \t%fd15, [%rd113+464];"
+        },
+        {
+          "line": 75364,
+          "text": "fma.rn.f64 \t%fd16, %fd11, %fd15, %fd14;"
+        },
+        {
+          "line": 75365,
+          "text": "ld.f64 \t%fd17, [%rd113+456];"
+        },
+        {
+          "line": 75366,
+          "text": "fma.rn.f64 \t%fd18, %fd10, %fd17, %fd16;"
+        },
+        {
+          "line": 75367,
+          "text": "cvt.rn.f32.f64 \t%f1, %fd18;"
+        },
+        {
+          "line": 75369,
+          "text": "ld.f64 \t%fd19, [%rd113+496];"
+        },
+        {
+          "line": 75370,
+          "text": "mul.f64 \t%fd20, %fd19, %fd12;"
+        },
+        {
+          "line": 75371,
+          "text": "ld.f64 \t%fd21, [%rd113+488];"
+        },
+        {
+          "line": 75372,
+          "text": "fma.rn.f64 \t%fd22, %fd11, %fd21, %fd20;"
+        },
+        {
+          "line": 75373,
+          "text": "ld.f64 \t%fd23, [%rd113+480];"
+        },
+        {
+          "line": 75374,
+          "text": "fma.rn.f64 \t%fd24, %fd10, %fd23, %fd22;"
+        },
+        {
+          "line": 75375,
+          "text": "cvt.rn.f32.f64 \t%f2, %fd24;"
+        },
+        {
+          "line": 75377,
+          "text": "ld.f64 \t%fd25, [%rd113+520];"
+        },
+        {
+          "line": 75378,
+          "text": "mul.f64 \t%fd26, %fd25, %fd12;"
+        },
+        {
+          "line": 75379,
+          "text": "ld.f64 \t%fd27, [%rd113+512];"
+        },
+        {
+          "line": 75380,
+          "text": "fma.rn.f64 \t%fd28, %fd11, %fd27, %fd26;"
+        },
+        {
+          "line": 75381,
+          "text": "ld.f64 \t%fd29, [%rd113+504];"
+        },
+        {
+          "line": 75382,
+          "text": "fma.rn.f64 \t%fd30, %fd10, %fd29, %fd28;"
+        },
+        {
+          "line": 75383,
+          "text": "cvt.rn.f32.f64 \t%f3, %fd30;"
+        },
+        {
+          "line": 75388,
+          "text": "cvt.f64.f32 \t%fd31, %f182;"
+        },
+        {
+          "line": 75389,
+          "text": "mul.f64 \t%fd32, %fd13, %fd31;"
+        },
+        {
+          "line": 75390,
+          "text": "cvt.f64.f32 \t%fd33, %f181;"
+        },
+        {
+          "line": 75391,
+          "text": "fma.rn.f64 \t%fd34, %fd33, %fd15, %fd32;"
+        },
+        {
+          "line": 75392,
+          "text": "cvt.f64.f32 \t%fd35, %f180;"
+        },
+        {
+          "line": 75393,
+          "text": "fma.rn.f64 \t%fd36, %fd35, %fd17, %fd34;"
+        },
+        {
+          "line": 75394,
+          "text": "cvt.rn.f32.f64 \t%f4, %fd36;"
+        },
+        {
+          "line": 75396,
+          "text": "mul.f64 \t%fd37, %fd19, %fd31;"
+        },
+        {
+          "line": 75397,
+          "text": "fma.rn.f64 \t%fd38, %fd33, %fd21, %fd37;"
+        },
+        {
+          "line": 75398,
+          "text": "fma.rn.f64 \t%fd39, %fd35, %fd23, %fd38;"
+        },
+        {
+          "line": 75399,
+          "text": "cvt.rn.f32.f64 \t%f5, %fd39;"
+        },
+        {
+          "line": 75401,
+          "text": "mul.f64 \t%fd40, %fd25, %fd31;"
+        },
+        {
+          "line": 75402,
+          "text": "fma.rn.f64 \t%fd41, %fd33, %fd27, %fd40;"
+        },
+        {
+          "line": 75403,
+          "text": "fma.rn.f64 \t%fd42, %fd35, %fd29, %fd41;"
+        },
+        {
+          "line": 75404,
+          "text": "cvt.rn.f32.f64 \t%f6, %fd42;"
+        },
+        {
+          "line": 79665,
+          "text": ".reg .f64 \t%fd<43>;"
+        },
+        {
+          "line": 79691,
+          "text": "cvt.f64.f32 \t%fd1, %f181;"
+        },
+        {
+          "line": 79692,
+          "text": "ld.f64 \t%fd2, [%rd111+528];"
+        },
+        {
+          "line": 79693,
+          "text": "sub.f64 \t%fd3, %fd1, %fd2;"
+        },
+        {
+          "line": 79694,
+          "text": "cvt.rn.f32.f64 \t%f191, %fd3;"
+        },
+        {
+          "line": 79695,
+          "text": "ld.f64 \t%fd4, [%rd111+536];"
+        },
+        {
+          "line": 79696,
+          "text": "cvt.f64.f32 \t%fd5, %f182;"
+        },
+        {
+          "line": 79697,
+          "text": "sub.f64 \t%fd6, %fd5, %fd4;"
+        },
+        {
+          "line": 79698,
+          "text": "cvt.rn.f32.f64 \t%f192, %fd6;"
+        },
+        {
+          "line": 79699,
+          "text": "ld.f64 \t%fd7, [%rd111+544];"
+        },
+        {
+          "line": 79700,
+          "text": "cvt.f64.f32 \t%fd8, %f183;"
+        },
+        {
+          "line": 79701,
+          "text": "sub.f64 \t%fd9, %fd8, %fd7;"
+        },
+        {
+          "line": 79702,
+          "text": "cvt.rn.f32.f64 \t%f193, %fd9;"
+        },
+        {
+          "line": 79705,
+          "text": "cvt.f64.f32 \t%fd10, %f191;"
+        },
+        {
+          "line": 79706,
+          "text": "cvt.f64.f32 \t%fd11, %f192;"
+        },
+        {
+          "line": 79707,
+          "text": "cvt.f64.f32 \t%fd12, %f193;"
+        },
+        {
+          "line": 79708,
+          "text": "ld.f64 \t%fd13, [%rd111+472];"
+        },
+        {
+          "line": 79709,
+          "text": "mul.f64 \t%fd14, %fd13, %fd12;"
+        },
+        {
+          "line": 79710,
+          "text": "ld.f64 \t%fd15, [%rd111+464];"
+        },
+        {
+          "line": 79711,
+          "text": "fma.rn.f64 \t%fd16, %fd11, %fd15, %fd14;"
+        },
+        {
+          "line": 79712,
+          "text": "ld.f64 \t%fd17, [%rd111+456];"
+        },
+        {
+          "line": 79713,
+          "text": "fma.rn.f64 \t%fd18, %fd10, %fd17, %fd16;"
+        },
+        {
+          "line": 79714,
+          "text": "cvt.rn.f32.f64 \t%f1, %fd18;"
+        },
+        {
+          "line": 79716,
+          "text": "ld.f64 \t%fd19, [%rd111+496];"
+        },
+        {
+          "line": 79717,
+          "text": "mul.f64 \t%fd20, %fd19, %fd12;"
+        },
+        {
+          "line": 79718,
+          "text": "ld.f64 \t%fd21, [%rd111+488];"
+        },
+        {
+          "line": 79719,
+          "text": "fma.rn.f64 \t%fd22, %fd11, %fd21, %fd20;"
+        },
+        {
+          "line": 79720,
+          "text": "ld.f64 \t%fd23, [%rd111+480];"
+        },
+        {
+          "line": 79721,
+          "text": "fma.rn.f64 \t%fd24, %fd10, %fd23, %fd22;"
+        },
+        {
+          "line": 79722,
+          "text": "cvt.rn.f32.f64 \t%f2, %fd24;"
+        },
+        {
+          "line": 79724,
+          "text": "ld.f64 \t%fd25, [%rd111+520];"
+        },
+        {
+          "line": 79725,
+          "text": "mul.f64 \t%fd26, %fd25, %fd12;"
+        },
+        {
+          "line": 79726,
+          "text": "ld.f64 \t%fd27, [%rd111+512];"
+        },
+        {
+          "line": 79727,
+          "text": "fma.rn.f64 \t%fd28, %fd11, %fd27, %fd26;"
+        },
+        {
+          "line": 79728,
+          "text": "ld.f64 \t%fd29, [%rd111+504];"
+        },
+        {
+          "line": 79729,
+          "text": "fma.rn.f64 \t%fd30, %fd10, %fd29, %fd28;"
+        },
+        {
+          "line": 79730,
+          "text": "cvt.rn.f32.f64 \t%f3, %fd30;"
+        },
+        {
+          "line": 79735,
+          "text": "cvt.f64.f32 \t%fd31, %f186;"
+        },
+        {
+          "line": 79736,
+          "text": "mul.f64 \t%fd32, %fd13, %fd31;"
+        },
+        {
+          "line": 79737,
+          "text": "cvt.f64.f32 \t%fd33, %f185;"
+        },
+        {
+          "line": 79738,
+          "text": "fma.rn.f64 \t%fd34, %fd33, %fd15, %fd32;"
+        },
+        {
+          "line": 79739,
+          "text": "cvt.f64.f32 \t%fd35, %f184;"
+        },
+        {
+          "line": 79740,
+          "text": "fma.rn.f64 \t%fd36, %fd35, %fd17, %fd34;"
+        },
+        {
+          "line": 79741,
+          "text": "cvt.rn.f32.f64 \t%f4, %fd36;"
+        },
+        {
+          "line": 79743,
+          "text": "mul.f64 \t%fd37, %fd19, %fd31;"
+        },
+        {
+          "line": 79744,
+          "text": "fma.rn.f64 \t%fd38, %fd33, %fd21, %fd37;"
+        },
+        {
+          "line": 79745,
+          "text": "fma.rn.f64 \t%fd39, %fd35, %fd23, %fd38;"
+        },
+        {
+          "line": 79746,
+          "text": "cvt.rn.f32.f64 \t%f5, %fd39;"
+        },
+        {
+          "line": 79748,
+          "text": "mul.f64 \t%fd40, %fd25, %fd31;"
+        },
+        {
+          "line": 79749,
+          "text": "fma.rn.f64 \t%fd41, %fd33, %fd27, %fd40;"
+        },
+        {
+          "line": 79750,
+          "text": "fma.rn.f64 \t%fd42, %fd35, %fd29, %fd41;"
+        },
+        {
+          "line": 79751,
+          "text": "cvt.rn.f32.f64 \t%f6, %fd42;"
+        },
+        {
+          "line": 83974,
+          "text": ".reg .f64 \t%fd<43>;"
+        },
+        {
+          "line": 83999,
+          "text": "cvt.f64.f32 \t%fd1, %f177;"
+        },
+        {
+          "line": 84000,
+          "text": "ld.f64 \t%fd2, [%rd113+528];"
+        },
+        {
+          "line": 84001,
+          "text": "sub.f64 \t%fd3, %fd1, %fd2;"
+        },
+        {
+          "line": 84002,
+          "text": "cvt.rn.f32.f64 \t%f185, %fd3;"
+        },
+        {
+          "line": 84003,
+          "text": "ld.f64 \t%fd4, [%rd113+536];"
+        },
+        {
+          "line": 84004,
+          "text": "cvt.f64.f32 \t%fd5, %f178;"
+        },
+        {
+          "line": 84005,
+          "text": "sub.f64 \t%fd6, %fd5, %fd4;"
+        },
+        {
+          "line": 84006,
+          "text": "cvt.rn.f32.f64 \t%f186, %fd6;"
+        },
+        {
+          "line": 84007,
+          "text": "ld.f64 \t%fd7, [%rd113+544];"
+        },
+        {
+          "line": 84008,
+          "text": "cvt.f64.f32 \t%fd8, %f179;"
+        },
+        {
+          "line": 84009,
+          "text": "sub.f64 \t%fd9, %fd8, %fd7;"
+        },
+        {
+          "line": 84010,
+          "text": "cvt.rn.f32.f64 \t%f187, %fd9;"
+        },
+        {
+          "line": 84013,
+          "text": "cvt.f64.f32 \t%fd10, %f185;"
+        },
+        {
+          "line": 84014,
+          "text": "cvt.f64.f32 \t%fd11, %f186;"
+        },
+        {
+          "line": 84015,
+          "text": "cvt.f64.f32 \t%fd12, %f187;"
+        },
+        {
+          "line": 84016,
+          "text": "ld.f64 \t%fd13, [%rd113+472];"
+        },
+        {
+          "line": 84017,
+          "text": "mul.f64 \t%fd14, %fd13, %fd12;"
+        },
+        {
+          "line": 84018,
+          "text": "ld.f64 \t%fd15, [%rd113+464];"
+        },
+        {
+          "line": 84019,
+          "text": "fma.rn.f64 \t%fd16, %fd11, %fd15, %fd14;"
+        },
+        {
+          "line": 84020,
+          "text": "ld.f64 \t%fd17, [%rd113+456];"
+        },
+        {
+          "line": 84021,
+          "text": "fma.rn.f64 \t%fd18, %fd10, %fd17, %fd16;"
+        },
+        {
+          "line": 84022,
+          "text": "cvt.rn.f32.f64 \t%f1, %fd18;"
+        },
+        {
+          "line": 84024,
+          "text": "ld.f64 \t%fd19, [%rd113+496];"
+        },
+        {
+          "line": 84025,
+          "text": "mul.f64 \t%fd20, %fd19, %fd12;"
+        },
+        {
+          "line": 84026,
+          "text": "ld.f64 \t%fd21, [%rd113+488];"
+        },
+        {
+          "line": 84027,
+          "text": "fma.rn.f64 \t%fd22, %fd11, %fd21, %fd20;"
+        },
+        {
+          "line": 84028,
+          "text": "ld.f64 \t%fd23, [%rd113+480];"
+        },
+        {
+          "line": 84029,
+          "text": "fma.rn.f64 \t%fd24, %fd10, %fd23, %fd22;"
+        },
+        {
+          "line": 84030,
+          "text": "cvt.rn.f32.f64 \t%f2, %fd24;"
+        },
+        {
+          "line": 84032,
+          "text": "ld.f64 \t%fd25, [%rd113+520];"
+        },
+        {
+          "line": 84033,
+          "text": "mul.f64 \t%fd26, %fd25, %fd12;"
+        },
+        {
+          "line": 84034,
+          "text": "ld.f64 \t%fd27, [%rd113+512];"
+        },
+        {
+          "line": 84035,
+          "text": "fma.rn.f64 \t%fd28, %fd11, %fd27, %fd26;"
+        },
+        {
+          "line": 84036,
+          "text": "ld.f64 \t%fd29, [%rd113+504];"
+        },
+        {
+          "line": 84037,
+          "text": "fma.rn.f64 \t%fd30, %fd10, %fd29, %fd28;"
+        },
+        {
+          "line": 84038,
+          "text": "cvt.rn.f32.f64 \t%f3, %fd30;"
+        },
+        {
+          "line": 84043,
+          "text": "cvt.f64.f32 \t%fd31, %f182;"
+        },
+        {
+          "line": 84044,
+          "text": "mul.f64 \t%fd32, %fd13, %fd31;"
+        },
+        {
+          "line": 84045,
+          "text": "cvt.f64.f32 \t%fd33, %f181;"
+        },
+        {
+          "line": 84046,
+          "text": "fma.rn.f64 \t%fd34, %fd33, %fd15, %fd32;"
+        },
+        {
+          "line": 84047,
+          "text": "cvt.f64.f32 \t%fd35, %f180;"
+        },
+        {
+          "line": 84048,
+          "text": "fma.rn.f64 \t%fd36, %fd35, %fd17, %fd34;"
+        },
+        {
+          "line": 84049,
+          "text": "cvt.rn.f32.f64 \t%f4, %fd36;"
+        },
+        {
+          "line": 84051,
+          "text": "mul.f64 \t%fd37, %fd19, %fd31;"
+        },
+        {
+          "line": 84052,
+          "text": "fma.rn.f64 \t%fd38, %fd33, %fd21, %fd37;"
+        },
+        {
+          "line": 84053,
+          "text": "fma.rn.f64 \t%fd39, %fd35, %fd23, %fd38;"
+        },
+        {
+          "line": 84054,
+          "text": "cvt.rn.f32.f64 \t%f5, %fd39;"
+        },
+        {
+          "line": 84056,
+          "text": "mul.f64 \t%fd40, %fd25, %fd31;"
+        },
+        {
+          "line": 84057,
+          "text": "fma.rn.f64 \t%fd41, %fd33, %fd27, %fd40;"
+        },
+        {
+          "line": 84058,
+          "text": "fma.rn.f64 \t%fd42, %fd35, %fd29, %fd41;"
+        },
+        {
+          "line": 84059,
+          "text": "cvt.rn.f32.f64 \t%f6, %fd42;"
+        },
+        {
+          "line": 88313,
+          "text": ".reg .f64 \t%fd<43>;"
+        },
+        {
+          "line": 88338,
+          "text": "cvt.f64.f32 \t%fd1, %f181;"
+        },
+        {
+          "line": 88339,
+          "text": "ld.f64 \t%fd2, [%rd111+528];"
+        },
+        {
+          "line": 88340,
+          "text": "sub.f64 \t%fd3, %fd1, %fd2;"
+        },
+        {
+          "line": 88341,
+          "text": "cvt.rn.f32.f64 \t%f190, %fd3;"
+        },
+        {
+          "line": 88342,
+          "text": "ld.f64 \t%fd4, [%rd111+536];"
+        },
+        {
+          "line": 88343,
+          "text": "cvt.f64.f32 \t%fd5, %f182;"
+        },
+        {
+          "line": 88344,
+          "text": "sub.f64 \t%fd6, %fd5, %fd4;"
+        },
+        {
+          "line": 88345,
+          "text": "cvt.rn.f32.f64 \t%f191, %fd6;"
+        },
+        {
+          "line": 88346,
+          "text": "ld.f64 \t%fd7, [%rd111+544];"
+        },
+        {
+          "line": 88347,
+          "text": "cvt.f64.f32 \t%fd8, %f183;"
+        },
+        {
+          "line": 88348,
+          "text": "sub.f64 \t%fd9, %fd8, %fd7;"
+        },
+        {
+          "line": 88349,
+          "text": "cvt.rn.f32.f64 \t%f192, %fd9;"
+        },
+        {
+          "line": 88352,
+          "text": "cvt.f64.f32 \t%fd10, %f190;"
+        },
+        {
+          "line": 88353,
+          "text": "cvt.f64.f32 \t%fd11, %f191;"
+        },
+        {
+          "line": 88354,
+          "text": "cvt.f64.f32 \t%fd12, %f192;"
+        },
+        {
+          "line": 88355,
+          "text": "ld.f64 \t%fd13, [%rd111+472];"
+        },
+        {
+          "line": 88356,
+          "text": "mul.f64 \t%fd14, %fd13, %fd12;"
+        },
+        {
+          "line": 88357,
+          "text": "ld.f64 \t%fd15, [%rd111+464];"
+        },
+        {
+          "line": 88358,
+          "text": "fma.rn.f64 \t%fd16, %fd11, %fd15, %fd14;"
+        },
+        {
+          "line": 88359,
+          "text": "ld.f64 \t%fd17, [%rd111+456];"
+        },
+        {
+          "line": 88360,
+          "text": "fma.rn.f64 \t%fd18, %fd10, %fd17, %fd16;"
+        },
+        {
+          "line": 88361,
+          "text": "cvt.rn.f32.f64 \t%f1, %fd18;"
+        },
+        {
+          "line": 88363,
+          "text": "ld.f64 \t%fd19, [%rd111+496];"
+        },
+        {
+          "line": 88364,
+          "text": "mul.f64 \t%fd20, %fd19, %fd12;"
+        },
+        {
+          "line": 88365,
+          "text": "ld.f64 \t%fd21, [%rd111+488];"
+        },
+        {
+          "line": 88366,
+          "text": "fma.rn.f64 \t%fd22, %fd11, %fd21, %fd20;"
+        },
+        {
+          "line": 88367,
+          "text": "ld.f64 \t%fd23, [%rd111+480];"
+        },
+        {
+          "line": 88368,
+          "text": "fma.rn.f64 \t%fd24, %fd10, %fd23, %fd22;"
+        },
+        {
+          "line": 88369,
+          "text": "cvt.rn.f32.f64 \t%f2, %fd24;"
+        },
+        {
+          "line": 88371,
+          "text": "ld.f64 \t%fd25, [%rd111+520];"
+        },
+        {
+          "line": 88372,
+          "text": "mul.f64 \t%fd26, %fd25, %fd12;"
+        },
+        {
+          "line": 88373,
+          "text": "ld.f64 \t%fd27, [%rd111+512];"
+        },
+        {
+          "line": 88374,
+          "text": "fma.rn.f64 \t%fd28, %fd11, %fd27, %fd26;"
+        },
+        {
+          "line": 88375,
+          "text": "ld.f64 \t%fd29, [%rd111+504];"
+        },
+        {
+          "line": 88376,
+          "text": "fma.rn.f64 \t%fd30, %fd10, %fd29, %fd28;"
+        },
+        {
+          "line": 88377,
+          "text": "cvt.rn.f32.f64 \t%f3, %fd30;"
+        },
+        {
+          "line": 88382,
+          "text": "cvt.f64.f32 \t%fd31, %f186;"
+        },
+        {
+          "line": 88383,
+          "text": "mul.f64 \t%fd32, %fd13, %fd31;"
+        },
+        {
+          "line": 88384,
+          "text": "cvt.f64.f32 \t%fd33, %f185;"
+        },
+        {
+          "line": 88385,
+          "text": "fma.rn.f64 \t%fd34, %fd33, %fd15, %fd32;"
+        },
+        {
+          "line": 88386,
+          "text": "cvt.f64.f32 \t%fd35, %f184;"
+        },
+        {
+          "line": 88387,
+          "text": "fma.rn.f64 \t%fd36, %fd35, %fd17, %fd34;"
+        },
+        {
+          "line": 88388,
+          "text": "cvt.rn.f32.f64 \t%f4, %fd36;"
+        },
+        {
+          "line": 88390,
+          "text": "mul.f64 \t%fd37, %fd19, %fd31;"
+        },
+        {
+          "line": 88391,
+          "text": "fma.rn.f64 \t%fd38, %fd33, %fd21, %fd37;"
+        },
+        {
+          "line": 88392,
+          "text": "fma.rn.f64 \t%fd39, %fd35, %fd23, %fd38;"
+        },
+        {
+          "line": 88393,
+          "text": "cvt.rn.f32.f64 \t%f5, %fd39;"
+        },
+        {
+          "line": 88395,
+          "text": "mul.f64 \t%fd40, %fd25, %fd31;"
+        },
+        {
+          "line": 88396,
+          "text": "fma.rn.f64 \t%fd41, %fd33, %fd27, %fd40;"
+        },
+        {
+          "line": 88397,
+          "text": "fma.rn.f64 \t%fd42, %fd35, %fd29, %fd41;"
+        },
+        {
+          "line": 88398,
+          "text": "cvt.rn.f32.f64 \t%f6, %fd42;"
+        },
+        {
+          "line": 92604,
+          "text": ".reg .f64 \t%fd<5>;"
+        },
+        {
+          "line": 95880,
+          "text": "cvt.rn.f64.s64 \t%fd1, %rd465;"
+        },
+        {
+          "line": 95881,
+          "text": "mul.f64 \t%fd2, %fd1, 0d3BF921FB54442D19;"
+        },
+        {
+          "line": 95882,
+          "text": "cvt.rn.f32.f64 \t%f940, %fd2;"
+        },
+        {
+          "line": 96000,
+          "text": "cvt.rn.f64.s64 \t%fd3, %rd475;"
+        },
+        {
+          "line": 96001,
+          "text": "mul.f64 \t%fd4, %fd3, 0d3BF921FB54442D19;"
+        },
+        {
+          "line": 96002,
+          "text": "cvt.rn.f32.f64 \t%f954, %fd4;"
+        }
+      ]
+    },
+    {
+      "source": "shaders/entry/ch_shadow.cu",
+      "source_sha256": "ac3827798b9fa58c8857db0d852a24219f2a07c2d3c0713abf37d0ab5588f99e",
+      "kind": "ptx",
+      "command": [
+        "/workspace/scratch/6fbbff5708b2/m1-toolchain/nvidia/cu13/bin/nvcc",
+        "--ptx",
+        "--std=c++20",
+        "--gpu-architecture=compute_86",
+        "--gpu-code=sm_86",
+        "--cudart",
+        "none",
+        "--relocatable-device-code=true",
+        "--generate-line-info",
+        "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/include",
+        "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32",
+        "-I/workspace/scratch/6fbbff5708b2/m1-deps/optix9/include",
+        "-I/workspace/scratch/6fbbff5708b2/m1-deps/openvdb/nanovdb",
+        "shaders/entry/ch_shadow.cu",
+        "-o",
+        "/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/validation/m3-fp32/m3_fp32_shader_objects/ch_shadow.ptx"
+      ],
+      "returncode": 0,
+      "duration_seconds": 0.643,
+      "stdout": "",
+      "artifact": "validation/m3-fp32/m3_fp32_shader_objects/ch_shadow.ptx",
+      "artifact_sha256": "64c6bd87af9696fc81664e612e638fc87ceb2f0ae515481f24bf2064399cc433",
+      "artifact_bytes": 402,
+      "fp64_occurrences": []
+    },
+    {
+      "source": "shaders/entry/miss_radiance.cu",
+      "source_sha256": "1e026e0512492b4f01285ee176aa60c96854a06a60f6a77867061024732424e4",
+      "kind": "ptx",
+      "command": [
+        "/workspace/scratch/6fbbff5708b2/m1-toolchain/nvidia/cu13/bin/nvcc",
+        "--ptx",
+        "--std=c++20",
+        "--gpu-architecture=compute_86",
+        "--gpu-code=sm_86",
+        "--cudart",
+        "none",
+        "--relocatable-device-code=true",
+        "--generate-line-info",
+        "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/include",
+        "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32",
+        "-I/workspace/scratch/6fbbff5708b2/m1-deps/optix9/include",
+        "-I/workspace/scratch/6fbbff5708b2/m1-deps/openvdb/nanovdb",
+        "shaders/entry/miss_radiance.cu",
+        "-o",
+        "/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/validation/m3-fp32/m3_fp32_shader_objects/miss_radiance.ptx"
+      ],
+      "returncode": 0,
+      "duration_seconds": 7.528,
+      "stdout": "",
+      "artifact": "validation/m3-fp32/m3_fp32_shader_objects/miss_radiance.ptx",
+      "artifact_sha256": "5e37e0021d6f71a1e8e56a5bb03c2ac9c27def7c4cfcd0afd848e161b0cf63c4",
+      "artifact_bytes": 5776058,
+      "fp64_occurrences": [
+        {
+          "line": 38,
+          "text": ".reg .f64 \t%fd<5>;"
+        },
+        {
+          "line": 361,
+          "text": "cvt.rn.f64.s64 \t%fd1, %rd29;"
+        },
+        {
+          "line": 362,
+          "text": "mul.f64 \t%fd2, %fd1, 0d3BF921FB54442D19;"
+        },
+        {
+          "line": 363,
+          "text": "cvt.rn.f32.f64 \t%f152, %fd2;"
+        },
+        {
+          "line": 491,
+          "text": "cvt.rn.f64.s64 \t%fd3, %rd39;"
+        },
+        {
+          "line": 492,
+          "text": "mul.f64 \t%fd4, %fd3, 0d3BF921FB54442D19;"
+        },
+        {
+          "line": 493,
+          "text": "cvt.rn.f32.f64 \t%f173, %fd4;"
+        },
+        {
+          "line": 622,
+          "text": ".reg .f64 \t%fd<5>;"
+        },
+        {
+          "line": 1198,
+          "text": "cvt.rn.f64.s64 \t%fd1, %rd500;"
+        },
+        {
+          "line": 1199,
+          "text": "mul.f64 \t%fd2, %fd1, 0d3BF921FB54442D19;"
+        },
+        {
+          "line": 1200,
+          "text": "cvt.rn.f32.f64 \t%f16931, %fd2;"
+        },
+        {
+          "line": 1328,
+          "text": "cvt.rn.f64.s64 \t%fd3, %rd510;"
+        },
+        {
+          "line": 1329,
+          "text": "mul.f64 \t%fd4, %fd3, 0d3BF921FB54442D19;"
+        },
+        {
+          "line": 1330,
+          "text": "cvt.rn.f32.f64 \t%f16952, %fd4;"
+        },
+        {
+          "line": 89852,
+          "text": ".reg .f64 \t%fd<9>;"
+        },
+        {
+          "line": 90220,
+          "text": "cvt.rn.f64.s64 \t%fd1, %rd507;"
+        },
+        {
+          "line": 90221,
+          "text": "mul.f64 \t%fd2, %fd1, 0d3BF921FB54442D19;"
+        },
+        {
+          "line": 90222,
+          "text": "cvt.rn.f32.f64 \t%f16917, %fd2;"
+        },
+        {
+          "line": 90339,
+          "text": "cvt.rn.f64.s64 \t%fd3, %rd517;"
+        },
+        {
+          "line": 90340,
+          "text": "mul.f64 \t%fd4, %fd3, 0d3BF921FB54442D19;"
+        },
+        {
+          "line": 90341,
+          "text": "cvt.rn.f32.f64 \t%f16931, %fd4;"
+        },
+        {
+          "line": 90472,
+          "text": "cvt.rn.f64.s64 \t%fd5, %rd527;"
+        },
+        {
+          "line": 90473,
+          "text": "mul.f64 \t%fd6, %fd5, 0d3BF921FB54442D19;"
+        },
+        {
+          "line": 90474,
+          "text": "cvt.rn.f32.f64 \t%f16952, %fd6;"
+        },
+        {
+          "line": 90592,
+          "text": "cvt.rn.f64.s64 \t%fd7, %rd537;"
+        },
+        {
+          "line": 90593,
+          "text": "mul.f64 \t%fd8, %fd7, 0d3BF921FB54442D19;"
+        },
+        {
+          "line": 90594,
+          "text": "cvt.rn.f32.f64 \t%f16966, %fd8;"
+        }
+      ]
+    },
+    {
+      "source": "shaders/entry/miss_shadow.cu",
+      "source_sha256": "fa0c56c46bd1a6c526d21ae559cfa576ad5bf79fe289b8847e095fe9f727dce9",
+      "kind": "ptx",
+      "command": [
+        "/workspace/scratch/6fbbff5708b2/m1-toolchain/nvidia/cu13/bin/nvcc",
+        "--ptx",
+        "--std=c++20",
+        "--gpu-architecture=compute_86",
+        "--gpu-code=sm_86",
+        "--cudart",
+        "none",
+        "--relocatable-device-code=true",
+        "--generate-line-info",
+        "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/include",
+        "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32",
+        "-I/workspace/scratch/6fbbff5708b2/m1-deps/optix9/include",
+        "-I/workspace/scratch/6fbbff5708b2/m1-deps/openvdb/nanovdb",
+        "shaders/entry/miss_shadow.cu",
+        "-o",
+        "/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/validation/m3-fp32/m3_fp32_shader_objects/miss_shadow.ptx"
+      ],
+      "returncode": 0,
+      "duration_seconds": 0.586,
+      "stdout": "",
+      "artifact": "validation/m3-fp32/m3_fp32_shader_objects/miss_shadow.ptx",
+      "artifact_sha256": "6b8239144067b0742011231015c9b91b1bf89544b8848c46ae0dafc82d67f708",
+      "artifact_bytes": 2472,
+      "fp64_occurrences": []
+    },
+    {
+      "source": "shaders/entry/intersection_vdb.cu",
+      "source_sha256": "5b71b51c794a3ef85a2eee754a17822f240b08b1da95bfb9c7a72e02805b30eb",
+      "kind": "ptx",
+      "command": [
+        "/workspace/scratch/6fbbff5708b2/m1-toolchain/nvidia/cu13/bin/nvcc",
+        "--ptx",
+        "--std=c++20",
+        "--gpu-architecture=compute_86",
+        "--gpu-code=sm_86",
+        "--cudart",
+        "none",
+        "--relocatable-device-code=true",
+        "--generate-line-info",
+        "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/include",
+        "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32",
+        "-I/workspace/scratch/6fbbff5708b2/m1-deps/optix9/include",
+        "-I/workspace/scratch/6fbbff5708b2/m1-deps/openvdb/nanovdb",
+        "shaders/entry/intersection_vdb.cu",
+        "-o",
+        "/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/validation/m3-fp32/m3_fp32_shader_objects/intersection_vdb.ptx"
+      ],
+      "returncode": 0,
+      "duration_seconds": 0.65,
+      "stdout": "",
+      "artifact": "validation/m3-fp32/m3_fp32_shader_objects/intersection_vdb.ptx",
+      "artifact_sha256": "ca8705178b706a3bf4fc2eed5d9aa6e2e4983e7f4392068581dda4c78c1c7ee3",
+      "artifact_bytes": 10555,
+      "fp64_occurrences": []
+    },
+    {
+      "source": "shaders/callable/disney_principled_brdf.cu",
+      "source_sha256": "59af275ad3d2de7782e58a7436372a19476164df4d2c08d3942a08865b63f787",
+      "kind": "ptx",
+      "command": [
+        "/workspace/scratch/6fbbff5708b2/m1-toolchain/nvidia/cu13/bin/nvcc",
+        "--ptx",
+        "--std=c++20",
+        "--gpu-architecture=compute_86",
+        "--gpu-code=sm_86",
+        "--cudart",
+        "none",
+        "--relocatable-device-code=true",
+        "--generate-line-info",
+        "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/include",
+        "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32",
+        "-I/workspace/scratch/6fbbff5708b2/m1-deps/optix9/include",
+        "-I/workspace/scratch/6fbbff5708b2/m1-deps/openvdb/nanovdb",
+        "shaders/callable/disney_principled_brdf.cu",
+        "-o",
+        "/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/validation/m3-fp32/m3_fp32_shader_objects/disney_principled_brdf.ptx"
+      ],
+      "returncode": 0,
+      "duration_seconds": 0.668,
+      "stdout": "",
+      "artifact": "validation/m3-fp32/m3_fp32_shader_objects/disney_principled_brdf.ptx",
+      "artifact_sha256": "3e853a1506e479e8fdfdbf85d08e80fc07d4cf971d0814fc51f412ad1117161d",
+      "artifact_bytes": 88277,
+      "fp64_occurrences": [
+        {
+          "line": 28,
+          "text": ".reg .f64 \t%fd<22>;"
+        },
+        {
+          "line": 138,
+          "text": "cvt.f64.f32 \t%fd7, %f211;"
+        },
+        {
+          "line": 140,
+          "text": "mul.f64 \t%fd8, %fd7, 0d400921FB54442D18;"
+        },
+        {
+          "line": 141,
+          "text": "cvt.rn.f32.f64 \t%f44, %fd8;"
+        },
+        {
+          "line": 218,
+          "text": "cvt.f64.f32 \t%fd1, %f5;"
+        },
+        {
+          "line": 219,
+          "text": "mul.f64 \t%fd2, %fd1, 0d401921FB54442D18;"
+        },
+        {
+          "line": 220,
+          "text": "cvt.rn.f32.f64 \t%f16, %fd2;"
+        },
+        {
+          "line": 319,
+          "text": "cvt.rn.f64.s64 \t%fd9, %rd79;"
+        },
+        {
+          "line": 320,
+          "text": "mul.f64 \t%fd10, %fd9, 0d3BF921FB54442D19;"
+        },
+        {
+          "line": 321,
+          "text": "cvt.rn.f32.f64 \t%f219, %fd10;"
+        },
+        {
+          "line": 440,
+          "text": "cvt.rn.f64.s64 \t%fd3, %rd59;"
+        },
+        {
+          "line": 441,
+          "text": "mul.f64 \t%fd4, %fd3, 0d3BF921FB54442D19;"
+        },
+        {
+          "line": 442,
+          "text": "cvt.rn.f32.f64 \t%f125, %fd4;"
+        },
+        {
+          "line": 561,
+          "text": "cvt.rn.f64.s64 \t%fd11, %rd89;"
+        },
+        {
+          "line": 562,
+          "text": "mul.f64 \t%fd12, %fd11, 0d3BF921FB54442D19;"
+        },
+        {
+          "line": 563,
+          "text": "cvt.rn.f32.f64 \t%f233, %fd12;"
+        },
+        {
+          "line": 684,
+          "text": "cvt.rn.f64.s64 \t%fd5, %rd69;"
+        },
+        {
+          "line": 685,
+          "text": "mul.f64 \t%fd6, %fd5, 0d3BF921FB54442D19;"
+        },
+        {
+          "line": 686,
+          "text": "cvt.rn.f32.f64 \t%f139, %fd6;"
+        },
+        {
+          "line": 823,
+          "text": "cvt.f64.f32 \t%fd13, %f317;"
+        },
+        {
+          "line": 825,
+          "text": "div.rn.f64 \t%fd14, %fd13, 0d400921FB54442D18;"
+        },
+        {
+          "line": 826,
+          "text": "cvt.rn.f32.f64 \t%f254, %fd14;"
+        },
+        {
+          "line": 854,
+          "text": "cvt.f64.f32 \t%fd15, %f1;"
+        },
+        {
+          "line": 855,
+          "text": "mul.f64 \t%fd16, %fd15, 0d400921FB54442D18;"
+        },
+        {
+          "line": 856,
+          "text": "mul.f64 \t%fd17, %fd16, %fd15;"
+        },
+        {
+          "line": 857,
+          "text": "cvt.f64.f32 \t%fd18, %f269;"
+        },
+        {
+          "line": 858,
+          "text": "mul.f64 \t%fd19, %fd17, %fd18;"
+        },
+        {
+          "line": 859,
+          "text": "mul.f64 \t%fd20, %fd19, %fd18;"
+        },
+        {
+          "line": 860,
+          "text": "rcp.rn.f64 \t%fd21, %fd20;"
+        },
+        {
+          "line": 861,
+          "text": "cvt.rn.f32.f64 \t%f270, %fd21;"
+        },
+        {
+          "line": 931,
+          "text": ".reg .f64 \t%fd<10>;"
+        },
+        {
+          "line": 976,
+          "text": "cvt.f64.f32 \t%fd1, %f27;"
+        },
+        {
+          "line": 978,
+          "text": "div.rn.f64 \t%fd2, %fd1, 0d400921FB54442D18;"
+        },
+        {
+          "line": 979,
+          "text": "cvt.rn.f32.f64 \t%f46, %fd2;"
+        },
+        {
+          "line": 1007,
+          "text": "cvt.f64.f32 \t%fd3, %f39;"
+        },
+        {
+          "line": 1008,
+          "text": "mul.f64 \t%fd4, %fd3, 0d400921FB54442D18;"
+        },
+        {
+          "line": 1009,
+          "text": "mul.f64 \t%fd5, %fd4, %fd3;"
+        },
+        {
+          "line": 1010,
+          "text": "cvt.f64.f32 \t%fd6, %f61;"
+        },
+        {
+          "line": 1011,
+          "text": "mul.f64 \t%fd7, %fd5, %fd6;"
+        },
+        {
+          "line": 1012,
+          "text": "mul.f64 \t%fd8, %fd7, %fd6;"
+        },
+        {
+          "line": 1013,
+          "text": "rcp.rn.f64 \t%fd9, %fd8;"
+        },
+        {
+          "line": 1014,
+          "text": "cvt.rn.f32.f64 \t%f7, %fd9;"
+        },
+        {
+          "line": 1301,
+          "text": ".reg .f64 \t%fd<22>;"
+        },
+        {
+          "line": 1411,
+          "text": "cvt.f64.f32 \t%fd7, %f211;"
+        },
+        {
+          "line": 1413,
+          "text": "mul.f64 \t%fd8, %fd7, 0d400921FB54442D18;"
+        },
+        {
+          "line": 1414,
+          "text": "cvt.rn.f32.f64 \t%f44, %fd8;"
+        },
+        {
+          "line": 1491,
+          "text": "cvt.f64.f32 \t%fd1, %f5;"
+        },
+        {
+          "line": 1492,
+          "text": "mul.f64 \t%fd2, %fd1, 0d401921FB54442D18;"
+        },
+        {
+          "line": 1493,
+          "text": "cvt.rn.f32.f64 \t%f16, %fd2;"
+        },
+        {
+          "line": 1592,
+          "text": "cvt.rn.f64.s64 \t%fd9, %rd79;"
+        },
+        {
+          "line": 1593,
+          "text": "mul.f64 \t%fd10, %fd9, 0d3BF921FB54442D19;"
+        },
+        {
+          "line": 1594,
+          "text": "cvt.rn.f32.f64 \t%f219, %fd10;"
+        },
+        {
+          "line": 1713,
+          "text": "cvt.rn.f64.s64 \t%fd3, %rd59;"
+        },
+        {
+          "line": 1714,
+          "text": "mul.f64 \t%fd4, %fd3, 0d3BF921FB54442D19;"
+        },
+        {
+          "line": 1715,
+          "text": "cvt.rn.f32.f64 \t%f125, %fd4;"
+        },
+        {
+          "line": 1834,
+          "text": "cvt.rn.f64.s64 \t%fd11, %rd89;"
+        },
+        {
+          "line": 1835,
+          "text": "mul.f64 \t%fd12, %fd11, 0d3BF921FB54442D19;"
+        },
+        {
+          "line": 1836,
+          "text": "cvt.rn.f32.f64 \t%f233, %fd12;"
+        },
+        {
+          "line": 1957,
+          "text": "cvt.rn.f64.s64 \t%fd5, %rd69;"
+        },
+        {
+          "line": 1958,
+          "text": "mul.f64 \t%fd6, %fd5, 0d3BF921FB54442D19;"
+        },
+        {
+          "line": 1959,
+          "text": "cvt.rn.f32.f64 \t%f139, %fd6;"
+        },
+        {
+          "line": 2096,
+          "text": "cvt.f64.f32 \t%fd13, %f317;"
+        },
+        {
+          "line": 2098,
+          "text": "div.rn.f64 \t%fd14, %fd13, 0d400921FB54442D18;"
+        },
+        {
+          "line": 2099,
+          "text": "cvt.rn.f32.f64 \t%f254, %fd14;"
+        },
+        {
+          "line": 2127,
+          "text": "cvt.f64.f32 \t%fd15, %f1;"
+        },
+        {
+          "line": 2128,
+          "text": "mul.f64 \t%fd16, %fd15, 0d400921FB54442D18;"
+        },
+        {
+          "line": 2129,
+          "text": "mul.f64 \t%fd17, %fd16, %fd15;"
+        },
+        {
+          "line": 2130,
+          "text": "cvt.f64.f32 \t%fd18, %f269;"
+        },
+        {
+          "line": 2131,
+          "text": "mul.f64 \t%fd19, %fd17, %fd18;"
+        },
+        {
+          "line": 2132,
+          "text": "mul.f64 \t%fd20, %fd19, %fd18;"
+        },
+        {
+          "line": 2133,
+          "text": "rcp.rn.f64 \t%fd21, %fd20;"
+        },
+        {
+          "line": 2134,
+          "text": "cvt.rn.f32.f64 \t%f270, %fd21;"
+        },
+        {
+          "line": 2201,
+          "text": ".reg .f64 \t%fd<12>;"
+        },
+        {
+          "line": 2242,
+          "text": "cvt.f64.f32 \t%fd1, %f19;"
+        },
+        {
+          "line": 2244,
+          "text": "div.rn.f64 \t%fd2, %fd1, 0d400921FB54442D18;"
+        },
+        {
+          "line": 2245,
+          "text": "cvt.rn.f32.f64 \t%f36, %fd2;"
+        },
+        {
+          "line": 2273,
+          "text": "cvt.f64.f32 \t%fd3, %f29;"
+        },
+        {
+          "line": 2274,
+          "text": "mul.f64 \t%fd4, %fd3, 0d400921FB54442D18;"
+        },
+        {
+          "line": 2275,
+          "text": "mul.f64 \t%fd5, %fd4, %fd3;"
+        },
+        {
+          "line": 2276,
+          "text": "cvt.f64.f32 \t%fd6, %f51;"
+        },
+        {
+          "line": 2277,
+          "text": "mul.f64 \t%fd7, %fd5, %fd6;"
+        },
+        {
+          "line": 2278,
+          "text": "mul.f64 \t%fd8, %fd7, %fd6;"
+        },
+        {
+          "line": 2279,
+          "text": "rcp.rn.f64 \t%fd9, %fd8;"
+        },
+        {
+          "line": 2280,
+          "text": "cvt.rn.f32.f64 \t%f5, %fd9;"
+        },
+        {
+          "line": 2496,
+          "text": "cvt.f64.f32 \t%fd10, %f3;"
+        },
+        {
+          "line": 2498,
+          "text": "div.rn.f64 \t%fd11, %fd10, 0d400921FB54442D18;"
+        },
+        {
+          "line": 2499,
+          "text": "cvt.rn.f32.f64 \t%f177, %fd11;"
+        }
+      ]
+    },
+    {
+      "source": "shaders/callable/diffuse_brdf.cu",
+      "source_sha256": "75b034d26428e2bdc4c7764d152585a8afb35723fdb7c53f1b6cf429e7a73435",
+      "kind": "ptx",
+      "command": [
+        "/workspace/scratch/6fbbff5708b2/m1-toolchain/nvidia/cu13/bin/nvcc",
+        "--ptx",
+        "--std=c++20",
+        "--gpu-architecture=compute_86",
+        "--gpu-code=sm_86",
+        "--cudart",
+        "none",
+        "--relocatable-device-code=true",
+        "--generate-line-info",
+        "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/include",
+        "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32",
+        "-I/workspace/scratch/6fbbff5708b2/m1-deps/optix9/include",
+        "-I/workspace/scratch/6fbbff5708b2/m1-deps/openvdb/nanovdb",
+        "shaders/callable/diffuse_brdf.cu",
+        "-o",
+        "/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/validation/m3-fp32/m3_fp32_shader_objects/diffuse_brdf.ptx"
+      ],
+      "returncode": 0,
+      "duration_seconds": 0.588,
+      "stdout": "",
+      "artifact": "validation/m3-fp32/m3_fp32_shader_objects/diffuse_brdf.ptx",
+      "artifact_sha256": "ca599d985a499a8dc6592c3864304844fbcf7ee917456525bff91fe850c1a2c1",
+      "artifact_bytes": 26995,
+      "fp64_occurrences": [
+        {
+          "line": 28,
+          "text": ".reg .f64 \t%fd<9>;"
+        },
+        {
+          "line": 87,
+          "text": "cvt.f64.f32 \t%fd1, %f30;"
+        },
+        {
+          "line": 89,
+          "text": "mul.f64 \t%fd2, %fd1, 0d400921FB54442D18;"
+        },
+        {
+          "line": 90,
+          "text": "cvt.rn.f32.f64 \t%f2, %fd2;"
+        },
+        {
+          "line": 194,
+          "text": "cvt.rn.f64.s64 \t%fd3, %rd44;"
+        },
+        {
+          "line": 195,
+          "text": "mul.f64 \t%fd4, %fd3, 0d3BF921FB54442D19;"
+        },
+        {
+          "line": 196,
+          "text": "cvt.rn.f32.f64 \t%f38, %fd4;"
+        },
+        {
+          "line": 320,
+          "text": "cvt.rn.f64.s64 \t%fd5, %rd59;"
+        },
+        {
+          "line": 321,
+          "text": "mul.f64 \t%fd6, %fd5, 0d3BF921FB54442D19;"
+        },
+        {
+          "line": 322,
+          "text": "cvt.rn.f32.f64 \t%f52, %fd6;"
+        },
+        {
+          "line": 371,
+          "text": "cvt.f64.f32 \t%fd7, %f74;"
+        },
+        {
+          "line": 373,
+          "text": "div.rn.f64 \t%fd8, %fd7, 0d400921FB54442D18;"
+        },
+        {
+          "line": 374,
+          "text": "cvt.rn.f32.f64 \t%f75, %fd8;"
+        },
+        {
+          "line": 397,
+          "text": ".reg .f64 \t%fd<3>;"
+        },
+        {
+          "line": 407,
+          "text": "cvt.f64.f32 \t%fd1, %f1;"
+        },
+        {
+          "line": 409,
+          "text": "div.rn.f64 \t%fd2, %fd1, 0d400921FB54442D18;"
+        },
+        {
+          "line": 410,
+          "text": "cvt.rn.f32.f64 \t%f2, %fd2;"
+        },
+        {
+          "line": 446,
+          "text": ".reg .f64 \t%fd<9>;"
+        },
+        {
+          "line": 505,
+          "text": "cvt.f64.f32 \t%fd1, %f30;"
+        },
+        {
+          "line": 507,
+          "text": "mul.f64 \t%fd2, %fd1, 0d400921FB54442D18;"
+        },
+        {
+          "line": 508,
+          "text": "cvt.rn.f32.f64 \t%f2, %fd2;"
+        },
+        {
+          "line": 612,
+          "text": "cvt.rn.f64.s64 \t%fd3, %rd44;"
+        },
+        {
+          "line": 613,
+          "text": "mul.f64 \t%fd4, %fd3, 0d3BF921FB54442D19;"
+        },
+        {
+          "line": 614,
+          "text": "cvt.rn.f32.f64 \t%f38, %fd4;"
+        },
+        {
+          "line": 738,
+          "text": "cvt.rn.f64.s64 \t%fd5, %rd59;"
+        },
+        {
+          "line": 739,
+          "text": "mul.f64 \t%fd6, %fd5, 0d3BF921FB54442D19;"
+        },
+        {
+          "line": 740,
+          "text": "cvt.rn.f32.f64 \t%f52, %fd6;"
+        },
+        {
+          "line": 789,
+          "text": "cvt.f64.f32 \t%fd7, %f74;"
+        },
+        {
+          "line": 791,
+          "text": "div.rn.f64 \t%fd8, %fd7, 0d400921FB54442D18;"
+        },
+        {
+          "line": 792,
+          "text": "cvt.rn.f32.f64 \t%f75, %fd8;"
+        },
+        {
+          "line": 811,
+          "text": ".reg .f64 \t%fd<5>;"
+        },
+        {
+          "line": 821,
+          "text": "cvt.f64.f32 \t%fd1, %f1;"
+        },
+        {
+          "line": 823,
+          "text": "div.rn.f64 \t%fd2, %fd1, 0d400921FB54442D18;"
+        },
+        {
+          "line": 824,
+          "text": "cvt.rn.f32.f64 \t%f2, %fd2;"
+        },
+        {
+          "line": 831,
+          "text": "cvt.f64.f32 \t%fd3, %f3;"
+        },
+        {
+          "line": 833,
+          "text": "div.rn.f64 \t%fd4, %fd3, 0d400921FB54442D18;"
+        },
+        {
+          "line": 834,
+          "text": "cvt.rn.f32.f64 \t%f4, %fd4;"
+        }
+      ]
+    },
+    {
+      "source": "shaders/callable/glass_bsdf.cu",
+      "source_sha256": "769dec1919d6ac3bf334c9cd46901059b510d1c8dc5d907ecee604bcb1442951",
+      "kind": "ptx",
+      "command": [
+        "/workspace/scratch/6fbbff5708b2/m1-toolchain/nvidia/cu13/bin/nvcc",
+        "--ptx",
+        "--std=c++20",
+        "--gpu-architecture=compute_86",
+        "--gpu-code=sm_86",
+        "--cudart",
+        "none",
+        "--relocatable-device-code=true",
+        "--generate-line-info",
+        "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/include",
+        "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32",
+        "-I/workspace/scratch/6fbbff5708b2/m1-deps/optix9/include",
+        "-I/workspace/scratch/6fbbff5708b2/m1-deps/openvdb/nanovdb",
+        "shaders/callable/glass_bsdf.cu",
+        "-o",
+        "/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/validation/m3-fp32/m3_fp32_shader_objects/glass_bsdf.ptx"
+      ],
+      "returncode": 0,
+      "duration_seconds": 0.677,
+      "stdout": "",
+      "artifact": "validation/m3-fp32/m3_fp32_shader_objects/glass_bsdf.ptx",
+      "artifact_sha256": "a4dc75121bee735f8e2815345c3f90a759e6dfdcbea25ce281ef50d038feaa3f",
+      "artifact_bytes": 31674,
+      "fp64_occurrences": []
+    },
+    {
+      "source": "shaders/callable/light_sample.cu",
+      "source_sha256": "11e2319e5673894a2b08d035329cd5b6c7bef079bf95575f545f4e54e18c0ed3",
+      "kind": "ptx",
+      "command": [
+        "/workspace/scratch/6fbbff5708b2/m1-toolchain/nvidia/cu13/bin/nvcc",
+        "--ptx",
+        "--std=c++20",
+        "--gpu-architecture=compute_86",
+        "--gpu-code=sm_86",
+        "--cudart",
+        "none",
+        "--relocatable-device-code=true",
+        "--generate-line-info",
+        "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/include",
+        "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32",
+        "-I/workspace/scratch/6fbbff5708b2/m1-deps/optix9/include",
+        "-I/workspace/scratch/6fbbff5708b2/m1-deps/openvdb/nanovdb",
+        "shaders/callable/light_sample.cu",
+        "-o",
+        "/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/validation/m3-fp32/m3_fp32_shader_objects/light_sample.ptx"
+      ],
+      "returncode": 0,
+      "duration_seconds": 0.893,
+      "stdout": "",
+      "artifact": "validation/m3-fp32/m3_fp32_shader_objects/light_sample.ptx",
+      "artifact_sha256": "b330811d413d8ca8c0cd5375fb741b1450bb3f958498ed76e563953db364aef9",
+      "artifact_bytes": 232204,
+      "fp64_occurrences": [
+        {
+          "line": 28,
+          "text": ".reg .f64 \t%fd<5>;"
+        },
+        {
+          "line": 196,
+          "text": "cvt.rn.f64.s64 \t%fd1, %rd40;"
+        },
+        {
+          "line": 197,
+          "text": "mul.f64 \t%fd2, %fd1, 0d3BF921FB54442D19;"
+        },
+        {
+          "line": 198,
+          "text": "cvt.rn.f32.f64 \t%f50, %fd2;"
+        },
+        {
+          "line": 317,
+          "text": "cvt.rn.f64.s64 \t%fd3, %rd50;"
+        },
+        {
+          "line": 318,
+          "text": "mul.f64 \t%fd4, %fd3, 0d3BF921FB54442D19;"
+        },
+        {
+          "line": 319,
+          "text": "cvt.rn.f32.f64 \t%f64, %fd4;"
+        },
+        {
+          "line": 508,
+          "text": ".reg .f64 \t%fd<23>;"
+        },
+        {
+          "line": 900,
+          "text": "cvt.rn.f64.s64 \t%fd5, %rd144;"
+        },
+        {
+          "line": 901,
+          "text": "mul.f64 \t%fd6, %fd5, 0d3BF921FB54442D19;"
+        },
+        {
+          "line": 902,
+          "text": "cvt.rn.f32.f64 \t%f308, %fd6;"
+        },
+        {
+          "line": 1031,
+          "text": "cvt.rn.f64.s64 \t%fd1, %rd92;"
+        },
+        {
+          "line": 1032,
+          "text": "mul.f64 \t%fd2, %fd1, 0d3BF921FB54442D19;"
+        },
+        {
+          "line": 1033,
+          "text": "cvt.rn.f32.f64 \t%f173, %fd2;"
+        },
+        {
+          "line": 1153,
+          "text": "cvt.rn.f64.s64 \t%fd7, %rd154;"
+        },
+        {
+          "line": 1154,
+          "text": "mul.f64 \t%fd8, %fd7, 0d3BF921FB54442D19;"
+        },
+        {
+          "line": 1155,
+          "text": "cvt.rn.f32.f64 \t%f329, %fd8;"
+        },
+        {
+          "line": 1277,
+          "text": "cvt.rn.f64.s64 \t%fd3, %rd102;"
+        },
+        {
+          "line": 1278,
+          "text": "mul.f64 \t%fd4, %fd3, 0d3BF921FB54442D19;"
+        },
+        {
+          "line": 1279,
+          "text": "cvt.rn.f32.f64 \t%f187, %fd4;"
+        },
+        {
+          "line": 1435,
+          "text": "cvt.rn.f64.s64 \t%fd9, %rd164;"
+        },
+        {
+          "line": 1436,
+          "text": "mul.f64 \t%fd10, %fd9, 0d3BF921FB54442D19;"
+        },
+        {
+          "line": 1437,
+          "text": "cvt.rn.f32.f64 \t%f343, %fd10;"
+        },
+        {
+          "line": 1707,
+          "text": "cvt.rn.f64.s64 \t%fd11, %rd174;"
+        },
+        {
+          "line": 1708,
+          "text": "mul.f64 \t%fd12, %fd11, 0d3BF921FB54442D19;"
+        },
+        {
+          "line": 1709,
+          "text": "cvt.rn.f32.f64 \t%f405, %fd12;"
+        },
+        {
+          "line": 1839,
+          "text": "cvt.rn.f64.s64 \t%fd13, %rd184;"
+        },
+        {
+          "line": 1840,
+          "text": "mul.f64 \t%fd14, %fd13, 0d3BF921FB54442D19;"
+        },
+        {
+          "line": 1841,
+          "text": "cvt.rn.f32.f64 \t%f426, %fd14;"
+        },
+        {
+          "line": 1958,
+          "text": "cvt.rn.f64.s64 \t%fd15, %rd194;"
+        },
+        {
+          "line": 1959,
+          "text": "mul.f64 \t%fd16, %fd15, 0d3BF921FB54442D19;"
+        },
+        {
+          "line": 1960,
+          "text": "cvt.rn.f32.f64 \t%f440, %fd16;"
+        },
+        {
+          "line": 2077,
+          "text": "cvt.rn.f64.s64 \t%fd17, %rd204;"
+        },
+        {
+          "line": 2078,
+          "text": "mul.f64 \t%fd18, %fd17, 0d3BF921FB54442D19;"
+        },
+        {
+          "line": 2079,
+          "text": "cvt.rn.f32.f64 \t%f454, %fd18;"
+        },
+        {
+          "line": 2114,
+          "text": "cvt.f64.f32 \t%fd19, %f80;"
+        },
+        {
+          "line": 2115,
+          "text": "div.rn.f64 \t%fd20, %fd19, 0d401921FB54442D18;"
+        },
+        {
+          "line": 2116,
+          "text": "cvt.rn.f32.f64 \t%f468, %fd20;"
+        },
+        {
+          "line": 2118,
+          "text": "cvt.f64.f32 \t%fd21, %f91;"
+        },
+        {
+          "line": 2120,
+          "text": "div.rn.f64 \t%fd22, %fd21, 0d400921FB54442D18;"
+        },
+        {
+          "line": 2121,
+          "text": "cvt.rn.f32.f64 \t%f469, %fd22;"
+        },
+        {
+          "line": 2461,
+          "text": ".reg .f64 \t%fd<5>;"
+        },
+        {
+          "line": 2629,
+          "text": "cvt.rn.f64.s64 \t%fd1, %rd40;"
+        },
+        {
+          "line": 2630,
+          "text": "mul.f64 \t%fd2, %fd1, 0d3BF921FB54442D19;"
+        },
+        {
+          "line": 2631,
+          "text": "cvt.rn.f32.f64 \t%f50, %fd2;"
+        },
+        {
+          "line": 2750,
+          "text": "cvt.rn.f64.s64 \t%fd3, %rd50;"
+        },
+        {
+          "line": 2751,
+          "text": "mul.f64 \t%fd4, %fd3, 0d3BF921FB54442D19;"
+        },
+        {
+          "line": 2752,
+          "text": "cvt.rn.f32.f64 \t%f64, %fd4;"
+        },
+        {
+          "line": 2941,
+          "text": ".reg .f64 \t%fd<23>;"
+        },
+        {
+          "line": 3333,
+          "text": "cvt.rn.f64.s64 \t%fd5, %rd144;"
+        },
+        {
+          "line": 3334,
+          "text": "mul.f64 \t%fd6, %fd5, 0d3BF921FB54442D19;"
+        },
+        {
+          "line": 3335,
+          "text": "cvt.rn.f32.f64 \t%f308, %fd6;"
+        },
+        {
+          "line": 3464,
+          "text": "cvt.rn.f64.s64 \t%fd1, %rd92;"
+        },
+        {
+          "line": 3465,
+          "text": "mul.f64 \t%fd2, %fd1, 0d3BF921FB54442D19;"
+        },
+        {
+          "line": 3466,
+          "text": "cvt.rn.f32.f64 \t%f173, %fd2;"
+        },
+        {
+          "line": 3586,
+          "text": "cvt.rn.f64.s64 \t%fd7, %rd154;"
+        },
+        {
+          "line": 3587,
+          "text": "mul.f64 \t%fd8, %fd7, 0d3BF921FB54442D19;"
+        },
+        {
+          "line": 3588,
+          "text": "cvt.rn.f32.f64 \t%f329, %fd8;"
+        },
+        {
+          "line": 3710,
+          "text": "cvt.rn.f64.s64 \t%fd3, %rd102;"
+        },
+        {
+          "line": 3711,
+          "text": "mul.f64 \t%fd4, %fd3, 0d3BF921FB54442D19;"
+        },
+        {
+          "line": 3712,
+          "text": "cvt.rn.f32.f64 \t%f187, %fd4;"
+        },
+        {
+          "line": 3868,
+          "text": "cvt.rn.f64.s64 \t%fd9, %rd164;"
+        },
+        {
+          "line": 3869,
+          "text": "mul.f64 \t%fd10, %fd9, 0d3BF921FB54442D19;"
+        },
+        {
+          "line": 3870,
+          "text": "cvt.rn.f32.f64 \t%f343, %fd10;"
+        },
+        {
+          "line": 4140,
+          "text": "cvt.rn.f64.s64 \t%fd11, %rd174;"
+        },
+        {
+          "line": 4141,
+          "text": "mul.f64 \t%fd12, %fd11, 0d3BF921FB54442D19;"
+        },
+        {
+          "line": 4142,
+          "text": "cvt.rn.f32.f64 \t%f405, %fd12;"
+        },
+        {
+          "line": 4272,
+          "text": "cvt.rn.f64.s64 \t%fd13, %rd184;"
+        },
+        {
+          "line": 4273,
+          "text": "mul.f64 \t%fd14, %fd13, 0d3BF921FB54442D19;"
+        },
+        {
+          "line": 4274,
+          "text": "cvt.rn.f32.f64 \t%f426, %fd14;"
+        },
+        {
+          "line": 4391,
+          "text": "cvt.rn.f64.s64 \t%fd15, %rd194;"
+        },
+        {
+          "line": 4392,
+          "text": "mul.f64 \t%fd16, %fd15, 0d3BF921FB54442D19;"
+        },
+        {
+          "line": 4393,
+          "text": "cvt.rn.f32.f64 \t%f440, %fd16;"
+        },
+        {
+          "line": 4510,
+          "text": "cvt.rn.f64.s64 \t%fd17, %rd204;"
+        },
+        {
+          "line": 4511,
+          "text": "mul.f64 \t%fd18, %fd17, 0d3BF921FB54442D19;"
+        },
+        {
+          "line": 4512,
+          "text": "cvt.rn.f32.f64 \t%f454, %fd18;"
+        },
+        {
+          "line": 4547,
+          "text": "cvt.f64.f32 \t%fd19, %f80;"
+        },
+        {
+          "line": 4548,
+          "text": "div.rn.f64 \t%fd20, %fd19, 0d401921FB54442D18;"
+        },
+        {
+          "line": 4549,
+          "text": "cvt.rn.f32.f64 \t%f468, %fd20;"
+        },
+        {
+          "line": 4551,
+          "text": "cvt.f64.f32 \t%fd21, %f91;"
+        },
+        {
+          "line": 4553,
+          "text": "div.rn.f64 \t%fd22, %fd21, 0d400921FB54442D18;"
+        },
+        {
+          "line": 4554,
+          "text": "cvt.rn.f32.f64 \t%f469, %fd22;"
+        },
+        {
+          "line": 4844,
+          "text": ".reg .f64 \t%fd<17>;"
+        },
+        {
+          "line": 4961,
+          "text": "cvt.rn.f64.s64 \t%fd1, %rd67;"
+        },
+        {
+          "line": 4962,
+          "text": "mul.f64 \t%fd2, %fd1, 0d3BF921FB54442D19;"
+        },
+        {
+          "line": 4963,
+          "text": "cvt.rn.f32.f64 \t%f220, %fd2;"
+        },
+        {
+          "line": 5080,
+          "text": "cvt.rn.f64.s64 \t%fd3, %rd77;"
+        },
+        {
+          "line": 5081,
+          "text": "mul.f64 \t%fd4, %fd3, 0d3BF921FB54442D19;"
+        },
+        {
+          "line": 5082,
+          "text": "cvt.rn.f32.f64 \t%f234, %fd4;"
+        },
+        {
+          "line": 5213,
+          "text": "cvt.rn.f64.s64 \t%fd5, %rd87;"
+        },
+        {
+          "line": 5214,
+          "text": "mul.f64 \t%fd6, %fd5, 0d3BF921FB54442D19;"
+        },
+        {
+          "line": 5215,
+          "text": "cvt.rn.f32.f64 \t%f255, %fd6;"
+        },
+        {
+          "line": 5333,
+          "text": "cvt.rn.f64.s64 \t%fd7, %rd97;"
+        },
+        {
+          "line": 5334,
+          "text": "mul.f64 \t%fd8, %fd7, 0d3BF921FB54442D19;"
+        },
+        {
+          "line": 5335,
+          "text": "cvt.rn.f32.f64 \t%f269, %fd8;"
+        },
+        {
+          "line": 5631,
+          "text": "cvt.rn.f64.s64 \t%fd13, %rd147;"
+        },
+        {
+          "line": 5632,
+          "text": "mul.f64 \t%fd14, %fd13, 0d3BF921FB54442D19;"
+        },
+        {
+          "line": 5633,
+          "text": "cvt.rn.f32.f64 \t%f376, %fd14;"
+        },
+        {
+          "line": 5752,
+          "text": "cvt.rn.f64.s64 \t%fd9, %rd127;"
+        },
+        {
+          "line": 5753,
+          "text": "mul.f64 \t%fd10, %fd9, 0d3BF921FB54442D19;"
+        },
+        {
+          "line": 5754,
+          "text": "cvt.rn.f32.f64 \t%f296, %fd10;"
+        },
+        {
+          "line": 5872,
+          "text": "cvt.rn.f64.s64 \t%fd15, %rd157;"
+        },
+        {
+          "line": 5873,
+          "text": "mul.f64 \t%fd16, %fd15, 0d3BF921FB54442D19;"
+        },
+        {
+          "line": 5874,
+          "text": "cvt.rn.f32.f64 \t%f390, %fd16;"
+        },
+        {
+          "line": 6064,
+          "text": "cvt.rn.f64.s64 \t%fd11, %rd137;"
+        },
+        {
+          "line": 6065,
+          "text": "mul.f64 \t%fd12, %fd11, 0d3BF921FB54442D19;"
+        },
+        {
+          "line": 6066,
+          "text": "cvt.rn.f32.f64 \t%f311, %fd12;"
+        }
+      ]
+    },
+    {
+      "source": "shaders/callable/lens.cu",
+      "source_sha256": "0169db46fbb9bdbe61c3a5eaa89771f20684c111510ec062a7efcca06ac72c29",
+      "kind": "ptx",
+      "command": [
+        "/workspace/scratch/6fbbff5708b2/m1-toolchain/nvidia/cu13/bin/nvcc",
+        "--ptx",
+        "--std=c++20",
+        "--gpu-architecture=compute_86",
+        "--gpu-code=sm_86",
+        "--cudart",
+        "none",
+        "--relocatable-device-code=true",
+        "--generate-line-info",
+        "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/include",
+        "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32",
+        "-I/workspace/scratch/6fbbff5708b2/m1-deps/optix9/include",
+        "-I/workspace/scratch/6fbbff5708b2/m1-deps/openvdb/nanovdb",
+        "shaders/callable/lens.cu",
+        "-o",
+        "/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/validation/m3-fp32/m3_fp32_shader_objects/lens.ptx"
+      ],
+      "returncode": 0,
+      "duration_seconds": 0.621,
+      "stdout": "shaders/callable/lens.cu(41): warning #177-D: variable \"fValue\" was declared but never referenced\n      const float fValue = camera.fValue;\n                  ^\n\nRemark: The warnings can be suppressed with \"-diag-suppress <warning-number>\"\n\n",
+      "artifact": "validation/m3-fp32/m3_fp32_shader_objects/lens.ptx",
+      "artifact_sha256": "99bd1d8458f5956ea3e7eef77d212e298cd5a88228547b6ca8322ddc1fdaabfb",
+      "artifact_bytes": 24739,
+      "fp64_occurrences": []
+    }
+  ],
+  "all_fp32_ptx": false
+}

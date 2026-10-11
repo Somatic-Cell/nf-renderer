@@ -1,0 +1,50 @@
+{
+  "scope": "Patch applicability, byte equality and validated-source identity; no GPU execution",
+  "checks": [
+    {
+      "patch": "m3-planet-from-shader-fp32.patch",
+      "baseline_local_snapshot": "9595de355e3797bca7570f4d80f672e1839fa242",
+      "files_compared": 6,
+      "check_passed": true,
+      "applied_bytes_match_packaged_sources": true
+    },
+    {
+      "patch": "m3-planet-from-m3-fp32.patch",
+      "baseline_local_snapshot": "6f9e3e59a254bbe6095a386febdd1c2ecf8ffd43",
+      "files_compared": 15,
+      "check_passed": true,
+      "applied_bytes_match_packaged_sources": true
+    },
+    {
+      "patch": "m3-planet-from-m3-fp32.patch",
+      "baseline_local_snapshot": "d45aff0b6a368b2587dbea629ba77cf390934e99",
+      "files_compared": 15,
+      "check_passed": true,
+      "applied_bytes_match_packaged_sources": true
+    }
+  ],
+  "shader_input_hashes_checked": 76,
+  "cpu_source_hashes_checked": 8,
+  "cuda_test_source_hash_checked": true,
+  "new_code_files": [
+    "include/m1/diagnostics.hpp",
+    "include/m3/tracking_float.hpp",
+    "include/m3/tracking_geometry.hpp",
+    "shaders/device/m1_surface.cuh",
+    "tests/test_m3_tracking_geometry.cpp",
+    "tests/test_m3_tracking_geometry_cuda.cu"
+  ],
+  "previous_fp32_update_included": [
+    "shaders/callable/light_sample.cu",
+    "shaders/device/atmosphere_sampling_device.cuh",
+    "shaders/device/neural_phase_function.cuh",
+    "shaders/device/phase_function.cuh",
+    "shaders/device/shader_common.cuh",
+    "shaders/device/trace_volume.cuh",
+    "shaders/entry/ch_radiance_vdb.cu",
+    "shaders/entry/miss_radiance.cu",
+    "tools/validate_shader_fp32.py"
+  ],
+  "original_gpu_failure_reproduced": false,
+  "optix_failure_resolution_confirmed": false
+}

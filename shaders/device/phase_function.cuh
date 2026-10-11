@@ -13,6 +13,7 @@
 #include "../../utils/my_math.hpp"
 #include "../params/per_ray_data.cuh"
 #include "shader_common.cuh"
+#include "m1/bounded_trig.hpp"
 #define _USE_MATH_DEFINES
 #include <math.h>
 
@@ -32,7 +33,7 @@ float evalPhaseFunctionHG
     const float denom = 1.0f + gg - 2.0f * g * cos;
     const float denom32 = denom * sqrtf(fmaxf(denom, 1e-20f));
 
-    return (1.0f - gg) / (4.0f * M_PI * fmaxf(denom32, 1e-20f));
+    return (1.0f - gg) / (4.0f * m1::pi * fmaxf(denom32, 1e-20f));
 }
 
 
@@ -65,9 +66,9 @@ PhaseSample samplePhaseFunctionHG
 
     const float sinTheta = sqrtf(fmaxf(0.0f, 1.0f - cosTheta * cosTheta));
 
-    const float phi = 2.0f * M_PI * u2;
-    float sinPhi, cosPhi;
-    sincosf(phi, &sinPhi, &cosPhi);
+    const float phi = 2.0f * m1::pi * u2;
+    const auto phiAngle = m1::bounded_sincos(phi);
+    const float sinPhi = phiAngle.sine, cosPhi = phiAngle.cosine;
 
     // wo を z 軸にしたローカル方向
     const float3 local =
@@ -133,7 +134,7 @@ float theta_from_index(float idx01, int Ntheta)
 {
     // idx01 は [0, Ntheta-1] の実数
     float t01 = idx01 / (float)(Ntheta - 1);
-    return t01 * M_PI;
+    return t01 * m1::pi;
 }
 
 static __forceinline__ __device__
@@ -169,13 +170,15 @@ PhaseSample samplePhaseFunctionTabulated(const float3& woWorld,
     const float itf   = (float)it0 + t;
     const float theta = theta_from_index(itf, T.Ntheta);
 
-    float sinTheta, cosTheta;
-    sincosf(theta, &sinTheta, &cosTheta);
+    // CDF interpolation gives theta in [0, pi]. Preserve ordinary float
+    // trig accuracy while excluding libdevice's huge-argument reduction.
+    const auto thetaAngle = m1::bounded_sincos(theta);
+    const float sinTheta = thetaAngle.sine, cosTheta = thetaAngle.cosine;
 
     // φ は一様
-    const float phi = 2.0f * M_PI * u2;
-    float sinPhi, cosPhi;
-    sincosf(phi, &sinPhi, &cosPhi);
+    const float phi = 2.0f * m1::pi * u2;
+    const auto phiAngle = m1::bounded_sincos(phi);
+    const float sinPhi = phiAngle.sine, cosPhi = phiAngle.cosine;
 
     // wo を z 軸にしたローカル方向（z=cosθ）
     const float3 local = make_float3(cosPhi * sinTheta, sinPhi * sinTheta, cosTheta);
@@ -203,7 +206,7 @@ float evalPhaseFunctionTabulated(float cosTheta,
     const float theta = acosf(cosTheta); // 0..pi
 
     // theta -> 連続index [0, Ntheta-1]
-    const float itf = (theta / M_PI) * (float)(T.Ntheta - 1);
+    const float itf = (theta / m1::pi) * (float)(T.Ntheta - 1);
     int it0 = (int)floorf(itf);
     int it1 = min(it0 + 1, T.Ntheta - 1);
     float t = itf - (float)it0;

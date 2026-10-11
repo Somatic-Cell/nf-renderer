@@ -1,0 +1,97 @@
+{
+  "baseline_deliverable": "nf-renderer-M3-FP32-delta-ratio-6e4794f.zip",
+  "baseline_deliverable_sha256": "b96dd041ab366d50a8aef5994e97fa8ec9efb6d879ce08a4120854a86601a7bb",
+  "repository_base_commit": "6e4794fb50fe3d9eafaacd78e5fe0b6e2098a103",
+  "local_snapshot_not_a_GitHub_commit": "d45aff0b6a368b2587dbea629ba77cf390934e99",
+  "patch_check_passed": true,
+  "patch_apply_passed": true,
+  "patch_applied_bytes_match": true,
+  "patch_sha256": "dc9c0f81afd325b80d6466bce837744fe4a92b171cb84b47f5dc72d1f48da5cb",
+  "changed_source_files": [
+    {
+      "path": "build.bat",
+      "before_sha256": "08b9b3e9d222339c1a8b19c3887842fbef18b2a4a2dad78b4e8ee83975443162",
+      "after_sha256": "36602eb82bc15c9fa526ebe4a2c716a89c606eb8e63b45282ca4921da79788e1"
+    },
+    {
+      "path": "include/application.hpp",
+      "before_sha256": "ffdcbc2c2d6b123738565112dcde841ca6258e2da58d327f8574e35b5a341269",
+      "after_sha256": "01e147dd44d7792b8f882f8d2dc74c2292cf45cac98c66182922a34e447762c2"
+    },
+    {
+      "path": "viewer/CMakeLists.txt",
+      "before_sha256": "84a76df633837263a633a6d498a2973e7835e8df3b1a8a219d5a5ed441afc3cf",
+      "after_sha256": "3ebaac901f69cfe82badf1d6050ba95d4f20e36bbbda087c88e355c320402d81"
+    },
+    {
+      "path": "viewer/glfw_window.hpp",
+      "before_sha256": "02fe3eebbf47cc635dfb63630a0532da5c76280d1d5f35444aba3a40b4dab5bf",
+      "after_sha256": "426008f678d85fadcd2b1c1c29996f8a7eca5d261db644db5d8f26ac263d18cf"
+    }
+  ],
+  "viewer_compile_source_hashes_match_delivered_sources": true,
+  "application_tracking_members_static_review": {
+    "used": [
+      "areaNeeTransmittance",
+      "beta550",
+      "enabled",
+      "groundAlbedo",
+      "groundY",
+      "maxTrackingEvents",
+      "ratioRrThreshold",
+      "scaleHeight"
+    ],
+    "all_exist_in_TrackingParameters": true,
+    "application_translation_unit_compiled": false
+  },
+  "unchanged_transport_and_device_files": [
+    "include/launch_params.h",
+    "include/m3/atmosphere.hpp",
+    "include/m3/parameters.hpp",
+    "include/m3/position.hpp",
+    "include/m3/tracking.hpp",
+    "include/m3/tracking_float.hpp",
+    "include/m3/tracking_geometry.hpp",
+    "include/m3/tracking_parameters.hpp",
+    "include/m3/transport.hpp",
+    "kernels/copy_buffer_to_surface.cu",
+    "kernels/toneMap.cu",
+    "shaders/callable/diffuse_brdf.cu",
+    "shaders/callable/disney_principled_brdf.cu",
+    "shaders/callable/glass_bsdf.cu",
+    "shaders/callable/lens.cu",
+    "shaders/callable/light_sample.cu",
+    "shaders/config.cuh",
+    "shaders/device/atmosphere_sampling_device.cuh",
+    "shaders/device/m1_diagnostics.cuh",
+    "shaders/device/m1_surface.cuh",
+    "shaders/device/m3_atmosphere.cuh",
+    "shaders/device/neural_phase_function.cuh",
+    "shaders/device/nsf_simd_constant_backend.cuh",
+    "shaders/device/nsf_simd_constant_flow_flexible_data.cuh",
+    "shaders/device/nsf_simd_hardcoded_flow_flexible_generated.cuh",
+    "shaders/device/phase_function.cuh",
+    "shaders/device/random_number_generator.cuh",
+    "shaders/device/shader_common.cuh",
+    "shaders/device/trace_surface.cuh",
+    "shaders/device/trace_volume.cuh",
+    "shaders/entry/ah_radiance.cu",
+    "shaders/entry/ah_shadow.cu",
+    "shaders/entry/ch_radiance.cu",
+    "shaders/entry/ch_radiance_vdb.cu",
+    "shaders/entry/ch_shadow.cu",
+    "shaders/entry/intersection_vdb.cu",
+    "shaders/entry/miss_radiance.cu",
+    "shaders/entry/miss_shadow.cu",
+    "shaders/entry/raygen.cu",
+    "shaders/entry/sphere_intersection.cu",
+    "shaders/params/per_ray_data.cuh",
+    "src/application.cpp",
+    "src/renderer.cpp"
+  ],
+  "unchanged_transport_and_device_count": 43,
+  "batch_ascii": true,
+  "batch_executed_on_Windows": false,
+  "windows_application_compiled": false,
+  "gpu_runtime_executed": false
+}

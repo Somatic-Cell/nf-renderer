@@ -1,0 +1,251 @@
+{
+  "all_selected_entries_fp32": true,
+  "selected_entry_count": 11,
+  "scope": "M3 spectral path: selected raygen/mesh/any-hit/shadow/miss entries, both invoked lens callables, and output kernels. BSDF/light sampling is inline in M1/M3, not legacy callable execution.",
+  "selected_entries": [
+    {
+      "entry": "computeFinalPixelColorsKernel",
+      "source": "kernels/toneMap.cu",
+      "ptx_sha256": "576598feeecf2411a6a92a95e85e3fb85cad106b6f1c94b2d6d48d3c2a956236",
+      "function_ptx_sha256": "8550616995807eeadd7e2d8ae5203f5a9a311398f43a1081b4fe4af981fdbecc",
+      "fp64_occurrences": 0
+    },
+    {
+      "entry": "copyBufferToSurfaceKernel",
+      "source": "kernels/copy_buffer_to_surface.cu",
+      "ptx_sha256": "a5e77cb78e10e7aafdc316993fae0112c095b857e5ee2eafbfc3c16a9996d4cb",
+      "function_ptx_sha256": "a5f2f66834a1196224bf915600dfea583b337becf18388e7c1bc14f2cc04c13c",
+      "fp64_occurrences": 0
+    },
+    {
+      "entry": "__raygen__renderFrame_spectral",
+      "source": "shaders/entry/raygen.cu",
+      "ptx_sha256": "eea1d2475e582a7827ab588ef2dd128d0c76f5fcac596cd5778e60b0018073e8",
+      "function_ptx_sha256": "d217d3dfb9058d8e44531b253701038856fb9a6319cd5fc5f9a77c138edaa810",
+      "fp64_occurrences": 0
+    },
+    {
+      "entry": "__anyhit__radiance_spectral",
+      "source": "shaders/entry/ah_radiance.cu",
+      "ptx_sha256": "30a8e1f4f98311e1f16c68102c0648a3b592ad5a4eec26c0824004e5e1373aac",
+      "function_ptx_sha256": "16f1ba3b642ccd156da529accef9cdae70ecfb078ff1a254dffb0b4d8a3e7705",
+      "fp64_occurrences": 0
+    },
+    {
+      "entry": "__anyhit__shadow",
+      "source": "shaders/entry/ah_shadow.cu",
+      "ptx_sha256": "f39a213513914bf7fa97f8d00fde691fe28f37e2e6b9b2263affefdd1d44eab1",
+      "function_ptx_sha256": "296bcf7406dce2ee1a6e8e6d706125ae6758d6a861832ae1964c04a512f7481b",
+      "fp64_occurrences": 0
+    },
+    {
+      "entry": "__closesthit__radiance_spectral",
+      "source": "shaders/entry/ch_radiance.cu",
+      "ptx_sha256": "064810cf8523857f4ea1e2210380e32928dfb8973558a9078555f3950ea2bc80",
+      "function_ptx_sha256": "fd9976b04d828a5b0988b90b78444aa8ed44766b09137e017cc79644051472fe",
+      "fp64_occurrences": 0
+    },
+    {
+      "entry": "__closesthit__shadow",
+      "source": "shaders/entry/ch_shadow.cu",
+      "ptx_sha256": "64c6bd87af9696fc81664e612e638fc87ceb2f0ae515481f24bf2064399cc433",
+      "function_ptx_sha256": "857748bcb260a35ddb0e148a6eee4b2ae105ea6d72ad9082adfa9f264ced0e9c",
+      "fp64_occurrences": 0
+    },
+    {
+      "entry": "__miss__radiance_noEnvMap_spectral",
+      "source": "shaders/entry/miss_radiance.cu",
+      "ptx_sha256": "5e37e0021d6f71a1e8e56a5bb03c2ac9c27def7c4cfcd0afd848e161b0cf63c4",
+      "function_ptx_sha256": "77f671106795691f702a42953ffe36cd5ec5e70c09fdf469f6b1681754f0a637",
+      "fp64_occurrences": 0
+    },
+    {
+      "entry": "__miss__shadow",
+      "source": "shaders/entry/miss_shadow.cu",
+      "ptx_sha256": "6b8239144067b0742011231015c9b91b1bf89544b8848c46ae0dafc82d67f708",
+      "function_ptx_sha256": "3d91c65beea2308d97e69b36d91afc682f994beef59bb169144e78d95a1d6aa2",
+      "fp64_occurrences": 0
+    },
+    {
+      "entry": "__direct_callable__lens_pinhole",
+      "source": "shaders/callable/lens.cu",
+      "ptx_sha256": "99bd1d8458f5956ea3e7eef77d212e298cd5a88228547b6ca8322ddc1fdaabfb",
+      "function_ptx_sha256": "84af25c7500dc1a30a98d2293c23d069a45ef2c67273bd8f4aa2394e7fb82cf2",
+      "fp64_occurrences": 0
+    },
+    {
+      "entry": "__direct_callable__lens_thinLens",
+      "source": "shaders/callable/lens.cu",
+      "ptx_sha256": "99bd1d8458f5956ea3e7eef77d212e298cd5a88228547b6ca8322ddc1fdaabfb",
+      "function_ptx_sha256": "0981b2080e1b49a6b97812338132b74f52e199c5d4f57318f861ad91856aabe4",
+      "fp64_occurrences": 0
+    }
+  ],
+  "other_mode_fp64_occurrences": 483,
+  "other_mode_entries": [
+    {
+      "entry": "_ZN49_INTERNAL_19acb2ec_18_ch_radiance_vdb_cu_37582af931samplePhaseFunctionNF_phiCachedERK11NSFPhiCacheRK6float3ff",
+      "source": "shaders/entry/ch_radiance_vdb.cu",
+      "ptx_sha256": "72d496b172f8d654e501e5b49ddad3dd2b810e7b67a01d965ccc0a583184e93b",
+      "function_ptx_sha256": "92013619313c61577ff3ad9714c7657301e4eafc2fb9e3380716d780be35e265",
+      "fp64_occurrences": 10
+    },
+    {
+      "entry": "_ZN49_INTERNAL_19acb2ec_18_ch_radiance_vdb_cu_37582af924deltaTrack_localMajorantI6PRDRGBN7nanovdb12ReadAccessorIfLi0ELi1ELi2EEENS2_4math16SampleFromVoxelsIS4_Li1ELb1EEEEEbRT_RK11VDBGeomDatafPKNS2_4GridINS2_4TreeINS2_8RootNodeINS2_12InternalNodeINSG_INS2_8LeafNodeIfNS5_5CoordENS2_4MaskELj3EEELj4EEELj5EEEEEEEEERKT0_RKT1_RK6float3S10_fffRf",
+      "source": "shaders/entry/ch_radiance_vdb.cu",
+      "ptx_sha256": "72d496b172f8d654e501e5b49ddad3dd2b810e7b67a01d965ccc0a583184e93b",
+      "function_ptx_sha256": "b1b334959d84c607555a0829213fea7c54ccf23c735fa817012ec478fc60f902",
+      "fp64_occurrences": 52
+    },
+    {
+      "entry": "_ZN49_INTERNAL_19acb2ec_18_ch_radiance_vdb_cu_37582af924ratioTrack_localMajorantI6PRDRGBN7nanovdb12ReadAccessorIfLi0ELi1ELi2EEENS2_4math16SampleFromVoxelsIS4_Li1ELb1EEEEEfRT_RK11VDBGeomDatafPKNS2_4GridINS2_4TreeINS2_8RootNodeINS2_12InternalNodeINSG_INS2_8LeafNodeIfNS5_5CoordENS2_4MaskELj3EEELj4EEELj5EEEEEEEEERKT0_RKT1_RK6float3S10_fff",
+      "source": "shaders/entry/ch_radiance_vdb.cu",
+      "ptx_sha256": "72d496b172f8d654e501e5b49ddad3dd2b810e7b67a01d965ccc0a583184e93b",
+      "function_ptx_sha256": "61080a5fbdde0bb9a5a36bf343eb513d65f9c8600524ef35ed8c0876218f7355",
+      "fp64_occurrences": 52
+    },
+    {
+      "entry": "_ZN49_INTERNAL_19acb2ec_18_ch_radiance_vdb_cu_37582af924deltaTrack_localMajorantI11PRDSpectralN7nanovdb12ReadAccessorIfLi0ELi1ELi2EEENS2_4math16SampleFromVoxelsIS4_Li1ELb1EEEEEbRT_RK11VDBGeomDatafPKNS2_4GridINS2_4TreeINS2_8RootNodeINS2_12InternalNodeINSG_INS2_8LeafNodeIfNS5_5CoordENS2_4MaskELj3EEELj4EEELj5EEEEEEEEERKT0_RKT1_RK6float3S10_fffRf",
+      "source": "shaders/entry/ch_radiance_vdb.cu",
+      "ptx_sha256": "72d496b172f8d654e501e5b49ddad3dd2b810e7b67a01d965ccc0a583184e93b",
+      "function_ptx_sha256": "ee0f642ead17961039cfa85024dc0fb594ffb28ab3194a05be01799f7f9a86a6",
+      "fp64_occurrences": 52
+    },
+    {
+      "entry": "_ZN49_INTERNAL_19acb2ec_18_ch_radiance_vdb_cu_37582af924ratioTrack_localMajorantI11PRDSpectralN7nanovdb12ReadAccessorIfLi0ELi1ELi2EEENS2_4math16SampleFromVoxelsIS4_Li1ELb1EEEEEfRT_RK11VDBGeomDatafPKNS2_4GridINS2_4TreeINS2_8RootNodeINS2_12InternalNodeINSG_INS2_8LeafNodeIfNS5_5CoordENS2_4MaskELj3EEELj4EEELj5EEEEEEEEERKT0_RKT1_RK6float3S10_fff",
+      "source": "shaders/entry/ch_radiance_vdb.cu",
+      "ptx_sha256": "72d496b172f8d654e501e5b49ddad3dd2b810e7b67a01d965ccc0a583184e93b",
+      "function_ptx_sha256": "d536fd683a6f90235239a13a83c77a8c49fa21f4b21ba1159e7f0cd20620e031",
+      "fp64_occurrences": 52
+    },
+    {
+      "entry": "__closesthit__vdb_radiance_rgb",
+      "source": "shaders/entry/ch_radiance_vdb.cu",
+      "ptx_sha256": "72d496b172f8d654e501e5b49ddad3dd2b810e7b67a01d965ccc0a583184e93b",
+      "function_ptx_sha256": "c6fe227b3ca831ca4454fd6323d9e2679787ff4a7b8c9d67383a5374d4320578",
+      "fp64_occurrences": 7
+    },
+    {
+      "entry": "__miss__radiance_rgb",
+      "source": "shaders/entry/miss_radiance.cu",
+      "ptx_sha256": "5e37e0021d6f71a1e8e56a5bb03c2ac9c27def7c4cfcd0afd848e161b0cf63c4",
+      "function_ptx_sha256": "f7329a75aad3961b75140757a4518735de9f45dccf3126015e48497f02b5325b",
+      "fp64_occurrences": 7
+    },
+    {
+      "entry": "__miss__radiance_spectral",
+      "source": "shaders/entry/miss_radiance.cu",
+      "ptx_sha256": "5e37e0021d6f71a1e8e56a5bb03c2ac9c27def7c4cfcd0afd848e161b0cf63c4",
+      "function_ptx_sha256": "5316a7b9f456489fb244da7ea69c347136fc1afa9c3822505c9052dc186a23dc",
+      "fp64_occurrences": 7
+    },
+    {
+      "entry": "__miss__radiance_sky_spectral",
+      "source": "shaders/entry/miss_radiance.cu",
+      "ptx_sha256": "5e37e0021d6f71a1e8e56a5bb03c2ac9c27def7c4cfcd0afd848e161b0cf63c4",
+      "function_ptx_sha256": "4f2f50d1361c694b346ec0eb4096e39bce1abc2cdff112885ef4604a4f41a1d3",
+      "fp64_occurrences": 13
+    },
+    {
+      "entry": "__direct_callable__brdf_principled_sample_rgb",
+      "source": "shaders/callable/disney_principled_brdf.cu",
+      "ptx_sha256": "3e853a1506e479e8fdfdbf85d08e80fc07d4cf971d0814fc51f412ad1117161d",
+      "function_ptx_sha256": "27b6cf90e3474b8fc2933584664bc4321af77a6d62581cdcce02730256f0758b",
+      "fp64_occurrences": 30
+    },
+    {
+      "entry": "__direct_callable__brdf_principled_eval_rgb",
+      "source": "shaders/callable/disney_principled_brdf.cu",
+      "ptx_sha256": "3e853a1506e479e8fdfdbf85d08e80fc07d4cf971d0814fc51f412ad1117161d",
+      "function_ptx_sha256": "f856afe86423919bde610c6c32e001def3c289566ff4d3a0b687d164b8b81258",
+      "fp64_occurrences": 12
+    },
+    {
+      "entry": "__direct_callable__brdf_principled_sample_spectral",
+      "source": "shaders/callable/disney_principled_brdf.cu",
+      "ptx_sha256": "3e853a1506e479e8fdfdbf85d08e80fc07d4cf971d0814fc51f412ad1117161d",
+      "function_ptx_sha256": "ed499d78358e992c3e24be270efc67606ca0129a45ef07e8beacb67e2e5b3dcd",
+      "fp64_occurrences": 30
+    },
+    {
+      "entry": "__direct_callable__brdf_principled_eval_spectral",
+      "source": "shaders/callable/disney_principled_brdf.cu",
+      "ptx_sha256": "3e853a1506e479e8fdfdbf85d08e80fc07d4cf971d0814fc51f412ad1117161d",
+      "function_ptx_sha256": "0b2e1f70506fd45f13d2c595320c06a010a26f4cd7261eeff70ef4ea74ae94fe",
+      "fp64_occurrences": 15
+    },
+    {
+      "entry": "__direct_callable__brdf_diffuse_sample_rgb",
+      "source": "shaders/callable/diffuse_brdf.cu",
+      "ptx_sha256": "ca599d985a499a8dc6592c3864304844fbcf7ee917456525bff91fe850c1a2c1",
+      "function_ptx_sha256": "22f69a2e5ac857fd18b7f0e8c84e51b9e104da65fabe1460cc76fef2c45a4837",
+      "fp64_occurrences": 13
+    },
+    {
+      "entry": "__direct_callable__brdf_diffuse_eval_rgb",
+      "source": "shaders/callable/diffuse_brdf.cu",
+      "ptx_sha256": "ca599d985a499a8dc6592c3864304844fbcf7ee917456525bff91fe850c1a2c1",
+      "function_ptx_sha256": "f335abf57388ac90656cae3b096e9055daa9911c1c5b62345b043a3b99667717",
+      "fp64_occurrences": 4
+    },
+    {
+      "entry": "__direct_callable__brdf_diffuse_sample_spectral",
+      "source": "shaders/callable/diffuse_brdf.cu",
+      "ptx_sha256": "ca599d985a499a8dc6592c3864304844fbcf7ee917456525bff91fe850c1a2c1",
+      "function_ptx_sha256": "8425e9082f53145320bb9c0b213bd9bae4494d044b6845a27d0ba4264d2a9fcf",
+      "fp64_occurrences": 13
+    },
+    {
+      "entry": "__direct_callable__brdf_diffuse_eval_spectral",
+      "source": "shaders/callable/diffuse_brdf.cu",
+      "ptx_sha256": "ca599d985a499a8dc6592c3864304844fbcf7ee917456525bff91fe850c1a2c1",
+      "function_ptx_sha256": "9f16ab30ef1307ffa7ac07293af448a6b5e41c23f61fad0770d8ed89bbaa0946",
+      "fp64_occurrences": 7
+    },
+    {
+      "entry": "__direct_callable__light_env_sphere_constant_rgb",
+      "source": "shaders/callable/light_sample.cu",
+      "ptx_sha256": "b330811d413d8ca8c0cd5375fb741b1450bb3f958498ed76e563953db364aef9",
+      "function_ptx_sha256": "904c10c404f74aba261a84aac0366b4dda3a5948943da5ba2118599ec36f582b",
+      "fp64_occurrences": 7
+    },
+    {
+      "entry": "__direct_callable__light_env_sphere_is_rgb",
+      "source": "shaders/callable/light_sample.cu",
+      "ptx_sha256": "b330811d413d8ca8c0cd5375fb741b1450bb3f958498ed76e563953db364aef9",
+      "function_ptx_sha256": "1aa31fdbe838e918dfb121935fc09b6f42927c0a6f9f7cf4ef904b7a7c1d0446",
+      "fp64_occurrences": 34
+    },
+    {
+      "entry": "__direct_callable__light_env_sphere_constant_spectral",
+      "source": "shaders/callable/light_sample.cu",
+      "ptx_sha256": "b330811d413d8ca8c0cd5375fb741b1450bb3f958498ed76e563953db364aef9",
+      "function_ptx_sha256": "8351bdf6d295f63c63eafdd7c095b590f53ae5e36f639415d53ab1b051832e42",
+      "fp64_occurrences": 7
+    },
+    {
+      "entry": "__direct_callable__light_env_sphere_is_spectral",
+      "source": "shaders/callable/light_sample.cu",
+      "ptx_sha256": "b330811d413d8ca8c0cd5375fb741b1450bb3f958498ed76e563953db364aef9",
+      "function_ptx_sha256": "c65862cd0e154c1cf3380e4637018a0a79707de3320e7554ab7687361a93b539",
+      "fp64_occurrences": 34
+    },
+    {
+      "entry": "__direct_callable__light_sky_spectral",
+      "source": "shaders/callable/light_sample.cu",
+      "ptx_sha256": "b330811d413d8ca8c0cd5375fb741b1450bb3f958498ed76e563953db364aef9",
+      "function_ptx_sha256": "144cdbc7eacfcde4e30a9cffcc25f1c1d7d4664161c87f71b01263a9114b8fd7",
+      "fp64_occurrences": 25
+    }
+  ],
+  "other_mode_note": "Legacy VDB/NF, LUT/environment miss, and legacy BRDF/light callables remain compiled for other modes. These are not invoked by an accepted M3 configuration. The whole repository is not advertised as free of FP64.",
+  "selection_source_sha256": {
+    "src/renderer.cpp": "95faabc37204788d1f7f08c81b2d267e4553d6a9344dbd55e3fe34692534ad3e",
+    "include/sceneDescIO.hpp": "a6bcbbb69308f8985dd55397825a65aff77cdd8d2723e58c18ee09e5e95af411",
+    "shaders/device/m1_surface.cuh": "99c9213eac9b5a7b9805a41876decc57db5f610ed208c682f010e82b431c92c4"
+  },
+  "compiler_version": "nvcc: NVIDIA (R) Cuda compiler driver\nCopyright (c) 2005-2025 NVIDIA Corporation\nBuilt on Wed_Aug_20_01:58:59_PM_PDT_2025\nCuda compilation tools, release 13.0, V13.0.88\nBuild cuda_13.0.r13.0/compiler.36424714_0\n",
+  "fast_math": false,
+  "hardware_sass_inspected": false,
+  "gpu_runtime_executed": false
+}

@@ -1,0 +1,27 @@
+{
+  "all_succeeded": true,
+  "physical_and_other_scene_fields_preserved": true,
+  "input_unmodified": true,
+  "existing_output_rejected": true,
+  "same_path_rejected": true,
+  "script_sha256": "8841d39f4d0e18208563996aca48b5e484a6d19d4eb2c35e9b7f8bdec5e62d8f",
+  "source_sha256": "b0fca8f69469c5c8a3768c1fb05cc97254403121e801c78a82e1dfb0968f9553",
+  "migration_report": {
+    "input": "/workspace/scratch/6fbbff5708b2/nf-renderer-m3/scene/m3_emerald_day.json",
+    "output": "/workspace/scratch/6fbbff5708b2/m3-migrate-nhoiel4q/converted.json",
+    "previous_solver": "numerical_reference",
+    "solver": "delta_ratio_fp32",
+    "removed_reference_controls": {
+      "tauAbsoluteTolerance": 1e-10,
+      "tauRelativeTolerance": 1e-08,
+      "inverseTauTolerance": 1e-09,
+      "distanceAbsoluteTolerance": 0.001,
+      "distanceRelativeTolerance": 1e-10,
+      "maxQuadratureDepth": 16,
+      "maxQuadratureEvaluations": 4096,
+      "maxInverseIterations": 64
+    },
+    "ratioRrThreshold": 0.01,
+    "maxTrackingEvents": 1048576
+  }
+}

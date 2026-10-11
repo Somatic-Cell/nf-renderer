@@ -1,11 +1,14 @@
 #pragma once
 
-// M1 is the existing NeuralPFRenderer surface pipeline in vacuum. It uses the
-// existing launch symbol, pointer payload, mesh/instance SBT and RGB framebuffer.
+#include "m1/bounded_trig.hpp"
+
+// M1/M2 surfaces and the optional M3 Rayleigh atmosphere share the existing
+// launch symbol, pointer payload, mesh/instance SBT and RGB framebuffer.
 #include "../config.cuh"
 #include "../params/per_ray_data.cuh"
 #include "shader_common.cuh"
 #include "m1_diagnostics.cuh"
+#include "m3_atmosphere.cuh"
 #include "../../include/m1/bsdf.hpp"
 #include "../../include/m1/light_pdf.hpp"
 #include "../../include/m1/rgb2spec_device.hpp"
@@ -89,29 +92,31 @@ static __forceinline__ __device__ float solar_irradiance(float wavelength) {
 static __forceinline__ __device__ Vec3 sun_direction() {
     const float z=optixLaunchParams.sunParams.sunZenithRad;
     const float a=optixLaunchParams.sunParams.sunAzimuthRad;
-    return m1::normalize(Vec3{sinf(z)*cosf(a),cosf(z),sinf(z)*sinf(a)});
+    const auto zenith=m1::bounded_sincos(z),azimuth=m1::bounded_sincos(a);
+    return m1::normalize(Vec3{zenith.sine*azimuth.cosine,zenith.cosine,zenith.sine*azimuth.sine});
 }
 static __forceinline__ __device__ float sun_pdf() {
-    const float s=sinf(0.5f*optixLaunchParams.m1.sunAngularRadiusRad);
+    const float s=m1::bounded_sin(0.5f*optixLaunchParams.m1.sunAngularRadiusRad);
     return 1.0f/(4.0f*m1::pi*s*s);
 }
 static __forceinline__ __device__ float sun_radiance(float wavelength) {
-    const float s=sinf(optixLaunchParams.m1.sunAngularRadiusRad);
+    const float s=m1::bounded_sin(optixLaunchParams.m1.sunAngularRadiusRad);
     // E = integral_disk L*cos(theta) dOmega = pi*L*sin^2(alpha).
     return optixLaunchParams.m1.sunScale*solar_irradiance(wavelength)/(m1::pi*s*s);
 }
 static __forceinline__ __device__ bool inside_sun(Vec3 direction) {
     const Vec3 d=direction-sun_direction();
-    const double half=sin(0.5*double(optixLaunchParams.m1.sunAngularRadiusRad));
+    const float half=m1::bounded_sin(0.5f*optixLaunchParams.m1.sunAngularRadiusRad);
     // Chord distance avoids subtracting two nearly equal cosines at 0.25 deg.
     // There is no PDF floor or angular support expansion by a tolerance.
-    return double(d.x)*d.x+double(d.y)*d.y+double(d.z)*d.z<=4.0*half*half;
+    return fmaf(d.x,d.x,fmaf(d.y,d.y,d.z*d.z))<=4.0f*half*half;
 }
 static __forceinline__ __device__ Vec3 sample_sun(float u,float v) {
-    const float s=sinf(0.5f*optixLaunchParams.m1.sunAngularRadiusRad);
+    const float s=m1::bounded_sin(0.5f*optixLaunchParams.m1.sunAngularRadiusRad);
     const float q=u*(2.0f*s*s),r=sqrtf(q*(2.0f-q)),phi=2.0f*m1::pi*v;
     const auto frame=m1::make_frame(sun_direction());
-    return m1::normalize(frame.to_world({r*cosf(phi),r*sinf(phi),1.0f-q}));
+    const auto azimuth=m1::bounded_sincos(phi);
+    return m1::normalize(frame.to_world({r*azimuth.cosine,r*azimuth.sine,1.0f-q}));
 }
 
 static __forceinline__ __device__ Vec3 offset(Vec3 p,Vec3 normal,Vec3 direction) {
@@ -130,6 +135,9 @@ static __forceinline__ __device__ bool visible(PRDSpectral& p,Vec3 origin,Vec3 d
         fail(p,FailureReason::ShadowRay,{{origin.x,origin.y,origin.z,
             direction.x,direction.y,direction.z,distance,m1::dot(direction,direction)}});return false;
     }
+    // A mesh-free M3 scene still contains the analytic planet and atmosphere.
+    // Never pass the null IAS handle to optixTrace.
+    if(!optixLaunchParams.traversable)return true;
     ShadowPRD shadow;shadow.random=p.random;shadow.visible=false;shadow.m1Invalid=false;shadow.m1Path=&p;
     unsigned u0,u1;packPointer(&shadow,u0,u1);
     optixTrace(optixLaunchParams.traversable,vector(origin),vector(direction),0.0f,distance,0.0f,
@@ -163,9 +171,8 @@ struct SurfaceBsdf {
 };
 
 static __forceinline__ __device__ float light_hit_weight(const PRDSpectral& p,float pdf_light) {
-    if(p.bounce==0||p.m1PreviousDelta||optixLaunchParams.m1.directMode==1)return 1.0f;
-    if(optixLaunchParams.m1.directMode==2)return 0.0f;
-    return m1::power_heuristic(p.pdf.bxdf,pdf_light);
+    return m3::sun_emission_weight(p.bounce,p.m1PreviousDelta,
+        optixLaunchParams.m1.directMode,p.pdf.bxdf,pdf_light);
 }
 static __forceinline__ __device__ void add_direct(PRDSpectral& p,const SurfaceBsdf& bsdf,
                                                  Vec3 wo,Vec3 wi,float radiance,float pdf_light) {
@@ -180,7 +187,7 @@ static __forceinline__ __device__ void add_direct(PRDSpectral& p,const SurfaceBs
     if(!m1::finite(radiance)||radiance<0||!m1::finite(pdf_light)||!(pdf_light>0)){
         fail(p,FailureReason::DirectInputs,{{radiance,pdf_light}});return;
     }
-    const float weight=optixLaunchParams.m1.directMode==0 ? m1::power_heuristic(pdf_light,v.pdf) : 1.0f;
+    const float weight=m3::nee_weight(optixLaunchParams.m1.directMode,pdf_light,v.pdf);
     p.contribution+=p.albedo*v.f*wi.z*radiance*weight/pdf_light;
     if(!m1::finite(p.contribution)||p.contribution<0)
         fail(p,FailureReason::DirectContribution,{{radiance,pdf_light,v.f,v.pdf,wi.z,weight}});
@@ -257,9 +264,9 @@ static __forceinline__ __device__ Vec3 shading_normal(const TriangleMeshGeomData
             const auto basis=m2::triangle_uv_tangent_frame(edge1,edge2,
                 {uv0.x,uv0.y},{uv1.x,uv1.y},{uv2.x,uv2.y},ns);
             if(!basis.valid) {
-                fail(p,FailureReason::TriangleTangentFrame,{{float(basis.uv_determinant),ns.x,ns.y,ns.z,
+                fail(p,FailureReason::TriangleTangentFrame,{{basis.uv_determinant,float(basis.uv_determinant_exponent),ns.x,ns.y,ns.z,
                     uv0.x,uv0.y,uv1.x,uv1.y,uv2.x,uv2.y,
-                    edge1.x,edge1.y,edge1.z,edge2.x,edge2.y,edge2.z}});return ng;
+                    m1::fp32::max_abs(edge1),m1::fp32::max_abs(edge2)}});return ng;
             }
             t=basis.tangent;b=basis.bitangent;
         } else {
@@ -287,8 +294,245 @@ static __forceinline__ __device__ Vec3 shading_normal(const TriangleMeshGeomData
     return ns;
 }
 
+// Surface polygons and the analytic planet use the same BSDF, NEE and RR path.
+static __forceinline__ __device__ void scatter_surface(PRDSpectral& p,Vec3 position,
+    Vec3 ng,Vec3 normal,Vec3 facing_ns,Vec3 ray_direction,const SurfaceBsdf& bsdf) {
+    const auto frame=m1::make_frame(facing_ns);
+    const Vec3 wo=m1::normalize(frame.to_local(-ray_direction));
+    p.position=vector(position);
+
+    if(bsdf.type!=MATERIAL_TYPE_GLASS&&optixLaunchParams.m1.directMode!=1) {
+        if(optixLaunchParams.m1.sunEnabled) {
+            p.m1FailureStage=FailureStage::SunNee;
+            const Vec3 direction=sample_sun(p.random(),p.random());
+            const Vec3 local=frame.to_local(direction);
+            const float le=sun_radiance(p.waveLength),pdf=sun_pdf();
+            if(!m1::finite(le)||le<0||!m1::finite(pdf)||!(pdf>0)){
+                fail(p,FailureReason::SunParameters,{{le,pdf,optixLaunchParams.m1.sunAngularRadiusRad,
+                     optixLaunchParams.m1.sunScale}});return;
+            }
+            const Vec3 shadow_origin=offset(position,ng,direction);
+            if(local.z>0&&m1::dot(normal,direction)>0&&le>0&&
+               visible(p,shadow_origin,direction,CUDART_INF_F)) {
+                const float transmittance=m3device::connection_transmittance(
+                    p,shadow_origin,direction,CUDART_INF_F);
+                if(!p.m1Invalid)add_direct(p,bsdf,wo,local,le*transmittance,pdf);
+            }
+            if(p.m1Invalid)return;
+        }
+        const int count=optixLaunchParams.light.numLights;
+        if(count>0) {
+            p.m1FailureStage=FailureStage::AreaNee;
+            const int selected=int(p.random()*count);
+            if(selected<0||selected>=count){
+                fail(p,FailureReason::LightSelection,{{float(selected),float(count)}});return;
+            }
+            const auto definition=optixLaunchParams.light.lightDefinition[selected];
+            if(definition.lightType!=LIGHT_TYPE_TRIANGLE){
+                fail(p,FailureReason::LightType,{{float(selected),float(definition.lightType),
+                     float(definition.lightIndexInType)}});return;
+            }
+            const auto& e=optixLaunchParams.light.triangleLightData[definition.lightIndexInType];
+            const float root=sqrtf(p.random()),b1=root*(1-p.random()),b2=root-b1,a0=1-root;
+            const Vec3 point=a0*vector(e.v0)+b1*vector(e.v1)+b2*vector(e.v2);
+            const Vec3 delta=point-position;
+            const float distance2=m1::dot(delta,delta);
+            if(distance2>0) {
+                const Vec3 direction=delta/sqrtf(distance2),en=vector(e.normal);
+                const float cos_light=m1::dot(en,-direction);
+                const Vec3 local=frame.to_local(direction);
+                if(cos_light>0&&local.z>0&&m1::dot(normal,direction)>0) {
+                    const float2 light_uv=a0*e.uv0+b1*e.uv1+b2*e.uv2;
+                    const float2 alpha_uv=a0*e.opacityUV0+b1*e.opacityUV1+b2*e.opacityUV2;
+                    float3 rgb=e.constantEmission;
+                    if(e.emissiveTexture.texture)
+                        rgb*=make_float3(tex2D<float4>(e.emissiveTexture.texture,light_uv.x,1-light_uv.y));
+                    const float le=emission(rgb,p.waveLength,p)*
+                        opacity(e.opacityTexture,alpha_uv,e.opacityFactor,e.alphaCutoff,p);
+                    const auto density=m1::one_sided_area_light_pdf(distance2,e.area,cos_light,count);
+                    const float pdf=density.pdf;
+                    if(!m1::finite(le)||le<0||!density.valid||!(pdf>0)){
+                        fail(p,FailureReason::AreaLightParameters,
+                            {{le,pdf,distance2,e.area,cos_light,float(count),float(selected)}});return;
+                    }
+                    const Vec3 origin=offset(position,ng,direction);
+                    const Vec3 target=offset(point,en,-direction);
+                    const Vec3 shadow_delta=target-origin;
+                    const float shadow_distance=m1::length(shadow_delta);
+                    if(le>0&&shadow_distance>0&&visible(p,origin,shadow_delta/shadow_distance,shadow_distance)) {
+                        const float transmittance=m3device::connection_transmittance(p,
+                            origin,shadow_delta/shadow_distance,shadow_distance,
+                            optixLaunchParams.rayleigh.areaNeeTransmittance!=0);
+                        if(!p.m1Invalid)add_direct(p,bsdf,wo,local,le*transmittance,pdf);
+                    }
+                }
+            }
+        }
+    }
+    if(p.m1Invalid)return;
+    p.m1FailureStage=FailureStage::Bsdf;
+    const auto sampled=bsdf.sample(wo,p.random(),p.random(),p.random(),p);
+    if(sampled.status==m1::BsdfSampleStatus::Invalid)return;
+    if(sampled.status==m1::BsdfSampleStatus::Null){p.continueTrace=0;return;}
+    const Vec3 direction=m1::normalize(frame.to_world(sampled.wi));
+    const float geometric_cosine=m1::dot(normal,direction);
+    // Same Ng support for BSDF sampling and NEE. Removed directions are null
+    // events, not a renormalized sampling distribution. In radiance transport,
+    // use the Ns cosine; the adjoint shading-normal correction is one.
+    if((sampled.transmission&&geometric_cosine>=0)||(!sampled.transmission&&geometric_cosine<=0)) {
+        p.continueTrace=0;return;
+    }
+    p.albedo*=sampled.weight;p.m1EtaScale*=sampled.eta_scale;
+    if(!m1::finite(p.albedo)||p.albedo<0||!m1::finite(p.m1EtaScale)||!(p.m1EtaScale>0)){
+        fail(p,FailureReason::Throughput,{{sampled.weight,sampled.eta_scale}});return;
+    }
+    if(p.albedo==0){p.continueTrace=0;return;}
+    // MIS PDFs are conditional on reaching this vertex and exclude RR in BOTH
+    // strategies. Surviving path throughput alone is divided by survival.
+    if(p.bounce+1>=int(optixLaunchParams.m1.rrDepth)) {
+        const float rr_beta=p.albedo*p.m1EtaScale;
+        if(!m1::finite(rr_beta)){fail(p,FailureReason::Roulette,{{rr_beta}});return;}
+        const float survival=fminf(0.95f,rr_beta);
+        if(!(survival>0)||p.random()>=survival){p.continueTrace=0;return;}
+        p.albedo/=survival;
+    }
+    p.pdf.bxdf=sampled.pdf;p.m1PreviousDelta=sampled.delta;p.m1PreviousPosition=vector(position);
+    p.m3PreviousMedium=false;
+    p.wi=vector(direction);p.position=vector(offset(position,ng,direction));p.continueTrace=1;
+    if(!m1::finite(p.albedo)||!finite3(p.position)||!finite3(p.wi))
+        fail(p,FailureReason::Continuation,{{p.position.x,p.position.y,p.position.z,p.wi.x,p.wi.y,p.wi.z}});
+}
+
+static __forceinline__ __device__ void scatter_medium(PRDSpectral& p,Vec3 position) {
+    // One vertex consumes one scattering bounce, exactly as a surface BSDF.
+    // Free-flight collision/no-collision probabilities already carry T and
+    // sigma_s. Pure Rayleigh has sigma_s/sigma_t=1, so beta is unchanged here.
+    p.position=vector(position);
+    if(!m1::finite(position)) {
+        fail(p,FailureReason::AtmosphereContinuation,{{position.x,position.y,position.z,
+             p.wi.x,p.wi.y,p.wi.z}});return;
+    }
+    if(p.bounce>=optixLaunchParams.frame.maxBounce){p.continueTrace=0;return;}
+    const Vec3 incoming=vector(p.wi);
+    const auto& settings=optixLaunchParams.m1;
+    if(settings.sunEnabled&&settings.directMode!=1) {
+        p.m1FailureStage=FailureStage::AtmosphereSunNee;
+        const Vec3 direction=sample_sun(p.random(),p.random());
+        const float le=sun_radiance(p.waveLength),pdf=sun_pdf();
+        const float phase=m3::rayleigh_phase_directions(incoming,direction);
+        if(!m1::finite(le)||le<0||!m1::finite(pdf)||!(pdf>0)||!m1::finite(phase)||!(phase>0)){
+            fail(p,FailureReason::AtmosphereDirect,{{le,pdf,phase}});return;
+        }
+        if(le>0&&visible(p,position,direction,CUDART_INF_F)) {
+            const float transmittance=m3device::connection_transmittance(p,position,direction,CUDART_INF_F);
+            if(p.m1Invalid)return;
+            const float weight=m3::nee_weight(settings.directMode,pdf,phase);
+            p.contribution+=p.albedo*phase*le*transmittance*weight/pdf;
+            if(!m1::finite(p.contribution)||p.contribution<0){
+                fail(p,FailureReason::AtmosphereDirect,{{le,pdf,phase,transmittance,weight}});return;
+            }
+        }
+    }
+    // There is deliberately no area-light NEE at a medium vertex. Area lights
+    // remain reachable by phase continuation; their emission then has weight 1.
+    if(p.m1Invalid)return;
+    p.m1FailureStage=FailureStage::Atmosphere;
+    const float u_mu=p.random(),u_phi=p.random();
+    const auto sampled=m3::sample_rayleigh(incoming,u_mu,u_phi);
+    if(!sampled.valid||!m1::bsdf_unit_direction(sampled.direction)||
+       !m1::finite(sampled.value)||sampled.value<0||!m1::finite(sampled.pdf)||!(sampled.pdf>0)){
+        fail(p,FailureReason::AtmospherePhase,{{sampled.direction.x,sampled.direction.y,sampled.direction.z,
+             sampled.value,sampled.pdf,u_mu,u_phi}});return;
+    }
+    p.albedo*=sampled.value/sampled.pdf;
+    if(!m1::finite(p.albedo)||p.albedo<0){
+        fail(p,FailureReason::Throughput,{{sampled.value/sampled.pdf,1}});return;
+    }
+    if(p.albedo==0){p.continueTrace=0;return;}
+    if(p.bounce+1>=int(settings.rrDepth)) {
+        const float rr_beta=p.albedo*p.m1EtaScale;
+        if(!m1::finite(rr_beta)){fail(p,FailureReason::Roulette,{{rr_beta}});return;}
+        const float survival=fminf(0.95f,rr_beta);
+        if(!(survival>0)||p.random()>=survival){p.continueTrace=0;return;}
+        p.albedo/=survival;
+    }
+    p.pdf.bxdf=sampled.pdf;p.m1PreviousDelta=false;p.m3PreviousMedium=true;
+    p.m1PreviousPosition=vector(position);p.position=vector(position);
+    p.wi=vector(sampled.direction);p.continueTrace=1;
+    if(!m1::finite(p.albedo)||!finite3(p.position)||!finite3(p.wi))
+        fail(p,FailureReason::AtmosphereContinuation,{{position.x,position.y,position.z,
+             sampled.direction.x,sampled.direction.y,sampled.direction.z,sampled.value,sampled.pdf}});
+}
+
+static __forceinline__ __device__ void scatter_planet(PRDSpectral& p,
+    const m3::tracking::RaySegment& ray,const m3::tracking::ShellClip& segment) {
+    p.m1FailureStage=FailureStage::Planet;p.m1FailureContext={};
+    const auto& a=optixLaunchParams.rayleigh;
+    const auto surface=m3::tracking::planet_hit(a,ray,segment);
+    const Vec3 position=surface.position;
+    const Vec3 ng=surface.normal;
+    if(surface.status!=m3::tracking::Status::Ok||!m1::finite(position)||!m1::bsdf_unit_direction(ng)){
+        const auto root_position=m3::tracking::value(m3::tracking::point_at(ray,segment.ground_parameter));
+        fail(p,FailureReason::PlanetIntersection,{{segment.ground_t,position.x,position.y,position.z,
+             ng.x,ng.y,ng.z,float(surface.status),surface.root_height_m,surface.root_height_bound_m,
+             segment.ground_parameter.hi,segment.ground_parameter.lo,surface.radial_correction_m,
+             root_position.x,root_position.y,root_position.z}});return;
+    }
+    p.position=vector(position);p.instanceID=m1::no_index;
+    if(p.bounce==0) {
+        p.m1PrimaryNormal=vector(ng);p.m1PrimaryAlbedo=make_float3(a.groundAlbedo);
+    }
+    if(p.bounce>=optixLaunchParams.frame.maxBounce){p.continueTrace=0;return;}
+    // Spectrally neutral, opaque Lambertian ground, explicitly parameterized.
+    // It uses the surface NEE policy and can exchange light with the atmosphere.
+    SurfaceBsdf bsdf;bsdf.type=MATERIAL_TYPE_DIFFUSE;
+    bsdf.simple={m1::MaterialKind::Diffuse,a.groundAlbedo,1,1};
+    const Vec3 incoming=m1::normalize(vector(p.wi));
+    scatter_surface(p,position,ng,ng,ng,incoming,bsdf);
+}
+
+// A single existing OptiX traversal first resolves alpha coverage and obtains
+// the nearest accepted triangle. We then sample the medium only up to that
+// endpoint (or the opaque planet if nearer). No stochastic alpha is re-tested.
+// Returning true means this segment was consumed by a scatter/planet/failure.
+static __forceinline__ __device__ bool advance_medium(PRDSpectral& p,float t_max) {
+    if(!optixLaunchParams.rayleigh.enabled)return false;
+    p.m1FailureStage=FailureStage::Atmosphere;p.m1FailureContext={};
+    const auto r=m3device::ray(vector(p.position),vector(p.wi),t_max);
+    float beta=0.0f;
+    if(!m3device::coefficient(p,beta))return true;
+    m3device::OpenRandom rng{p.random};
+    const auto sampled=m3::tracking::delta_free_flight(optixLaunchParams.rayleigh,r,beta,rng);
+    if(sampled.status!=m3::tracking::Status::Ok){
+        fail(p,FailureReason::AtmosphereTracking,{{float(sampled.status),sampled.ray_t,
+             sampled.clip.begin_t,sampled.clip.end_t,float(sampled.candidates),
+             float(sampled.null_collisions),beta,p.waveLength}});
+        return true;
+    }
+    if(sampled.scattered) {
+        const auto exact=m3::tracking::point_at(r,sampled.parameter);
+        const auto represented=m3::tracking::represent_medium_point(optixLaunchParams.rayleigh,exact);
+        if(represented.status!=m3::tracking::Status::Ok) {
+            fail(p,FailureReason::AtmospherePosition,{{float(represented.status),float(sampled.candidates),
+                 sampled.ray_t,m3::tracking::value(exact.x),m3::tracking::value(exact.y),m3::tracking::value(exact.z),
+                 represented.position.x,represented.position.y,represented.position.z}});
+            return true;
+        }
+        scatter_medium(p,represented.position);
+        return true;
+    }
+    if(sampled.endpoint==m3::tracking::Endpoint::Ground) {
+        scatter_planet(p,r,sampled.clip);
+        return true;
+    }
+    // The probability of reaching this endpoint is already exp(-tau).
+    // Adding another T here (or in miss/emitter evaluation) would give T^2.
+    return false;
+}
+
 static __forceinline__ __device__ void hit(PRDSpectral& p) {
     if(p.m1Invalid){p.continueTrace=0;return;}
+    if(advance_medium(p,optixGetRayTmax()))return;
     const auto& sbt=*reinterpret_cast<const HitgroupSBTData*>(optixGetSbtDataPointer());
     m1diagnostics::set_hit_context(p,FailureStage::Surface,sbt);
     if(sbt.geomType!=GeomType::Triangle||sbt.tri.meshIndex>=unsigned(optixLaunchParams.numMeshes)||
@@ -340,7 +584,8 @@ static __forceinline__ __device__ void hit(PRDSpectral& p) {
             const Vec3 connection=position-vector(p.m1PreviousPosition);
             const float distance2=m1::dot(connection,connection);
             float pdf_light=0;
-            if(m1::light_hit_needs_pdf(p.bounce,p.m1PreviousDelta,optixLaunchParams.m1.directMode)) {
+            if(m3::area_emission_needs_pdf(p.m3PreviousMedium,p.bounce,
+                    p.m1PreviousDelta,optixLaunchParams.m1.directMode)) {
                 const float cosine=m1::dot(ng,-m1::normalize(connection));
                 if(!m1::finite(cosine)||!m1::finite(distance2)||!(distance2>0)||
                    !m1::finite(e.area)||!(e.area>0)||!(optixLaunchParams.light.numLights>0)){
@@ -362,9 +607,11 @@ static __forceinline__ __device__ void hit(PRDSpectral& p) {
                          float(optixLaunchParams.light.numLights)}});return;
                 }
             }
-            p.contribution+=p.albedo*le*light_hit_weight(p,pdf_light);
+            const float emitter_weight=m3::area_emission_weight(p.m3PreviousMedium,p.bounce,
+                p.m1PreviousDelta,optixLaunchParams.m1.directMode,p.pdf.bxdf,pdf_light);
+            p.contribution+=p.albedo*le*emitter_weight;
             if(!m1::finite(p.contribution)||p.contribution<0)
-                fail(p,FailureReason::EmitterContribution,{{le,pdf_light,light_hit_weight(p,pdf_light)}});
+                fail(p,FailureReason::EmitterContribution,{{le,pdf_light,emitter_weight}});
         }
         if(p.m1Invalid)return;
         // ORCA windows/signs may both emit and scatter. Continue through their
@@ -403,104 +650,13 @@ static __forceinline__ __device__ void hit(PRDSpectral& p) {
     if(p.m1Invalid)return;
     const Vec3 normal=front?ng:-ng;
     const Vec3 facing_ns=m1::dot(ns,-ray_direction)>=0?ns:-ns;
-    const auto frame=m1::make_frame(facing_ns);
-    const Vec3 wo=m1::normalize(frame.to_local(-ray_direction));
-    p.position=vector(position);p.instanceID=instance;
-
-    if(material.materialType!=MATERIAL_TYPE_GLASS&&optixLaunchParams.m1.directMode!=1) {
-        if(optixLaunchParams.m1.sunEnabled) {
-            p.m1FailureStage=FailureStage::SunNee;
-            const Vec3 direction=sample_sun(p.random(),p.random());
-            const Vec3 local=frame.to_local(direction);
-            const float le=sun_radiance(p.waveLength),pdf=sun_pdf();
-            if(!m1::finite(le)||le<0||!m1::finite(pdf)||!(pdf>0)){
-                fail(p,FailureReason::SunParameters,{{le,pdf,optixLaunchParams.m1.sunAngularRadiusRad,
-                     optixLaunchParams.m1.sunScale}});return;
-            }
-            if(local.z>0&&m1::dot(normal,direction)>0&&le>0&&
-               visible(p,offset(position,ng,direction),direction,CUDART_INF_F))
-                add_direct(p,bsdf,wo,local,le,pdf);
-            if(p.m1Invalid)return;
-        }
-        const int count=optixLaunchParams.light.numLights;
-        if(count>0) {
-            p.m1FailureStage=FailureStage::AreaNee;
-            const int selected=int(p.random()*count);
-            if(selected<0||selected>=count){
-                fail(p,FailureReason::LightSelection,{{float(selected),float(count)}});return;
-            }
-            const auto definition=optixLaunchParams.light.lightDefinition[selected];
-            if(definition.lightType!=LIGHT_TYPE_TRIANGLE){
-                fail(p,FailureReason::LightType,{{float(selected),float(definition.lightType),
-                     float(definition.lightIndexInType)}});return;
-            }
-            const auto& e=optixLaunchParams.light.triangleLightData[definition.lightIndexInType];
-            const float root=sqrtf(p.random()),b1=root*(1-p.random()),b2=root-b1,a0=1-root;
-            const Vec3 point=a0*vector(e.v0)+b1*vector(e.v1)+b2*vector(e.v2);
-            const Vec3 delta=point-position;
-            const float distance2=m1::dot(delta,delta);
-            if(distance2>0) {
-                const Vec3 direction=delta/sqrtf(distance2),en=vector(e.normal);
-                const float cos_light=m1::dot(en,-direction);
-                const Vec3 local=frame.to_local(direction);
-                if(cos_light>0&&local.z>0&&m1::dot(normal,direction)>0) {
-                    const float2 light_uv=a0*e.uv0+b1*e.uv1+b2*e.uv2;
-                    const float2 alpha_uv=a0*e.opacityUV0+b1*e.opacityUV1+b2*e.opacityUV2;
-                    float3 rgb=e.constantEmission;
-                    if(e.emissiveTexture.texture)
-                        rgb*=make_float3(tex2D<float4>(e.emissiveTexture.texture,light_uv.x,1-light_uv.y));
-                    const float le=emission(rgb,p.waveLength,p)*
-                        opacity(e.opacityTexture,alpha_uv,e.opacityFactor,e.alphaCutoff,p);
-                    const auto density=m1::one_sided_area_light_pdf(distance2,e.area,cos_light,count);
-                    const float pdf=density.pdf;
-                    if(!m1::finite(le)||le<0||!density.valid||!(pdf>0)){
-                        fail(p,FailureReason::AreaLightParameters,
-                            {{le,pdf,distance2,e.area,cos_light,float(count),float(selected)}});return;
-                    }
-                    const Vec3 origin=offset(position,ng,direction);
-                    const Vec3 target=offset(point,en,-direction);
-                    const Vec3 shadow_delta=target-origin;
-                    const float shadow_distance=m1::length(shadow_delta);
-                    if(le>0&&shadow_distance>0&&visible(p,origin,shadow_delta/shadow_distance,shadow_distance))
-                        add_direct(p,bsdf,wo,local,le,pdf);
-                }
-            }
-        }
-    }
-    if(p.m1Invalid)return;
-    p.m1FailureStage=FailureStage::Bsdf;
-    const auto sampled=bsdf.sample(wo,p.random(),p.random(),p.random(),p);
-    if(sampled.status==m1::BsdfSampleStatus::Invalid)return;
-    if(sampled.status==m1::BsdfSampleStatus::Null){p.continueTrace=0;return;}
-    const Vec3 direction=m1::normalize(frame.to_world(sampled.wi));
-    const float geometric_cosine=m1::dot(normal,direction);
-    // Same Ng support for BSDF sampling and NEE. Removed directions are null
-    // events, not a renormalized sampling distribution. In radiance transport,
-    // use the Ns cosine; the adjoint shading-normal correction is one.
-    if((sampled.transmission&&geometric_cosine>=0)||(!sampled.transmission&&geometric_cosine<=0)) {
-        p.continueTrace=0;return;
-    }
-    p.albedo*=sampled.weight;p.m1EtaScale*=sampled.eta_scale;
-    if(!m1::finite(p.albedo)||p.albedo<0||!m1::finite(p.m1EtaScale)||!(p.m1EtaScale>0)){
-        fail(p,FailureReason::Throughput,{{sampled.weight,sampled.eta_scale}});return;
-    }
-    if(p.albedo==0){p.continueTrace=0;return;}
-    // MIS PDFs are conditional on reaching this vertex and exclude RR in BOTH
-    // strategies. Surviving path throughput alone is divided by survival.
-    if(p.bounce+1>=int(optixLaunchParams.m1.rrDepth)) {
-        const float rr_beta=p.albedo*p.m1EtaScale;
-        if(!m1::finite(rr_beta)){fail(p,FailureReason::Roulette,{{rr_beta}});return;}
-        const float survival=fminf(0.95f,rr_beta);
-        if(!(survival>0)||p.random()>=survival){p.continueTrace=0;return;}
-        p.albedo/=survival;
-    }
-    p.pdf.bxdf=sampled.pdf;p.m1PreviousDelta=sampled.delta;p.m1PreviousPosition=vector(position);
-    p.wi=vector(direction);p.position=vector(offset(position,ng,direction));p.continueTrace=1;
-    if(!m1::finite(p.albedo)||!finite3(p.position)||!finite3(p.wi))
-        fail(p,FailureReason::Continuation,{{p.position.x,p.position.y,p.position.z,p.wi.x,p.wi.y,p.wi.z}});
+    p.instanceID=instance;
+    scatter_surface(p,position,ng,normal,facing_ns,ray_direction,bsdf);
 }
 
 static __forceinline__ __device__ void miss(PRDSpectral& p) {
+    if(p.m1Invalid){p.continueTrace=0;return;}
+    if(advance_medium(p,CUDART_INF_F))return;
     p.m1FailureStage=FailureStage::Miss;
     p.m1FailureContext={};
     float le=0,pdf=0;
@@ -527,6 +683,7 @@ static __forceinline__ __device__ void render_frame() {
     for(int sample=0;sample<optixLaunchParams.frame.numPixelSamples;++sample) {
         p.contribution=0;p.albedo=1;p.continueTrace=1;p.bounce=0;
         p.pdf.bxdf=0;p.m1PreviousDelta=true;p.m1Invalid=false;p.m1EtaScale=1;
+        p.m3PreviousMedium=false;
         p.m1SampleIndex=unsigned(sample);p.m1FailureStage=FailureStage::Camera;p.m1FailureContext={};
         p.m1PrimaryNormal=make_float3(0);p.m1PrimaryAlbedo=make_float3(0);
         const float minimum=optixLaunchParams.spectral.wavelengthMin;
@@ -543,9 +700,12 @@ static __forceinline__ __device__ void render_frame() {
             fail(p,FailureReason::CameraRay,{{ray.org.x,ray.org.y,ray.org.z,
                  ray.dir.x,ray.dir.y,ray.dir.z,ray.weight}});
         while(p.continueTrace&&!p.m1Invalid) {
-            optixTrace(optixLaunchParams.traversable,p.position,p.wi,0.0f,CUDART_INF_F,0.0f,
-                       OptixVisibilityMask(MASK_SURFACE),OPTIX_RAY_FLAG_NONE,
-                       RADIANCE_RAY_TYPE,RAY_TYPE_COUNT,RADIANCE_RAY_TYPE,u0,u1);
+            if(optixLaunchParams.traversable)
+                optixTrace(optixLaunchParams.traversable,p.position,p.wi,0.0f,CUDART_INF_F,0.0f,
+                           OptixVisibilityMask(MASK_SURFACE),OPTIX_RAY_FLAG_NONE,
+                           RADIANCE_RAY_TYPE,RAY_TYPE_COUNT,RADIANCE_RAY_TYPE,u0,u1);
+            else
+                miss(p);
             if(p.continueTrace)++p.bounce;
         }
         // Exactly one wavelength-PDF division per camera sample. No HWSS,

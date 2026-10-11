@@ -1,0 +1,32 @@
+{
+  "timestamp_utc": "2026-10-11T06:04:49.615447+00:00",
+  "command": [
+    "/workspace/scratch/6fbbff5708b2/m1-toolchain/cmake/data/bin/ctest",
+    "--test-dir",
+    "/workspace/scratch/6fbbff5708b2/m3-planet-validation/cpu",
+    "-V",
+    "-R",
+    "^(m1_diagnostics_check|m3_transport_check|m3_tracking_geometry_check|m3_tracking_check)$",
+    "-j",
+    "4"
+  ],
+  "returncode": 0,
+  "duration_seconds": 7.7140701119997175,
+  "compiler": "c++ (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0\nCopyright (C) 2023 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n",
+  "configuration": "Release, GCC13, -mfma -ffp-contract=fast; default rounding, no fast-math",
+  "log": "validation/m3-planet/cpu_checks.log",
+  "log_sha256": "0013f35d5ed270d6c543765f0328c4fc088330ad16ddabca93ac686cfc4cb9d3",
+  "source_sha256": {
+    "include/m3/tracking_float.hpp": "827e4bacf5804985eccef062573099653e259cdf13cc0a95cd28f7a67bd7ab47",
+    "include/m3/tracking_geometry.hpp": "1759dbd5d9be08157bb5a19e047da661d061d6201c5902703338cbbe122928f8",
+    "include/m1/diagnostics.hpp": "793afbd61b6817d84247960067a0466d10e49c835993f5761ab886698776145e",
+    "shaders/device/m1_surface.cuh": "dc351d89d1ad10b0d20b9cebbb1ed477a5c642411d8eff9e0265fb35e3087a4c",
+    "tests/test_m3_tracking_geometry.cpp": "b128f951be4e7dd48fdf5610035f1a99d160b932229540628608caba24b763e1",
+    "tests/test_m3_tracking.cpp": "ddc7982f3aea8a7113e0e243e6042abaee5b66b7b967d5da7baf21466595bd39",
+    "tests/test_m3_transport.cpp": "2f9f569fc8b0549fa2e9a74c3ac98d951033d1e21db0f7bc569f56e7e3b19f73",
+    "tests/test_m1_diagnostics.cpp": "9f93beccf56ec78f916e66313428017462c1052324812c3c91fc5e68bbc42a06"
+  },
+  "gpu_runtime_executed": false,
+  "optix_jit_executed": false,
+  "original_gpu_failure_reproduced": false
+}

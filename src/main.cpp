@@ -62,7 +62,7 @@ extern "C" int main(int ac, char **av)
             std::cerr << "WARNING: failed to load model: " << obj.file << std::endl;
           }
       }
-      if(sceneDesc.integrator.m1Surface && models.empty())
+      if(sceneDesc.integrator.m1Surface && models.empty() && !sceneDesc.rayleigh.enabled)
         throw std::runtime_error("M1 scene has no loaded meshes");
 
       // 環境マップの指定

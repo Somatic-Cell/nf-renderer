@@ -27,14 +27,20 @@ M1_HD inline AreaLightPdfResult one_sided_area_light_pdf(
         return {};
     if (light_cosine <= 0.0f) return {0.0f, true};
 
-    // Evaluate the same area-to-solid-angle Jacobian with wider intermediate
-    // range. Valid float inputs can underflow/overflow in area*cosine*count
-    // even when their final quotient is representable as a positive float.
-    const double value = double(distance_squared) /
-        (double(area) * double(light_cosine) * double(light_count));
-    if (!(value > 0.0) || value > double(FLT_MAX))
-        return {};
-    const float pdf = static_cast<float>(value);
+    // Separate powers of two before forming the area-to-solid-angle Jacobian.
+    // All mantissas are in [1/2,1), so their product and quotient remain normal
+    // even when area*cosine*count itself is outside the float exponent range.
+    // The final ldexpf is the only operation allowed to underflow/overflow;
+    // either event is still rejected, never reclassified as zero support.
+    int distance_exponent = 0, area_exponent = 0, cosine_exponent = 0, count_exponent = 0;
+    const float distance_mantissa = frexpf(distance_squared, &distance_exponent);
+    const float area_mantissa = frexpf(area, &area_exponent);
+    const float cosine_mantissa = frexpf(light_cosine, &cosine_exponent);
+    const float count_mantissa = frexpf(static_cast<float>(light_count), &count_exponent);
+    const float mantissa = distance_mantissa /
+        ((area_mantissa * cosine_mantissa) * count_mantissa);
+    const int exponent = distance_exponent - area_exponent - cosine_exponent - count_exponent;
+    const float pdf = ldexpf(mantissa, exponent);
     if (!finite(pdf) || !(pdf > 0.0f)) return {};
     return {pdf, true};
 }

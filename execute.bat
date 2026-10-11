@@ -5,4 +5,4 @@
 @REM build\bin\Release\NeuralPFRenderer.exe "smoke1.json" 2>err.log
 @REM build\bin\Release\NeuralPFRenderer.exe "smoke2.json" 2>err.log
 @REM build\bin\Release\NeuralPFRenderer.exe "smoke2Only.json" 2>err.log
-build\bin\Release\NeuralPFRenderer.exe  m2_emerald_day.json
+build\bin\Release\NeuralPFRenderer.exe  m3_emerald_day.json

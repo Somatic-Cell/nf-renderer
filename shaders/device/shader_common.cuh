@@ -1,6 +1,7 @@
 #ifndef SHADER_COMMON_CUH_
 #define SHADER_COMMON_CUH_
 
+#include "m1/bounded_trig.hpp"
 #include <cuda_runtime.h>
 #include "../../utils/helper_math.h"
 #include "../../utils/my_math.hpp"
@@ -55,8 +56,8 @@ struct LightSample_Spectral
 inline __device__ __host__ void rotate(const float3 _u, const float r, float3& vx, float3& vy, float3& vz)
 {
     float3 u = normalize(_u);
-    float s = sin(r);
-    float c = cos(r);
+    float s = sinf(r);
+    float c = cosf(r);
     const float3 rx = make_float3(u.x * u.x + (1.f - u.x * u.x) * c,   u.x * u.y * (1.f - c) - u.z * s,    u.x * u.z * (1.f - c) + u.y * s);
     const float3 ry = make_float3(u.x * u.y * (1.f - c) + u.z * s,     u.y * u.y + (1.f - u.y * u.y) * c,  u.y * u.z * (1.f - c) - u.x * s);
     const float3 rz = make_float3(u.x * u.z * (1.f - c) * u.y * s,     u.y * u.z * (1.f - c) + u.x * s,    u.z * u.z + (1.f - u.z * u.z) * c);
@@ -76,10 +77,11 @@ inline __device__ __host__ void rotate(const float3 _u, const float r, float3& v
 
 inline __device__ __host__ float3 random_unit_hemisphere(float rnd1, float rnd2)
 {
-    float a = rnd1 * 2.f * (float)M_PI;
+    float a = rnd1 * 2.f * m1::pi;
     float z = rnd2;
     float r = fmaxf(0.0f, sqrtf(1.f - z * z));
-    return make_float3(r * cosf(a), z, r * sinf(a));
+    const auto angle = m1::bounded_sincos(a); // rnd1 is in [0,1).
+    return make_float3(r * angle.cosine, z, r * angle.sine);
 }
 
 inline __device__ __host__ float3 random_unit_sphere(float rnd1, float rnd2)
@@ -90,12 +92,13 @@ inline __device__ __host__ float3 random_unit_sphere(float rnd1, float rnd2)
 
     // 球上の一点をサンプリング（極座標表現）
     costheta = 2.f * rnd1 - 1.f; // 0 < theta < pi
-    phi = 2.f * (float)M_PI * rnd2;
+    phi = 2.f * m1::pi * rnd2;
 
     sintheta = sqrtf(1.f - costheta * costheta);
 
-    p.x = sintheta * cosf(phi);
-    p.y = sintheta * sinf(phi);
+    const auto angle = m1::bounded_sincos(phi); // rnd2 is in [0,1).
+    p.x = sintheta * angle.cosine;
+    p.y = sintheta * angle.sine;
     p.z = costheta;
 
     return p;
@@ -103,18 +106,20 @@ inline __device__ __host__ float3 random_unit_sphere(float rnd1, float rnd2)
 
 inline __device__ __host__ float2 random_unit_disk(float rnd1, float rnd2)
 {
-    float theta = 2.0f * float(M_PI) * rnd1;
+    float theta = 2.0f * m1::pi * rnd1;
     float r = sqrtf(rnd2);
-    float2 p = r * make_float2(cosf(theta), sinf(theta));
+    const auto angle = m1::bounded_sincos(theta);
+    float2 p = r * make_float2(angle.cosine, angle.sine);
     return p;
 }
 
 inline __device__ __host__ float3 randomCosineHemisphere(float rnd1, float rnd2)
 {
     const float r = sqrtf(rnd1);
-    const float phi = rnd2 * 2.f * M_PI;
-    const float x = r * cosf(phi);
-    const float z = r * sinf(phi);
+    const float phi = rnd2 * 2.f * m1::pi;
+    const auto angle = m1::bounded_sincos(phi); // rnd2 is in [0,1).
+    const float x = r * angle.cosine;
+    const float z = r * angle.sine;
     const float y = fmaxf(0.0f, sqrtf(1.f - x * x - z * z));
     return make_float3(x, y, z);
 }
@@ -132,16 +137,19 @@ inline __device__ __host__ float3 worldToLocal(const float3 v, const float3 loca
 inline __device__ __host__ void orthogonalToUVCoord(const float3 dir, float* u, float* v) {
     // const float3 dir = normalize(_dir);
     float phi = atan2f(dir.z, dir.x);
-    if(phi < 0.0f) phi += 2.0f * (float)M_PI;
+    if(phi < 0.0f) phi += 2.0f * m1::pi;
     float theta = acosf(fminf(fmaxf(dir.y, -1.0f), 1.0f));
-    *u = phi / (2.f * (float)M_PI);
-    *v = theta / (float)M_PI;
+    *u = phi / (2.f * m1::pi);
+    *v = theta / m1::pi;
 }
 
 
 inline __device__ __host__ float3 sphericalToOrthogonalCoord(const float theta, const float phi) {
-    float sinT = sinf(theta);
-    return make_float3(cosf(phi) * sinT, cosf(theta), sinf(phi) * sinT);
+    // Environment-patch coordinates: theta in [0,pi], phi in [0,2*pi].
+    const auto polar = m1::bounded_sincos(theta);
+    const auto azimuth = m1::bounded_sincos(phi);
+    return make_float3(azimuth.cosine * polar.sine, polar.cosine,
+                      azimuth.sine * polar.sine);
 }
 
 
@@ -175,9 +183,10 @@ inline __device__ float3 visibleNormalSampling( const float alpha,
     float3 T2 = cross(T1, Vh);
 
     float r = sqrtf(fmaxf(rnd1, 0.f));
-    float phi = 2.f * M_PI * rnd2;
-    float t1 = r * cosf(phi);
-    float t2 = r * sinf(phi);
+    float phi = 2.f * m1::pi * rnd2;
+    const auto angle = m1::bounded_sincos(phi); // rnd2 is in [0,1).
+    float t1 = r * angle.cosine;
+    float t2 = r * angle.sine;
     float s = 0.5f * (1.f + Vh.y);
     t2 = (1.f - s) * sqrtf(fmaxf(1.f - t1 * t1, 0.f)) + s * t2;
 
@@ -188,22 +197,22 @@ inline __device__ float3 visibleNormalSampling( const float alpha,
 
 inline __device__ float3 evalLambertBRDF_RGB(const float3 baseColor, const float3 wo, const float3 wi)
 {
-    return baseColor / M_PI;
+    return baseColor / m1::pi;
 }
 
 inline __device__ float evalLambertBRDF_Spectral(const float baseColor, const float3 wo, const float3 wi)
 {
-    return baseColor / M_PI;
+    return baseColor / m1::pi;
 }
 
 inline __device__ float getLambertPdf(const float3 wo, const float3 wi){
-    return wi.y / M_PI ;
+    return wi.y / m1::pi;
 }
 
 inline __device__ float ggx_D(const float alpha, const float3 wm)
 {
     const float t = wm.y * wm.y + (wm.x * wm.x + wm.z * wm.z) / (alpha * alpha);
-    return 1.f / (M_PI * alpha * alpha * t * t);
+    return 1.f / (m1::pi * alpha * alpha * t * t);
 }
 
 inline __device__ float lambda(const float alpha, const float3 w)
@@ -310,10 +319,10 @@ static __forceinline__ __device__ void thetaPhiFromPatch(
     float v0 = float(row)       / float(hp);
     float v1 = float(row + 1)   / float(hp);
     
-    *phi0 = 2.0f * (float)M_PI * u0;
-    *phi1 = 2.0f * (float)M_PI * u1;
-    *theta0 = (float)M_PI * v0;
-    *theta1 = (float)M_PI * v1;
+    *phi0 = 2.0f * m1::pi * u0;
+    *phi1 = 2.0f * m1::pi * u1;
+    *theta0 = m1::pi * v0;
+    *theta1 = m1::pi * v1;
 }
 
 static __forceinline__ __device__ float2 envUVFromSpherical(
@@ -321,8 +330,8 @@ static __forceinline__ __device__ float2 envUVFromSpherical(
     const float phi
 )
 {
-    float u = phi / (2.0f *  M_PI);
-    float v = theta / M_PI;
+    float u = phi / (2.0f * m1::pi);
+    float v = theta / m1::pi;
     u = u - floorf(u);
     v = fminf(fmaxf(v, 0.0f), 1.0f);
     return make_float2(u, v);

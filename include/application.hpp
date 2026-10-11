@@ -6,6 +6,7 @@
 #include "glfw_window.hpp"
 #include "ptx_data_reader.hpp"
 #include "sceneDescIO.hpp"
+#include <cmath>
 #include <gl/GL.h>
 
 #define FPNG_IMPLEMENTATION
@@ -51,7 +52,9 @@ public:
         scene.camera.fov,
         scene.camera.sensitivity,
         scene.camera.pintDist,
-        models.empty() ? 1.0f : length(models[0]->bounds.getSpan())
+        models.empty() ? 1.0f : length(models[0]->bounds.getSpan()),
+        scene.outputs.resolution[0],
+        scene.outputs.resolution[1]
     ), m_renderer(models, scene)
     {
         Camera camera;
@@ -79,6 +82,10 @@ public:
         m_scene = scene;
         if (m_scene.integrator.m1Surface)
             m_scene.integrator.applySpectralRendering = true;
+
+        // Window coordinates can differ from framebuffer pixels on a scaled
+        // display. Allocate the interop texture using the actual pixel size.
+        glfwGetFramebufferSize(m_handle, &m_fbSize.x, &m_fbSize.y);
 
 
         // 結果を描画するテクスチャの作成
@@ -243,17 +250,43 @@ public:
         }
 
         {
-            ImGui::Begin("Sky params");
-            ImGui::Text("Sun direction:");
-            float zenithRad = m_renderer.getZenith() / M_PI * 180.0f;  
-            float azimuthRad = m_renderer.getAzimuth() / M_PI * 180.0f;  
-            if(ImGui::SliderFloat("Zenith angle", &zenithRad, 0.0f, 100.0f)){
-                m_renderer.setZenith(zenithRad / 180.0f * M_PI);
-                m_cameraFrame.setIsTransformDirty(true);
+            const bool spectralSurface = m_scene.integrator.m1Surface;
+            if (spectralSurface) {
+                // Keep the title visible above the other default-position
+                // panels even in a small M3 preview. Later moves are retained.
+                ImGui::SetNextWindowPos(ImVec2(8.0f, 8.0f), ImGuiCond_FirstUseEver);
+                ImGui::SetNextWindowSize(ImVec2(370.0f, 0.0f), ImGuiCond_FirstUseEver);
             }
-            if(ImGui::SliderFloat("Azimuth angle", &azimuthRad, 0.f, 360.0f)){
-                m_renderer.setAzimuth(azimuthRad / 180.0f * M_PI);
-                m_cameraFrame.setIsTransformDirty(true);
+            if (ImGui::Begin(spectralSurface ? "Sun" : "Sky params")) {
+                constexpr float radiansPerDegree = 0.01745329251994329577f;
+                constexpr float degreesPerRadian = 57.295779513082320876f;
+                float zenithDeg = m_renderer.getZenith() * degreesPerRadian;
+                float azimuthDeg = std::fmod(m_renderer.getAzimuth() * degreesPerRadian, 360.0f);
+                if (azimuthDeg < 0.0f) azimuthDeg += 360.0f;
+
+                const bool sunDisabled = spectralSurface && !m_scene.integrator.m1SunEnabled;
+                if (sunDisabled)
+                    ImGui::TextUnformatted("Sun is disabled in the scene JSON.");
+                ImGui::BeginDisabled(sunDisabled);
+                if (ImGui::SliderFloat("Zenith (deg)", &zenithDeg, 0.0f,
+                                       spectralSurface ? 180.0f : 100.0f,
+                                       "%.2f", ImGuiSliderFlags_AlwaysClamp) && std::isfinite(zenithDeg)) {
+                    // M1/M3 setters reset accumulation directly. The legacy
+                    // renderer retains its existing camera-dirty reset path.
+                    m_renderer.setZenith(zenithDeg * radiansPerDegree);
+                    if (!spectralSurface) m_cameraFrame.setIsTransformDirty(true);
+                }
+                if (ImGui::SliderFloat("Azimuth (deg)", &azimuthDeg, 0.0f, 360.0f,
+                                       "%.2f", ImGuiSliderFlags_AlwaysClamp) && std::isfinite(azimuthDeg)) {
+                    m_renderer.setAzimuth(azimuthDeg * radiansPerDegree);
+                    if (!spectralSurface) m_cameraFrame.setIsTransformDirty(true);
+                }
+                ImGui::EndDisabled();
+                if (spectralSurface) {
+                    ImGui::TextUnformatted("Zenith: 0 = +Y; 90 = XZ plane");
+                    ImGui::TextUnformatted("Azimuth: 0 = +X; 90 = +Z");
+                    ImGui::TextUnformatted("Changes restart accumulation.");
+                }
             }
             ImGui::End();
         }
@@ -269,7 +302,18 @@ public:
                 ImGui::Text("Reflectance: RGB2Spec / linear sRGB");
                 ImGui::Text("Sun: TSIS-1 HSRS v2; RGB emitters: CIE D65");
                 ImGui::Text("Direct lighting: %s", m_scene.integrator.m1DirectMode.c_str());
-                ImGui::Text("Vacuum (surface rendering)");
+                if (progress.rayleigh.enabled) {
+                    ImGui::Text("M3: spherical Rayleigh, multiple scattering");
+                    ImGui::Text("FP32 delta / ratio tracking (no LUT)");
+                    ImGui::Text("Ground Y: %.3f m, scale height: %.0f m", progress.rayleigh.groundY, progress.rayleigh.scaleHeight);
+                    ImGui::Text("beta550: %.6g /m; ground albedo: %.3f", progress.rayleigh.beta550, progress.rayleigh.groundAlbedo);
+                    ImGui::Text("Ratio RR threshold: %.3g", progress.rayleigh.ratioRrThreshold);
+                    ImGui::Text("Tracking event budget: %u", static_cast<unsigned>(progress.rayleigh.maxTrackingEvents));
+                    ImGui::Text("Surface-area shadow attenuation: %s", progress.rayleigh.areaNeeTransmittance ? "included" : "omitted (approximation)");
+                    ImGui::Text("Atmosphere settings are fixed by the scene JSON");
+                } else {
+                    ImGui::Text("Vacuum (surface rendering)");
+                }
             } else {
             ImGui::Text("XYZ CMF: %s\n", m_scene.spectrum.xyzFuncFile.c_str());
             ImGui::Text("Basis function for reflectance: %s\n",  m_scene.spectrum.upSampleBasisFile.c_str());
@@ -306,6 +350,20 @@ public:
         if (newSize.x == 0 || newSize.y == 0) return;
         // Validate dimensions before the host allocation and signed product.
         m_renderer.resize(newSize);
+        if (m_fbTexture && (m_fbSize.x != newSize.x || m_fbSize.y != newSize.y)) {
+            // Keep the registered CUDA surface the same size as the film when
+            // the small M3 preview window is resized or its DPI changes.
+            CUDA_CHECK(cudaStreamSynchronize(m_renderer.getStream()));
+            if (m_cudaTexResource) {
+                CUDA_CHECK(cudaGraphicsUnregisterResource(m_cudaTexResource));
+                m_cudaTexResource = nullptr;
+            }
+            glBindTexture(GL_TEXTURE_2D, m_fbTexture);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, newSize.x, newSize.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+            glBindTexture(GL_TEXTURE_2D, 0);
+            CUDA_CHECK(cudaGraphicsGLRegisterImage(&m_cudaTexResource, m_fbTexture, GL_TEXTURE_2D,
+                                                  cudaGraphicsRegisterFlagsSurfaceLoadStore));
+        }
         m_fbSize = newSize;
         m_pixels.resize(static_cast<size_t>(newSize.x) * static_cast<size_t>(newSize.y));
         

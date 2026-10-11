@@ -1,0 +1,3949 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index f94bb1c..5bb0ffe 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -226,11 +226,21 @@ set(
+     ${PROJECT_SOURCE_DIR}/shaders/device/atmosphere_sampling_device.cuh
+     ${PROJECT_SOURCE_DIR}/shaders/config.cuh
+     ${PROJECT_SOURCE_DIR}/shaders/device/m1_surface.cuh
++    ${PROJECT_SOURCE_DIR}/shaders/device/m1_diagnostics.cuh
++    ${PROJECT_SOURCE_DIR}/shaders/device/m3_atmosphere.cuh
+     ${PROJECT_SOURCE_DIR}/include/m1/render_params.h
++    ${PROJECT_SOURCE_DIR}/include/m1/diagnostics.hpp
++    ${PROJECT_SOURCE_DIR}/include/m1/light_pdf.hpp
+     ${PROJECT_SOURCE_DIR}/include/m1/spectral_types.hpp
+     ${PROJECT_SOURCE_DIR}/include/m1/rgb2spec_device.hpp
+     ${PROJECT_SOURCE_DIR}/include/m1/bsdf.hpp
+     ${PROJECT_SOURCE_DIR}/include/m1/math.hpp
++    ${PROJECT_SOURCE_DIR}/include/m2/alpha.hpp
++    ${PROJECT_SOURCE_DIR}/include/m2/tangent_frame.hpp
++    ${PROJECT_SOURCE_DIR}/include/m3/parameters.hpp
++    ${PROJECT_SOURCE_DIR}/include/m3/atmosphere.hpp
++    ${PROJECT_SOURCE_DIR}/include/m3/transport.hpp
++    ${PROJECT_SOURCE_DIR}/include/m3/position.hpp
+ )
+ 
+ # .cu ファイルを .ptx ファイルにコンパイル (実装は nvcuda_compile_module.cmake モジュール内)
+diff --git a/M3_README.md b/M3_README.md
+new file mode 100644
+index 0000000..7343eb4
+--- /dev/null
++++ b/M3_README.md
+@@ -0,0 +1,28 @@
++# nf-renderer M3: Rayleigh 大気
++
++対象 commit: `6e4794fb50fe3d9eafaacd78e5fe0b6e2098a103`
++
++ZIP 内のファイルをリポジトリの同じ相対パスへ配置し、既存の build を再構成・ビルドしてください。
++現在の OptiX レンダラを使用します。`cuda_driver_wrapper` は不要です。
++
++```powershell
++cmake -S . -B build -DCMAKE_POLICY_VERSION_MINIMUM=3.5
++cmake --build build --config Release
++.\build\bin\Release\NeuralPFRenderer.exe m3_rayleigh_sky.json
++```
++
++空だけのシーンで確認した後、`m3_emerald_day.json`、`m3_emerald_overview.json`、
++`m3_emerald_sunset.json` を指定してください。`m3_emerald_vacuum.json` は球面地表を維持し、
++大気の散乱係数だけを 0 にした対照です。
++
++主な追加は、球状指数 Rayleigh 大気、多重散乱、太陽 NEE、地球遮蔽と Lambert 地表です。
++1 パス 1 波長を維持します。光学的厚さと自由飛行は数値参照の積分・逆 CDF です。
++大気 LUT、tracking、ニューラル重みの読み込みは使いません。
++
++面光源 NEE は既定で大気の透過率を含みます。`rayleigh.areaNeeTransmittance=false` で
++省略できますが、MIS 設定に依存する近似になるため、基準の検査には true を使ってください。
++媒質の散乱点で行う NEE は太陽のみです。
++
++適用、モデルと数値誤差、全パラメータ、診断、CPU 検査は [docs/M3_RAYLEIGH_JA.md](docs/M3_RAYLEIGH_JA.md)。
++変更一覧は `M3_MANIFEST.json`、差分は `m3-rayleigh.patch`、実施した検証の記録は `validation/m3/` です。
++Windows 全体のビルド・GPU 描画・FPS はこの環境では未検証です。
+diff --git a/docs/M3_RAYLEIGH_JA.md b/docs/M3_RAYLEIGH_JA.md
+new file mode 100644
+index 0000000..3a8aeaa
+--- /dev/null
++++ b/docs/M3_RAYLEIGH_JA.md
+@@ -0,0 +1,309 @@
++# M3: 球状 Rayleigh 大気のスペクトラル・パストレーシング
++
++対象リポジトリ: https://github.com/Somatic-Cell/nf-renderer
++
++適用基準 commit: `6e4794fb50fe3d9eafaacd78e5fe0b6e2098a103` (`Fix: error handle`)
++
++## 1. 今回の範囲
++
++既存の OptiX レンダラに、球状の指数減衰 Rayleigh 大気を追加します。既存の
++ウィンドウ、CUDA バッファ、SBT、材質、RGB2Spec、スペクトル資産、出力を使います。
++1 パスにつき 1 波長を保持し、波長 PDF の補償は film への変換時に一度だけ行います。
++
++| 項目 | M3 の実装 |
++|---|---|
++| 街のポリゴン | M2 のスペクトラル BSDF、RGB テクスチャ、alpha、法線マップ |
++| 大気 | 球殻内の指数密度、純散乱の scalar Rayleigh |
++| 散乱回数 | パスを継続して多重散乱を追跡。表面と媒質で共通の bounce 上限と RR |
++| ポリゴンからの NEE | 有限円盤の太陽、および面光源 |
++| 媒質頂点からの NEE | 太陽のみ |
++| 地球 | 解析的な球交差、太陽の遮蔽、波長に依存しない Lambert 反射 |
++| 光学的厚さ | 誤差推定付きの数値積分をその場で実行 |
++| 自由飛行 | 光学的厚さの逆 CDF を数値的に解く |
++
++大気の LUT、ratio tracking、delta tracking、`cuda_driver_wrapper` は追加していません。
++既存の旧大気/VDB/ニューラル分岐を有効にする設定ではありません。
++rainbow/NF の重み、Mie 散乱、雨粒、虹はこの段階の対象に含みません。
++
++この M3 は、後の高速化とニューラル位相関数の比較に使う**数値参照の実装**です。
++Windows アプリ全体のビルド、OptiX の実行、画質と FPS はユーザー環境での確認が必要です。
++こちらで実施した検証の詳細は `validation/m3/` に記録しています。
++
++## 2. 適用と起動
++
++ZIP 内のファイルを、リポジトリの同じ相対パスへ配置してください。
++`M3_MANIFEST.json` に変更・追加ファイルと SHA-256、`m3-rayleigh.patch` に変更差分があります。
++前回までの検査に必要な小さな M1/M2 シーンと M1 のテスト用形状も同梱しています。
++Emerald 本体や既存 SDK、学習済み重みは含みません。
++
++差分だけを確認する場合は `git apply --check m3-rayleigh.patch` を使えます。
++ZIP を上書き配置した後に同じ差分を適用する必要はありません。
++差分は M3 の変更と追加を含み、以前の配布物から再同梱した M1/M2 の検査用資産は ZIP 側にあります。
++シーンやモデルは既存の Git ignore 対象なので、今回のプリセットをリポジトリへ登録する際は
++`git add -f scene/m3_*.json` が必要です。検査用資産も追跡する場合は同様に対象を明示してください。
++
++実行ファイルとシェーダーは同じソースから再ビルドしてください。共有 launch parameter と
++PRD が変更されているため、古い `.optixir` と新しい実行ファイルを混在させないでください。
++CMake のシェーダー依存関係に M2 修正と M3 の共有ヘッダーを追加しています。
++
++リポジトリ直下の PowerShell で、これまで使っていた build ディレクトリを指定します。
++
++```powershell
++cmake -S . -B build -DCMAKE_POLICY_VERSION_MINIMUM=3.5
++cmake --build build --config Release
++.\build\bin\Release\NeuralPFRenderer.exe m3_rayleigh_sky.json
++```
++
++最初の `m3_rayleigh_sky.json` は外部メッシュが不要です。M1 で用意した
++`spectrum/m1` のスペクトル資産は引き続き必要です。球面地表と空だけを表示します。
++空の初期設定は 512 × 288、1 sample/launch、蓄積ありです。
++
++| シーンファイル | 用途 |
++|---|---|
++| `m3_rayleigh_sky.json` | 空と球面地表だけの確認。512 × 288 |
++| `m3_emerald_day.json` | M2 の地上カメラに Rayleigh 大気を追加。640 × 360 |
++| `m3_emerald_overview.json` | 上空から街を確認。640 × 360 |
++| `m3_emerald_sunset.json` | 太陽天頂角 88 度の低い太陽。640 × 360 |
++| `m3_emerald_vacuum.json` | day と同じ地表・カメラで `beta550=0`。大気だけをなくす対照 |
++
++Emerald の既存配置はそのままです。
++
++```text
++model/mesh/EmeraldSquare_v4_1/EmeraldSquare_Day.fbx
++```
++
++FBX が参照する DDS も従来と同じ場所に置きます。
++
++```powershell
++.\build\bin\Release\NeuralPFRenderer.exe m3_emerald_day.json
++.\build\bin\Release\NeuralPFRenderer.exe m3_emerald_overview.json
++.\build\bin\Release\NeuralPFRenderer.exe m3_emerald_sunset.json
++```
++
++それぞれ別の起動例です。比較時は一つを終了してから次を起動します。
++出力解像度の指定は `outputs.resolution` です。未指定の既存シーンは
++1280 × 720 を維持します。OS の表示倍率がある場合は、実際の framebuffer ピクセル数を
++使って GPU バッファを確保し、そのサイズを保存メタデータに記録します。
++
++## 3. 物理モデルと座標
++
++シーン座標はメートル、上方向は +Y です。地球中心は
++
++\[
++C=(0,\;\mathrm{groundY}-R,\;0)
++\]
++
++とします。`groundY` は X=Z=0 における球面地表の Y 座標です。
++Emerald の M2 監査で得た最低 Y は約 -4.928 m なので、プリセットでは -6 m に設定しています。
++形状の位置やスケールを大気用に変更していません。
++
++高さと散乱係数は
++
++\[
++h(x)=\lVert x-C\rVert-R,
++\qquad
++\sigma_s(x,\lambda)=\beta_{550}
++\left(\frac{550}{\lambda}\right)^4
++\exp\left(-\frac{h(x)}{H}\right)
++\]
++
++です。波長は nm、散乱係数は 1/m です。0 ≤ h ≤ `atmosphereHeight` でこの密度を使い、
++外側は真空、地表の内側は不透明な地球とします。吸収を含まないので σt=σs です。
++
++| JSON の `rayleigh` 内の項目 | 既定値 | 意味 |
++|---|---:|---|
++| `enabled` | false | M3 の球面地表・大気を有効にする |
++| `planetRadius` | 6371000 | 地球半径 R [m] |
++| `atmosphereHeight` | 100000 | 密度を打ち切る地表からの高さ [m] |
++| `scaleHeight` | 8000 | 密度のスケールハイト H [m] |
++| `groundY` | -6 | 地表の基準 Y [m] |
++| `beta550` | 0.000013 | 地表・550 nm の散乱係数 [1/m] |
++| `groundAlbedo` | 0.1 | 球面地表の波長に依存しない反射率 |
++| `areaNeeTransmittance` | true | 面光源 NEE の接続にも大気の減衰を含める |
++
++これらは明示的な初期モデルの値です。屈折、偏光、オゾン吸収、エアロゾル、雨粒は含みません。
++地表の反射率も、都市の外側を含む地球全体について一つの中性値を使います。
++
++Rayleigh の位相関数は、立体角あたりの密度として
++
++\[
++p_R(\mu)=\frac{3}{16\pi}(1+\mu^2)
++\]
++
++を使います。余弦 μ の周辺 CDF とその逆は
++
++\[
++F(\mu)=\frac12+\frac{3\mu+\mu^3}{8},
++\qquad
++\mu=2\sinh\left(\frac{\operatorname{asinh}(4u-2)}{3}\right)
++\]
++
++です。方位角は [0,2π) から一様に選びます。ここは解析的な評価・サンプリングです。
++`include/m3/transport.hpp` は位相関数の値とサンプリング PDF を別フィールドで返します。
++今回の Rayleigh では両者が一致しますが、将来のニューラル proposal でも混同しないためです。
++将来の NF の向き・条件・立体角測度との契約は、この実装だけで確定させていません。
++
++## 4. 光学的厚さと自由飛行
++
++接続区間の光学的厚さと透過率は
++
++\[
++\tau(a,b,\lambda)=\int_a^b\sigma_t(x+s\omega,\lambda)\,ds,
++\qquad T=\exp(-\tau)
++\]
++
++です。レイと外球・地表の交差で積分区間を切り、地球に先に当たる場合はそこで止めます。
++大気の入口・出口を scattering bounce として数えることはありません。
++
++CPU と CUDA で共通の `include/m3/atmosphere.hpp` が以下を担当します。
++
++- 地球中心とレイの幾何を double で計算し、地表近傍の高さと短い交差距離の桁落ちを避ける。
++- レイの最近接点で区間を分け、それぞれを高さが単調に増える方向の積分にする。
++- Gauss 7 / Kronrod 15 の埋め込み則で誤差を推定し、必要な区間を適応分割する。
++- 長い区間で狭い高密度領域を見落とさないよう、高さの変化に沿って区間を分ける。
++- ごく薄い尾部を省ける場合は、単調性から求めた上界を誤差予算に加える。
++- 自由飛行では τ*=-log(1-u) に対し、同じ密度の積分を使って bracket 付き Newton/二分探索を行う。
++
++これは誤差推定付きの数値積分であり、厳密な閉形式積分でも、区間演算による誤差保証でもありません。
++積分と逆関数の数値誤差は残ります。未収束、非有限値、予算超過を真空や黒へ置換しません。
++
++OptiX の float 方向は、normalize 後でも double 上で厳密な単位長とは限りません。
++共通 API は元の方向と `t_max` を受け取り、方向の長さを使って物理距離 [m] に換算します。
++返り値の `distance_m` と OptiX のレイ・パラメータ `ray_t` は区別しています。
++
++地平線付近では、球の半径とレイの最接近距離を直接引くと小さな高度が失われます。
++地表からの局所座標を使った二次方程式と補償付き判別式で交差を求め、密度積分の最接近高度も
++同じ判別式から復元します。独立の long double 計算と比較した接線近傍 126 ケースを回帰試験に含めています。
++
++また、地表のすぐ外にある double の散乱点が、OptiX 用の float へ丸まるだけで地表内へ入ることがあります。
++`include/m3/position.hpp` は元の double 点が地表外であることを検証したうえで、通常の float 変換結果が
++内側になった場合だけ、内向きに丸まった成分を外向きの隣接 float 値へ移します。
++変更は各座標につき最大 1 ULP で、正常な変換結果は変更しません。真に地表内の点は失敗として扱います。
++これは float 座標の表現上の補正です。媒質散乱点へ固定距離のオフセットを毎回加える処理ではありません。
++
++### 透過率を二重に掛けないための規則
++
++自由飛行は、区間を通過する離散確率 T と、途中で散乱する連続密度 σs T を含む分布です。
++純散乱の場合、無衝突で表面・太陽へ着いた枝にも、途中で散乱した枝にも、距離サンプリングによる
++追加の throughput 係数は 1 です。到達した枝で T をもう一度掛けると、平均が T² になってしまいます。
++
++明示的にサンプルした太陽・面光源への NEE は自由飛行をサンプルしないため、こちらの接続には T を掛けます。
++NEE と BSDF/phase continuation の MIS には、同じ頂点に到達した条件での方向 PDF を使います。
++RR の生存確率を片側だけの PDF に入れることもしません。
++
++### 数値パラメータ
++
++| 項目 | 既定値 | 対象 |
++|---|---:|---|
++| `tauAbsoluteTolerance` | 1e-10 | 光学的厚さの絶対誤差目標 |
++| `tauRelativeTolerance` | 1e-8 | 光学的厚さの相対誤差目標 |
++| `inverseTauTolerance` | 1e-9 | 自由飛行の τ 残差と積分誤差の和 |
++| `distanceAbsoluteTolerance` | 0.001 | 自由飛行距離の絶対誤差目標 [m] |
++| `distanceRelativeTolerance` | 1e-10 | 積分区間長に対する距離の相対誤差目標 |
++| `maxQuadratureDepth` | 16 | 適応分割の深さ上限 |
++| `maxQuadratureEvaluations` | 4096 | 一回の光学的厚さ評価での密度評価数の上限 |
++| `maxInverseIterations` | 64 | 逆 CDF の反復上限 |
++
++1 mm は数値ソルバの目標です。元の三角形、OptiX の交差点や継続レイの位置は float なので、
++大きなシーン座標で最終的な位置の精度が常に 1 mm になるという意味ではありません。
++非常に薄い高高度で距離の目標を厳しくしすぎると、τ の丸め限界によって達成できなくなります。
++内部積分が達成不可能な丸め以下の精度を要求しないよう調整しつつ、返却前にはユーザーが指定した
++τ 残差と距離の条件を改めて検査します。
++
++### Yue (2024) をここで使わない理由
++
++以前のご質問に対応する論文は Yue (2024), *Analytical approximation of the definite Chapman
++integral for arbitrary zenith angles* です。この論文は有限区間・任意天頂角の Chapman 積分の
++閉形式近似を扱います。元の指数密度に対する厳密な原始関数ではありません。
++また、自由飛行距離の逆関数まで閉形式で与える手法ではありません。[1]
++
++M3 では `solver: "numerical_reference"` だけを受理します。高速化で Yue 近似を追加する場合は、
++今回の数値実装と比べて、短区間、地平線、高高度、自由飛行 PDF との整合性を検証する基準ができます。
++近似実装を入れていないのに設定名だけを受理する分岐はありません。
++
++## 5. 面光源の扱い
++
++表面から太陽への NEE は、ポリゴンと地球による遮蔽、および大気の T を含みます。
++媒質の散乱点も太陽について同じ処理を行います。太陽円盤内のサンプル方向ごとに地球遮蔽を評価します。
++
++表面から面光源への NEE は、既定の `areaNeeTransmittance: true` で T を含みます。
++M3 の Rayleigh 減衰計算はネットワークを呼び出しません。
++
++ご提案の性能上の選択を試す場合は、`areaNeeTransmittance: false` にできます。
++この場合、面光源 NEE の媒質減衰だけを省き、ポリゴンと地球の遮蔽は残します。
++**継続パスは通常の媒質を通るままなので、両戦略の被積分関数が異なり、結果は MIS 設定にも依存する近似になります。**
++この選択を物理的に整合した推定器としては扱いません。保存 JSON にこの設定も記録します。
++M3 の基準画像と MIS 比較では true を使用してください。
++
++媒質の散乱点からは面光源 NEE を行いません。一方、位相関数をサンプルした継続パスが面光源へ
++到達することは許可します。そのときは競合する NEE 戦略がないため、発光寄与の MIS 重みは 1 です。
++これは `m1DirectMode: "nee"` の比較設定でも同じです。
++
++三角形は各パス区間で従来どおり一回 trace し、受理された最も近い表面までの距離を使って大気を処理します。
++そのため、alpha any-hit で選ばれた表面を再 trace して乱数で選び直すことはありません。
++表面からの shadow ray は従来の原点オフセットを使い、T も実際の shadow ray と同じ区間で評価します。
++
++## 6. 確認手順と保存
++
++まず空だけのシーンを蓄積し、空、大気の地平線、地表と太陽の関係を確認してください。
++次に day と vacuum を同じ露出・カメラで比べます。day では空からの照明が加わり、遠い物体には
++大気の減衰と散乱光が加わります。これらはモデルから期待される変化で、ここで GPU 画像を実測した結果ではありません。
++
++`m1DirectMode` の `mis` / `bsdf` / `nee` は既存の名前を維持しています。
++`bsdf` は媒質内では phase continuation のみ、という意味も持ちます。
++太陽円盤は非常に小さいため、continuation だけの比較は多くのサンプルを必要とします。
++数フレームの PNG の見た目だけで三モードの一致を判断しないでください。
++
++多重散乱の上限は `maxBounce: 16` です。厳密な無限回散乱の解ではなく、有限 bounce で切ったパスの推定です。
++高密度や低い太陽で基準画像を作る際は、同じ設定で bounce 上限と spp を増やし、収束を確認してください。
++RR は表面と媒質で共通です。数値精度の設定を変更した比較では、露出や材質も同時に変更しないでください。
++
++既存の保存操作から PNG と `.linear.pfm`、`.linear.json` が得られます。
++比較は tonemap 後の PNG に加え、線形 PFM を使ってください。
++JSON には大気の全パラメータ、初期モデル、太陽、波長範囲、spp、bounce、減衰省略の有無を記録します。
++
++異常値や未収束を検出するとフレーム全体を拒否し、`m1_failure.log` に最初の診断を残します。
++ファイル名は既存のままですが、M3 のステージ、理由、数値ソルバの status、乱数、レイ、波長、
++反復数、誤差、大気設定が記録されます。件数だけを無視して受理する変更はしていません。
++
++## 7. CPU 検証を再実行する
++
++GPU、OptiX、OpenGL を使わず、共通の数値コードを検査できます。
++既存 `ext/json` がある場合の例です。
++
++```powershell
++cmake -S tests/m1 -B build-m3-cpu -DCMAKE_BUILD_TYPE=Release
++cmake --build build-m3-cpu --config Release
++ctest --test-dir build-m3-cpu -C Release --output-on-failure
++```
++
++JSON ヘッダーが別の場所なら `-DM1_JSON_INCLUDE_DIR=...` を指定します。
++
++`test_m3_atmosphere.cpp` は球殻・地球遮蔽、垂直区間の解析解、独立の数値参照との比較、
++短区間、地平線、方向の距離換算、高高度の逆 CDF、意図的に達成不能な精度の失敗を検査します。
++`test_m3_transport.cpp` は位相関数の正規化とモーメント、CDF、サンプルと PDF の一致、
++無衝突確率、二重減衰の回帰、媒質から面光源へ到達した場合の重み、太陽 MIS の期待値を検査します。
++`test_m3_position.cpp` は実際の自由飛行で得た地表近傍の点、球面上の異なる向き、1 ULP の変換、
++不正点の拒否を検査します。
++従来の BSDF、area PDF、診断、alpha、接線、スペクトル、シーン読み込みの検査も残しています。
++
++## 8. 主要ファイル
++
++| ファイル | 役割 |
++|---|---|
++| `include/m3/parameters.hpp` | ホスト・デバイス共通の物理・数値設定 |
++| `include/m3/atmosphere.hpp` | 球殻交差、密度、光学的厚さ、T、自由飛行 |
++| `include/m3/transport.hpp` | Rayleigh 評価・解析サンプリング・MIS 戦略の区別 |
++| `include/m3/position.hpp` | 媒質散乱点を地表外の float 座標として表現する |
++| `shaders/device/m3_atmosphere.cuh` | OptiX から共通大気コードへの接続と診断 |
++| `shaders/device/m1_surface.cuh` | 表面・媒質・地表を統合したパス、太陽・面光源 NEE |
++| `include/sceneDescIO.hpp` | 大気設定の読み書き、値と組み合わせの検証 |
++| `include/launch_params.h` / `src/renderer.cpp` | パラメータの転送、空シーン、診断 |
++| `include/application.hpp` / `src/application.cpp` | 表示、初期解像度、保存メタデータ |
++| `viewer/glfw_window.hpp` / `.cpp` | 指定した初期サイズでのウィンドウ作成 |
++
++## 参考文献
++
++1. D. Yue, 2024. [Analytical approximation of the definite Chapman integral for arbitrary zenith angles](https://acp.copernicus.org/articles/24/5093/2024/). Atmospheric Chemistry and Physics, 24, 5093–5097. DOI: 10.5194/acp-24-5093-2024. 今回は近似式を実装していません。
++2. Pharr, Jakob, Humphreys. [Sampling Volume Scattering](https://pbr-book.org/3ed-2018/Light_Transport_II_Volume_Rendering/Sampling_Volume_Scattering), PBRT 3rd edition. 媒質サンプリングの連続密度と表面到達の離散確率、throughput の一般的な背景。今回の逆 CDF 数値ソルバは本プロジェクトの実装です。
++3. Bruneton. [Atmospheric scattering functions](https://ebruneton.github.io/precomputed_atmospheric_scattering/atmosphere/functions.glsl.html). scalar Rayleigh 位相関数と大気光学の定義の参照。M3 はこの実装の前計算・LUT 手法を使用していません。
+diff --git a/include/application.hpp b/include/application.hpp
+index 942853b..20fd8bd 100644
+--- a/include/application.hpp
++++ b/include/application.hpp
+@@ -51,7 +51,9 @@ public:
+         scene.camera.fov,
+         scene.camera.sensitivity,
+         scene.camera.pintDist,
+-        models.empty() ? 1.0f : length(models[0]->bounds.getSpan())
++        models.empty() ? 1.0f : length(models[0]->bounds.getSpan()),
++        scene.outputs.resolution[0],
++        scene.outputs.resolution[1]
+     ), m_renderer(models, scene)
+     {
+         Camera camera;
+@@ -80,6 +82,10 @@ public:
+         if (m_scene.integrator.m1Surface)
+             m_scene.integrator.applySpectralRendering = true;
+ 
++        // Window coordinates can differ from framebuffer pixels on a scaled
++        // display. Allocate the interop texture using the actual pixel size.
++        glfwGetFramebufferSize(m_handle, &m_fbSize.x, &m_fbSize.y);
++
+ 
+         // 結果を描画するテクスチャの作成
+         GLenum texFormat = GL_RGBA;
+@@ -269,7 +275,17 @@ public:
+                 ImGui::Text("Reflectance: RGB2Spec / linear sRGB");
+                 ImGui::Text("Sun: TSIS-1 HSRS v2; RGB emitters: CIE D65");
+                 ImGui::Text("Direct lighting: %s", m_scene.integrator.m1DirectMode.c_str());
+-                ImGui::Text("Vacuum (surface rendering)");
++                if (progress.rayleigh.enabled) {
++                    ImGui::Text("M3: spherical Rayleigh, multiple scattering");
++                    ImGui::Text("Numerical optical depth + inverse CDF (no LUT)");
++                    ImGui::Text("Ground Y: %.3f m, scale height: %.0f m", progress.rayleigh.groundY, progress.rayleigh.scaleHeight);
++                    ImGui::Text("beta550: %.6g /m; ground albedo: %.3f", progress.rayleigh.beta550, progress.rayleigh.groundAlbedo);
++                    ImGui::Text("Tau tolerances: abs %.3g, relative %.3g", progress.rayleigh.tauAbsoluteTolerance, progress.rayleigh.tauRelativeTolerance);
++                    ImGui::Text("Surface-area shadow attenuation: %s", progress.rayleigh.areaNeeTransmittance ? "included" : "omitted (approximation)");
++                    ImGui::Text("Atmosphere settings are fixed by the scene JSON");
++                } else {
++                    ImGui::Text("Vacuum (surface rendering)");
++                }
+             } else {
+             ImGui::Text("XYZ CMF: %s\n", m_scene.spectrum.xyzFuncFile.c_str());
+             ImGui::Text("Basis function for reflectance: %s\n",  m_scene.spectrum.upSampleBasisFile.c_str());
+@@ -306,6 +322,20 @@ public:
+         if (newSize.x == 0 || newSize.y == 0) return;
+         // Validate dimensions before the host allocation and signed product.
+         m_renderer.resize(newSize);
++        if (m_fbTexture && (m_fbSize.x != newSize.x || m_fbSize.y != newSize.y)) {
++            // Keep the registered CUDA surface the same size as the film when
++            // the small M3 preview window is resized or its DPI changes.
++            CUDA_CHECK(cudaStreamSynchronize(m_renderer.getStream()));
++            if (m_cudaTexResource) {
++                CUDA_CHECK(cudaGraphicsUnregisterResource(m_cudaTexResource));
++                m_cudaTexResource = nullptr;
++            }
++            glBindTexture(GL_TEXTURE_2D, m_fbTexture);
++            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, newSize.x, newSize.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
++            glBindTexture(GL_TEXTURE_2D, 0);
++            CUDA_CHECK(cudaGraphicsGLRegisterImage(&m_cudaTexResource, m_fbTexture, GL_TEXTURE_2D,
++                                                  cudaGraphicsRegisterFlagsSurfaceLoadStore));
++        }
+         m_fbSize = newSize;
+         m_pixels.resize(static_cast<size_t>(newSize.x) * static_cast<size_t>(newSize.y));
+         
+diff --git a/include/launch_params.h b/include/launch_params.h
+index 0fbbdc4..abf6512 100644
+--- a/include/launch_params.h
++++ b/include/launch_params.h
+@@ -4,6 +4,7 @@
+ #include "optix8.hpp"
+ #include "../utils/my_math.hpp"
+ #include "m1/render_params.h"
++#include "m3/parameters.hpp"
+ #include <cuda_runtime.h>
+ 
+ 
+@@ -267,6 +268,7 @@ struct alignas(16) LaunchParams {
+     // spectral rendering
+     SpectralParams spectral;
+     M1RenderParams m1{};
++    m3::AtmosphereParameters rayleigh{};
+ 
+     TriangleMeshGeomData* meshes;
+     int numMeshes       {0};
+diff --git a/include/m1/diagnostics.hpp b/include/m1/diagnostics.hpp
+index f9a9c18..f5b3dd6 100644
+--- a/include/m1/diagnostics.hpp
++++ b/include/m1/diagnostics.hpp
+@@ -9,7 +9,7 @@ inline constexpr std::uint32_t no_index = 0xffffffffu;
+ 
+ enum class FailureStage : std::uint32_t {
+     Camera, Surface, SunNee, AreaNee, Bsdf, Miss, Film,
+-    RadianceAnyHit, ShadowAnyHit
++    RadianceAnyHit, ShadowAnyHit, Atmosphere, AtmosphereSunNee, Planet
+ };
+ 
+ // One name per validation condition. Keep the values and their labels together
+@@ -61,7 +61,15 @@ enum class FailureStage : std::uint32_t {
+     X(RadianceOpacity, "texture_alpha, opacity_factor, cutoff, uv.x, uv.y") \
+     X(ShadowSbt, "geometry_type, mesh_count, material_count") \
+     X(ShadowUV, "has_diffuse_texture") \
+-    X(ShadowOpacity, "texture_alpha, opacity_factor, cutoff, uv.x, uv.y")
++    X(ShadowOpacity, "texture_alpha, opacity_factor, cutoff, uv.x, uv.y") \
++    X(AtmosphereGeometry, "status, ray_t_max, origin.x, origin.y, origin.z, direction.x, direction.y, direction.z") \
++    X(AtmosphereIntegral, "status, begin_m, end_m, optical_depth, error_estimate, density_evaluations, wavelength_nm") \
++    X(AtmosphereInverse, "status, uniform_24bit, distance_m, target_tau, optical_depth, residual_tau, error_estimate, inverse_iterations, density_evaluations") \
++    X(AtmospherePhase, "direction.x, direction.y, direction.z, phase_value, phase_pdf, u_mu, u_phi") \
++    X(AtmospherePosition, "status, uniform_24bit, distance_m, exact.x, exact.y, exact.z, rounded.x, rounded.y, rounded.z") \
++    X(AtmosphereDirect, "radiance, sun_pdf, phase_value, transmittance, mis_weight") \
++    X(AtmosphereContinuation, "position.x, position.y, position.z, direction.x, direction.y, direction.z, phase_value, phase_pdf") \
++    X(PlanetIntersection, "distance_m, position.x, position.y, position.z, normal.x, normal.y, normal.z")
+ 
+ enum class FailureReason : std::uint32_t {
+ #define M1_ENUM_REASON(name, labels) name,
+@@ -99,6 +107,9 @@ inline const char* failure_stage_name(FailureStage stage) {
+     case FailureStage::Film: return "film";
+     case FailureStage::RadianceAnyHit: return "radiance_anyhit";
+     case FailureStage::ShadowAnyHit: return "shadow_anyhit";
++    case FailureStage::Atmosphere: return "atmosphere";
++    case FailureStage::AtmosphereSunNee: return "atmosphere_sun_nee";
++    case FailureStage::Planet: return "planet";
+     }
+     return "unknown";
+ }
+diff --git a/include/m3/atmosphere.hpp b/include/m3/atmosphere.hpp
+new file mode 100644
+index 0000000..2de3a28
+--- /dev/null
++++ b/include/m3/atmosphere.hpp
+@@ -0,0 +1,620 @@
++#pragma once
++
++#include "m3/parameters.hpp"
++#include <cfloat>
++#include <cmath>
++#include <cstdint>
++
++#if defined(__CUDACC__)
++#define M3_HD __host__ __device__
++#else
++#define M3_HD
++#endif
++
++// Portable CPU/CUDA reference integration of a spherical exponential medium.
++// This is numerical quadrature and inverse CDF, not a closed-form Chapman
++// solution, a LUT, or a tracking estimator. Fixed work limits return a failure;
++// callers must not turn a failed result into transparent medium or a black path.
++namespace m3 {
++
++inline constexpr std::uint32_t maximum_quadrature_depth = 24;
++
++enum class Status : std::uint32_t {
++    Ok, InvalidParameters, InvalidRay, InsideGround, NonfiniteGeometry,
++    InvalidCoefficient, InvalidQuantile, QuadratureBudget, QuadratureDepth,
++    QuadratureRoundoff, NonfiniteIntegral, NumericalUnderflow,
++    EndpointUnresolved, InverseIterations, InverseRoundoff
++};
++
++inline const char* status_name(Status s) {
++    switch (s) {
++    case Status::Ok: return "ok";
++    case Status::InvalidParameters: return "invalid_parameters";
++    case Status::InvalidRay: return "invalid_ray";
++    case Status::InsideGround: return "inside_ground";
++    case Status::NonfiniteGeometry: return "nonfinite_geometry";
++    case Status::InvalidCoefficient: return "invalid_coefficient";
++    case Status::InvalidQuantile: return "invalid_quantile";
++    case Status::QuadratureBudget: return "quadrature_budget";
++    case Status::QuadratureDepth: return "quadrature_depth";
++    case Status::QuadratureRoundoff: return "quadrature_roundoff";
++    case Status::NonfiniteIntegral: return "nonfinite_integral";
++    case Status::NumericalUnderflow: return "numerical_underflow";
++    case Status::EndpointUnresolved: return "endpoint_unresolved";
++    case Status::InverseIterations: return "inverse_iterations";
++    case Status::InverseRoundoff: return "inverse_roundoff";
++    }
++    return "unknown_atmosphere_status";
++}
++
++struct DVec3 { double x = 0, y = 0, z = 0; };
++M3_HD inline DVec3 operator+(DVec3 a, DVec3 b) { return {a.x+b.x,a.y+b.y,a.z+b.z}; }
++M3_HD inline DVec3 operator-(DVec3 a, DVec3 b) { return {a.x-b.x,a.y-b.y,a.z-b.z}; }
++M3_HD inline DVec3 operator*(DVec3 a, double b) { return {a.x*b,a.y*b,a.z*b}; }
++M3_HD inline DVec3 operator/(DVec3 a, double b) { return {a.x/b,a.y/b,a.z/b}; }
++M3_HD inline double dot(DVec3 a, DVec3 b) { return ::fma(a.x,b.x,::fma(a.y,b.y,a.z*b.z)); }
++M3_HD inline DVec3 cross(DVec3 a, DVec3 b) {
++    return {a.y*b.z-a.z*b.y,a.z*b.x-a.x*b.z,a.x*b.y-a.y*b.x};
++}
++M3_HD inline double length(DVec3 a) { return ::hypot(::hypot(a.x,a.y),a.z); }
++M3_HD inline bool finite(double x) { return x == x && x <= DBL_MAX && x >= -DBL_MAX; }
++M3_HD inline bool finite(DVec3 v) { return finite(v.x)&&finite(v.y)&&finite(v.z); }
++M3_HD inline double minimum(double a,double b) { return a < b ? a : b; }
++M3_HD inline double maximum(double a,double b) { return a > b ? a : b; }
++
++M3_HD inline Status validate_parameters(const AtmosphereParameters& p) {
++    const double top = p.planetRadius + p.atmosphereHeight;
++    if (p.enabled > 1 || p.areaNeeTransmittance > 1 ||
++        !finite(p.planetRadius) || !(p.planetRadius > 0) ||
++        !finite(p.atmosphereHeight) || !(p.atmosphereHeight > 0) ||
++        !finite(top*top) || !(top > p.planetRadius) ||
++        !finite(p.scaleHeight) || !(p.scaleHeight > 0) ||
++        !finite(p.groundY) || !finite(p.groundY-p.planetRadius) ||
++        !finite(p.beta550) || p.beta550 < 0 ||
++        !finite(p.groundAlbedo) || p.groundAlbedo < 0 || p.groundAlbedo > 1 ||
++        !finite(p.tauAbsoluteTolerance) || !(p.tauAbsoluteTolerance > 0) ||
++        !finite(p.tauRelativeTolerance) || p.tauRelativeTolerance < 0 ||
++        !finite(p.inverseTauTolerance) || !(p.inverseTauTolerance > 0) ||
++        !finite(p.distanceAbsoluteTolerance) || !(p.distanceAbsoluteTolerance > 0) ||
++        !finite(p.distanceRelativeTolerance) || p.distanceRelativeTolerance < 0 ||
++        p.maxQuadratureDepth == 0 || p.maxQuadratureDepth > maximum_quadrature_depth ||
++        p.maxQuadratureEvaluations < 15 || p.maxQuadratureEvaluations > 1'048'576 ||
++        p.maxInverseIterations == 0 || p.maxInverseIterations > 128)
++        return Status::InvalidParameters;
++    return Status::Ok;
++}
++
++M3_HD inline bool rayleigh_coefficient(const AtmosphereParameters& p,
++                                      double wavelength_nm, double& beta_per_m) {
++    if (validate_parameters(p) != Status::Ok || !finite(wavelength_nm) || !(wavelength_nm > 0))
++        return false;
++    if (p.beta550 == 0) { beta_per_m = 0; return true; }
++    const double ratio = 550.0/wavelength_nm;
++    const double square = ratio*ratio;
++    const double result = p.beta550*square*square;
++    if (!finite(result) || !(result > 0)) return false;
++    beta_per_m = result;
++    return true;
++}
++
++struct RaySegment {
++    DVec3 origin{};                    // Scene coordinates [m].
++    DVec3 direction{0,1,0};           // Raw OptiX direction is accepted.
++    double t_max = HUGE_VAL;          // Original ray parameter, not assumed metres.
++};
++
++struct ShellClip {
++    Status status = Status::Ok;
++    bool has_medium = false;
++    double begin_m = 0, end_m = 0;    // Physical distances from the ray origin.
++    bool hits_ground = false;
++    bool ground_occludes = false;    // Strictly before t_max, except an inward t=0 hit.
++    double ground_distance_m = HUGE_VAL;
++    double direction_length = 0;
++    double limit_distance_m = 0;
++};
++
++struct IntegralResult {
++    Status status = Status::Ok;
++    double tau = 0;
++    double estimated_error = 0;
++    std::uint32_t evaluations = 0;
++    bool omitted_bounded_tail = false;
++};
++
++struct TransmittanceResult {
++    Status status = Status::Ok;
++    double transmittance = 1; // Medium only. Apply ground_occluded separately.
++    double tau = 0, estimated_error = 0;
++    bool ground_occluded = false;
++    std::uint32_t evaluations = 0;
++};
++
++enum class Endpoint : std::uint32_t { SegmentEnd, AtmosphereExit, Ground, None };
++
++struct FreeFlightSample {
++    Status status = Status::Ok;
++    bool scattered = false;
++    Endpoint endpoint = Endpoint::SegmentEnd;
++    double distance_m = 0, ray_t = 0;
++    double tau = 0, transmittance = 1;
++    double pdf_per_m = 0;       // Continuous scattering-event density.
++    double endpoint_mass = 1;  // Discrete no-event probability, not a density.
++    double sigma_s_per_m = 0;
++    double tau_residual = 0, estimated_tau_error = 0;
++    double estimated_distance_error_m = 0;
++    std::uint32_t iterations = 0, evaluations = 0;
++};
++
++namespace detail {
++
++// Preserve metre-scale local coordinates before adding the Earth radius.
++// h = (r^2-R^2)/(r+R) avoids the subtraction sqrt(r^2)-R near the ground.
++M3_HD inline Status height_at(const AtmosphereParameters& p,DVec3 point,
++                              double& height,double& radius,double* ground_c=nullptr) {
++    const double y = point.y-p.groundY;
++    const double relative_y = p.planetRadius+y;
++    radius = ::hypot(::hypot(point.x,point.z),relative_y);
++    const double difference = ::fma(y,2*p.planetRadius+y,
++                                   ::fma(point.x,point.x,point.z*point.z));
++    if (ground_c) *ground_c=difference;
++    height = difference/(radius+p.planetRadius);
++    return finite(height)&&finite(radius*radius) ? Status::Ok : Status::NonfiniteGeometry;
++}
++
++struct PreparedRay {
++    DVec3 origin{}, unit_direction{}, relative_origin{};
++    double norm = 0, limit = 0, axial = 0, impact = 0, radius = 0, height = 0;
++    double direction_squared = 1,ground_c = 0,ground_discriminant = 0,closest_height = 0;
++};
++
++M3_HD inline double difference_of_products(double a,double b,double c,double d) {
++    const double cd=c*d;
++    const double correction=::fma(-c,d,cd);
++    return ::fma(a,b,-cd)+correction;
++}
++
++M3_HD inline Status prepare(const AtmosphereParameters& p,const RaySegment& r,PreparedRay& out) {
++    const Status valid = validate_parameters(p);
++    if (valid != Status::Ok) return valid;
++    if (!finite(r.origin)||!finite(r.direction)||!(r.t_max >= 0)||
++        (!finite(r.t_max)&&r.t_max != HUGE_VAL)) return Status::InvalidRay;
++    out.norm = length(r.direction);
++    if (!finite(out.norm)||!(out.norm > 0)) return Status::InvalidRay;
++    out.origin = r.origin;
++    out.unit_direction = r.direction/out.norm;
++    out.limit = r.t_max == HUGE_VAL ? HUGE_VAL : r.t_max*out.norm;
++    if (r.t_max != HUGE_VAL && !finite(out.limit)) return Status::InvalidRay;
++    out.relative_origin = {r.origin.x,p.planetRadius+(r.origin.y-p.groundY),r.origin.z};
++    Status status = height_at(p,r.origin,out.height,out.radius,&out.ground_c);
++    if (status != Status::Ok) return status;
++    if (out.height < 0) return Status::InsideGround;
++    out.axial = dot(out.relative_origin,out.unit_direction);
++    out.direction_squared=dot(out.unit_direction,out.unit_direction);
++    out.impact = length(cross(out.relative_origin,out.unit_direction))/::sqrt(out.direction_squared);
++    out.ground_discriminant=difference_of_products(out.axial,out.axial,out.direction_squared,out.ground_c);
++    // The closest altitude must keep the sign of the same discriminant used
++    // for clipping. Subtracting impact-R can round a real near-tangent miss to
++    // a ground hit (or a small positive altitude to a negative one).
++    out.closest_height=(-out.ground_discriminant/out.direction_squared)/(out.impact+p.planetRadius);
++    if (!finite(out.axial)||!finite(out.impact)||!finite(out.ground_discriminant)||
++        !finite(out.closest_height)) return Status::NonfiniteGeometry;
++    return Status::Ok;
++}
++
++struct Roots { bool hit = false; double near_t = 0, far_t = 0; Status status = Status::Ok; };
++M3_HD inline Roots roots(const AtmosphereParameters& p,const PreparedRay& r,double height) {
++    Roots result;
++    const double radius = p.planetRadius+height;
++    // The ground/top height differences retain small distances at a boundary.
++    const double c = height == 0 ? r.ground_c : (r.height-height)*(r.radius+radius);
++    const double discriminant=height == 0 ? r.ground_discriminant :
++        difference_of_products(r.axial,r.axial,r.direction_squared,c);
++    if (discriminant < 0) return result;
++    if (!finite(discriminant)) { result.status=Status::NonfiniteGeometry; return result; }
++    const double span=::sqrt(discriminant);
++    const double q=-r.axial-::copysign(span,r.axial);
++    double a=(-r.axial-span)/r.direction_squared,b=(-r.axial+span)/r.direction_squared;
++    if (q != 0) { a=q/r.direction_squared; b=c/q; }
++    if (a > b) { const double temp = a; a = b; b = temp; }
++    if (!finite(a)||!finite(b)) { result.status=Status::NonfiniteGeometry; return result; }
++    result.hit=true; result.near_t=a; result.far_t=b;
++    return result;
++}
++
++M3_HD inline ShellClip clip(const AtmosphereParameters& p,const PreparedRay& r) {
++    ShellClip c;
++    c.direction_length=r.norm; c.limit_distance_m=r.limit;
++    if (r.limit == 0) return c;
++    const Roots ground=roots(p,r,0);
++    if (ground.status != Status::Ok) { c.status=ground.status; return c; }
++    if (ground.hit && ground.near_t >= 0 && ground.near_t <= r.limit &&
++        (ground.near_t > 0 || r.axial < 0)) {
++        c.hits_ground=true; c.ground_distance_m=ground.near_t;
++        c.ground_occludes=ground.near_t < r.limit;
++    }
++    const Roots top=roots(p,r,p.atmosphereHeight);
++    if (top.status != Status::Ok) { c.status=top.status; return c; }
++    if (!top.hit || top.far_t <= 0) return c;
++    const double begin=maximum(0,top.near_t);
++    double end=minimum(r.limit,top.far_t);
++    if (c.hits_ground) end=minimum(end,c.ground_distance_m);
++    if (end > begin) { c.has_medium=true; c.begin_m=begin; c.end_m=end; }
++    return c;
++}
++
++M3_HD inline DVec3 point_at(const PreparedRay& r,double distance) {
++    return {::fma(r.unit_direction.x,distance,r.origin.x),
++            ::fma(r.unit_direction.y,distance,r.origin.y),
++            ::fma(r.unit_direction.z,distance,r.origin.z)};
++}
++
++M3_HD inline double radius_at(const PreparedRay& r,double distance) {
++    const double norm=::sqrt(r.direction_squared);
++    return ::hypot(r.impact,::fma(norm,distance,r.axial/norm));
++}
++
++M3_HD inline double sigma_at_height(double height,double scale_height,double beta) {
++    return beta == 0 ? 0 : ::exp(::log(beta)-height/scale_height);
++}
++
++struct Piece {
++    double radius=0,height=0,impact=0,radial_dot=0,length=0;
++    double direction_squared=1;
++    M3_HD double radial_change(double t) const {
++        const double change_squared=t*::fma(direction_squared,t,2*radial_dot);
++        return change_squared/(::sqrt(::fma(radius,radius,change_squared))+radius);
++    }
++    M3_HD double distance_at_change(double delta) const {
++        if (delta == 0) return 0;
++        const double n=delta*(2*radius+delta);
++        return n/(::sqrt(::fma(direction_squared,n,radial_dot*radial_dot))+radial_dot);
++    }
++};
++
++M3_HD inline Status make_piece(const AtmosphereParameters& p,const PreparedRay& r,
++                               const ShellClip& c,double anchor,double other,bool tangent,Piece& piece) {
++    const double sign=other > anchor ? 1.0 : -1.0;
++    piece.direction_squared=r.direction_squared;
++    piece.radial_dot=tangent ? 0 : sign*::fma(r.direction_squared,anchor,r.axial);
++    piece.impact=r.impact; piece.length=::fabs(other-anchor);
++    if (piece.radial_dot < 0 || !finite(piece.radial_dot)) return Status::NonfiniteGeometry;
++    if (c.hits_ground && anchor == c.ground_distance_m) {
++        piece.radius=p.planetRadius; piece.height=0;
++    } else if (tangent) {
++        piece.radius=r.impact; piece.height=r.closest_height;
++    } else {
++        const Status status=height_at(p,point_at(r,anchor),piece.height,piece.radius);
++        if (status != Status::Ok) return status;
++    }
++    if (piece.height < 0) return Status::InsideGround;
++    return Status::Ok;
++}
++
++struct Numerics { double absolute=0,relative=0; };
++struct Budget { std::uint32_t used=0,maximum=0; };
++struct Quad { Status status=Status::Ok; double value=0,error=0; };
++
++M3_HD inline Quad kronrod15(const Piece& p,double scale_height,double log_sigma,
++                            double a,double b,Budget& budget) {
++    Quad result;
++    if (budget.maximum-budget.used < 15) { result.status=Status::QuadratureBudget; return result; }
++    budget.used+=15;
++    // Embedded Gauss 7 / Kronrod 15, with QUADPACK-style resasc/resabs error
++    // rescaling. This is an error estimate, not a rigorous floating-point bound.
++    constexpr double x[8]={0.991455371120812639206854697526329,
++        0.949107912342758524526189684047851,0.864864423359769072789712788640926,
++        0.741531185599394439863864773280788,0.586087235467691130294144838258730,
++        0.405845151377397166906606412076961,0.207784955007898467600689403773245,0};
++    constexpr double wk[8]={0.022935322010529224963732008058970,
++        0.063092092629978553290700663189204,0.104790010322250183839876322541518,
++        0.140653259715525918745189590510238,0.169004726639267902826583426598550,
++        0.190350578064785409913256402421014,0.204432940075298892414161999234649,
++        0.209482141084727828012999174891714};
++    constexpr double wg[4]={0.129484966168869693270611432679082,
++        0.279705391489276667901467771423780,0.381830050505118944950369775488975,
++        0.417959183673469387755102040816327};
++    const double half=0.5*(b-a),mid=a+half;
++    const double center=::exp(log_sigma-p.radial_change(mid)/scale_height);
++    double k=wk[7]*center,g=wg[3]*center,abs_sum=wk[7]*::fabs(center);
++    double left[7],right[7];
++    for (unsigned j=0;j<7;++j) {
++        left[j]=::exp(log_sigma-p.radial_change(::fma(-half,x[j],mid))/scale_height);
++        right[j]=::exp(log_sigma-p.radial_change(::fma(half,x[j],mid))/scale_height);
++        const double pair=left[j]+right[j];
++        k+=wk[j]*pair; abs_sum+=wk[j]*(::fabs(left[j])+::fabs(right[j]));
++        if (j%2 == 1) g+=wg[j/2]*pair;
++    }
++    const double mean=0.5*k;
++    double asc=wk[7]*::fabs(center-mean);
++    for (unsigned j=0;j<7;++j)
++        asc+=wk[j]*(::fabs(left[j]-mean)+::fabs(right[j]-mean));
++    result.value=k*half; abs_sum*=half; asc*=half;
++    result.error=::fabs((k-g)*half);
++    if (asc > 0 && result.error > 0)
++        result.error=asc*minimum(1,::pow(200*result.error/asc,1.5));
++    result.error=maximum(result.error,50*DBL_EPSILON*abs_sum);
++    if (!finite(result.value)||result.value < 0||!finite(result.error))
++        result.status=Status::NonfiniteIntegral;
++    return result;
++}
++
++M3_HD inline Quad adaptive(const AtmosphereParameters& settings,const Piece& p,
++                           double log_sigma,double a,double b,Numerics n,Budget& budget) {
++    struct Work { double a,b,absolute; std::uint32_t depth; };
++    Work stack[maximum_quadrature_depth+2];
++    unsigned size=1;
++    stack[0]={a,b,n.absolute,0};
++    Quad result;
++    while (size != 0) {
++        const Work current=stack[--size];
++        const Quad q=kronrod15(p,settings.scaleHeight,log_sigma,current.a,current.b,budget);
++        if (q.status != Status::Ok) { result.status=q.status; return result; }
++        if (q.error <= current.absolute+n.relative*q.value) {
++            result.value+=q.value; result.error+=q.error;
++            continue;
++        }
++        if (current.depth >= settings.maxQuadratureDepth) {
++            result.status=Status::QuadratureDepth; return result;
++        }
++        const double mid=current.a+0.5*(current.b-current.a);
++        if (mid == current.a || mid == current.b) { result.status=Status::QuadratureRoundoff; return result; }
++        const unsigned depth=current.depth+1;
++        const double absolute=0.5*current.absolute;
++        if (!(absolute > 0)) { result.status=Status::NumericalUnderflow; return result; }
++        stack[size++]={mid,current.b,absolute,depth};
++        stack[size++]={current.a,mid,absolute,depth};
++    }
++    return result;
++}
++
++M3_HD inline IntegralResult integrate_piece(const AtmosphereParameters& settings,
++                                            const Piece& p,double beta,Numerics n,Budget& budget) {
++    IntegralResult result;
++    if (p.length == 0 || beta == 0) return result;
++    const double log_sigma=::log(beta)-p.height/settings.scaleHeight;
++    const double log_upper=::log(p.length)+log_sigma;
++    const double tail_allowance=0.125*n.absolute;
++    if (!(tail_allowance > 0)) { result.status=Status::NumericalUnderflow; return result; }
++    const double log_allowance=::log(tail_allowance);
++    // Outward density is monotone. Bound any omitted tail by its length times
++    // density at the tail start; never rely on an embedded rule noticing a
++    // narrow high-density region in a long ray.
++    if (log_upper <= log_allowance) {
++        result.estimated_error=::exp(log_upper);
++        if (result.estimated_error == 0) result.estimated_error=DBL_MIN;
++        result.omitted_bounded_tail=true;
++        return result;
++    }
++    const double total_q=p.radial_change(p.length)/settings.scaleHeight;
++    const double core_q=minimum(total_q,log_upper-log_allowance);
++    double core_length=p.length;
++    if (core_q < total_q) {
++        core_length=minimum(p.length,p.distance_at_change(core_q*settings.scaleHeight));
++        if (core_length < p.length) {
++            result.estimated_error=::exp(::log(p.length-core_length)+log_sigma-
++                p.radial_change(core_length)/settings.scaleHeight);
++            if (result.estimated_error == 0) result.estimated_error=DBL_MIN;
++            result.omitted_bounded_tail=true;
++        }
++    }
++    const double panel_count=maximum(1,::ceil(core_q/4));
++    if (!finite(panel_count)||panel_count > double(settings.maxQuadratureEvaluations/15)) {
++        result.status=Status::QuadratureBudget; return result;
++    }
++    const auto panels=static_cast<std::uint32_t>(panel_count);
++    const double absolute=(n.absolute-result.estimated_error)/double(panels);
++    if (!(absolute > 0)) { result.status=Status::NumericalUnderflow; return result; }
++    double previous=0;
++    for (std::uint32_t i=1;i<=panels;++i) {
++        const double current=i == panels ? core_length :
++            p.distance_at_change((core_q*double(i)/double(panels))*settings.scaleHeight);
++        if (!(current > previous)) { result.status=Status::QuadratureRoundoff; return result; }
++        const Quad q=adaptive(settings,p,log_sigma,previous,current,{absolute,n.relative},budget);
++        if (q.status != Status::Ok) { result.status=q.status; return result; }
++        result.tau+=q.value; result.estimated_error+=q.error;
++        previous=current;
++    }
++    return result;
++}
++
++M3_HD inline IntegralResult integrate_range(const AtmosphereParameters& settings,const PreparedRay& r,
++                                            const ShellClip& c,double end,double beta,Numerics n) {
++    IntegralResult result;
++    if (!c.has_medium || end <= c.begin_m || beta == 0) return result;
++    Piece pieces[2]; unsigned count=1;
++    const double closest=-r.axial/r.direction_squared;
++    if (closest > c.begin_m && closest < end) {
++        count=2;
++        result.status=make_piece(settings,r,c,closest,c.begin_m,true,pieces[0]);
++        if (result.status == Status::Ok)
++            result.status=make_piece(settings,r,c,closest,end,true,pieces[1]);
++    } else if (closest >= end) {
++        result.status=make_piece(settings,r,c,end,c.begin_m,closest == end,pieces[0]);
++    } else {
++        result.status=make_piece(settings,r,c,c.begin_m,end,closest == c.begin_m,pieces[0]);
++    }
++    if (result.status != Status::Ok) return result;
++    Budget budget{0,settings.maxQuadratureEvaluations};
++    for (unsigned i=0;i<count;++i) {
++        const IntegralResult part=integrate_piece(settings,pieces[i],beta,{n.absolute/count,n.relative},budget);
++        result.evaluations=budget.used;
++        if (part.status != Status::Ok) { result.status=part.status; return result; }
++        result.tau+=part.tau; result.estimated_error+=part.estimated_error;
++        result.omitted_bounded_tail=result.omitted_bounded_tail||part.omitted_bounded_tail;
++    }
++    if (!finite(result.tau)||!finite(result.estimated_error)) result.status=Status::NonfiniteIntegral;
++    else if (result.estimated_error > n.absolute+n.relative*result.tau)
++        result.status=Status::QuadratureRoundoff;
++    return result;
++}
++
++} // namespace detail
++
++M3_HD inline ShellClip clip_atmosphere(const AtmosphereParameters& p,const RaySegment& ray) {
++    detail::PreparedRay r;
++    ShellClip result;
++    result.status=detail::prepare(p,ray,r);
++    return result.status == Status::Ok ? detail::clip(p,r) : result;
++}
++
++M3_HD inline Status local_scattering_coefficient(const AtmosphereParameters& p,DVec3 point,
++                                                 double beta_per_m,double& sigma_s_per_m) {
++    const Status valid=validate_parameters(p);
++    if (valid != Status::Ok) return valid;
++    if (!finite(beta_per_m)||beta_per_m < 0) return Status::InvalidCoefficient;
++    if (!finite(point)) return Status::NonfiniteGeometry;
++    double height=0,radius=0;
++    const Status geometry=detail::height_at(p,point,height,radius);
++    if (geometry != Status::Ok) return geometry;
++    if (height < 0) return Status::InsideGround;
++    sigma_s_per_m=height > p.atmosphereHeight ? 0 :
++        detail::sigma_at_height(height,p.scaleHeight,beta_per_m);
++    return finite(sigma_s_per_m) ? Status::Ok : Status::NonfiniteIntegral;
++}
++
++M3_HD inline IntegralResult optical_depth(const AtmosphereParameters& p,const RaySegment& ray,
++                                          double beta_per_m) {
++    detail::PreparedRay r;
++    IntegralResult result;
++    result.status=detail::prepare(p,ray,r);
++    if (result.status != Status::Ok) return result;
++    if (!finite(beta_per_m)||beta_per_m < 0) { result.status=Status::InvalidCoefficient; return result; }
++    const ShellClip c=detail::clip(p,r);
++    if (c.status != Status::Ok) { result.status=c.status; return result; }
++    return detail::integrate_range(p,r,c,c.end_m,beta_per_m,{p.tauAbsoluteTolerance,p.tauRelativeTolerance});
++}
++
++M3_HD inline TransmittanceResult transmittance(const AtmosphereParameters& p,const RaySegment& ray,
++                                              double beta_per_m) {
++    TransmittanceResult result;
++    const ShellClip c=clip_atmosphere(p,ray);
++    result.status=c.status;
++    if (c.status != Status::Ok) return result;
++    const IntegralResult integral=optical_depth(p,ray,beta_per_m);
++    result.status=integral.status; result.tau=integral.tau;
++    result.estimated_error=integral.estimated_error; result.evaluations=integral.evaluations;
++    result.ground_occluded=c.ground_occludes;
++    if (result.status == Status::Ok) result.transmittance=::exp(-result.tau);
++    return result;
++}
++
++// The sampler uses the same physical density and numerical tau as transmittance.
++// xi in [0,1) gives tau*=-log1p(-xi). There is a discrete endpoint mass T(L)
++// and a continuous collision density sigma_s(s)*T(s) [1/m]. In this pure
++// scattering model, the distance-sampling throughput factor is ONE on BOTH
++// branches. Do not multiply throughput by transmittance or endpoint_mass again.
++// The remaining approximation is explicit numerical integration/inversion error;
++// the returned error is estimated, so this is not a claim of exact unbiasedness.
++M3_HD inline FreeFlightSample sample_free_flight(const AtmosphereParameters& p,const RaySegment& ray,
++                                                double beta_per_m,double xi) {
++    FreeFlightSample result;
++    detail::PreparedRay r;
++    result.status=detail::prepare(p,ray,r);
++    if (result.status != Status::Ok) return result;
++    if (!finite(beta_per_m)||beta_per_m < 0) { result.status=Status::InvalidCoefficient; return result; }
++    if (!finite(xi)||xi < 0||!(xi < 1)) { result.status=Status::InvalidQuantile; return result; }
++    const ShellClip c=detail::clip(p,r);
++    if (c.status != Status::Ok) { result.status=c.status; return result; }
++    if (c.ground_occludes) { result.endpoint=Endpoint::Ground; result.distance_m=c.ground_distance_m; }
++    else if (finite(r.limit)) { result.endpoint=Endpoint::SegmentEnd; result.distance_m=r.limit; }
++    else { result.endpoint=Endpoint::AtmosphereExit; result.distance_m=c.has_medium ? c.end_m : 0; }
++    result.ray_t=result.distance_m/r.norm;
++    if (!c.has_medium || beta_per_m == 0) return result;
++    const double target=-::log1p(-xi);
++    if (target == 0) {
++        double height=0,radius=0;
++        result.status=detail::height_at(p,detail::point_at(r,c.begin_m),height,radius);
++        if (result.status != Status::Ok) return result;
++        const double sigma=detail::sigma_at_height(height,p.scaleHeight,beta_per_m);
++        if (!finite(sigma)||!(sigma > 0)) { result.status=Status::NumericalUnderflow; return result; }
++        result.scattered=true; result.endpoint=Endpoint::None;
++        result.distance_m=c.begin_m; result.ray_t=c.begin_m/r.norm;
++        result.pdf_per_m=sigma; result.endpoint_mass=0; result.sigma_s_per_m=sigma;
++        return result;
++    }
++    detail::Numerics n{p.tauAbsoluteTolerance,p.tauRelativeTolerance};
++    IntegralResult total;
++    bool classified=false,collision=false;
++    for (unsigned refinement=0;refinement<9;++refinement) {
++        total=detail::integrate_range(p,r,c,c.end_m,beta_per_m,n);
++        result.evaluations+=total.evaluations;
++        if (total.status != Status::Ok) { result.status=total.status; return result; }
++        if (target >= total.tau+total.estimated_error) { classified=true; break; }
++        if (target < total.tau-total.estimated_error) { classified=true; collision=true; break; }
++        n.absolute*=0.0625; n.relative*=0.0625;
++    }
++    if (!classified) { result.status=Status::EndpointUnresolved; return result; }
++    if (!collision) {
++        result.tau=total.tau; result.transmittance=::exp(-total.tau);
++        result.endpoint_mass=result.transmittance; result.estimated_tau_error=total.estimated_error;
++        return result;
++    }
++    double lo=c.begin_m,hi=c.end_m;
++    double t=lo+(hi-lo)*(target/total.tau);
++    const double distance_tolerance=p.distanceAbsoluteTolerance+p.distanceRelativeTolerance*(hi-lo);
++    if (!finite(distance_tolerance)) { result.status=Status::InvalidParameters; return result; }
++    for (std::uint32_t iteration=1;iteration<=p.maxInverseIterations;++iteration) {
++        result.iterations=iteration;
++        // Also retain the current candidate in a failed result for diagnostics;
++        // only status==Ok makes it an accepted sampled distance.
++        result.distance_m=t; result.ray_t=t/r.norm;
++        double height=0,radius=0;
++        result.status=detail::height_at(p,detail::point_at(r,t),height,radius);
++        if (result.status != Status::Ok) return result;
++        if (height < 0) { result.status=Status::InsideGround; return result; }
++        const double sigma=detail::sigma_at_height(height,p.scaleHeight,beta_per_m);
++        if (!finite(sigma)||!(sigma > 0)) { result.status=Status::NumericalUnderflow; return result; }
++        const double wanted_error=0.0625*minimum(p.inverseTauTolerance,sigma*distance_tolerance);
++        if (!(wanted_error > 0)) { result.status=Status::NumericalUnderflow; return result; }
++        n.absolute=minimum(n.absolute,wanted_error);
++        // Each positive panel has the GK roundoff estimate 50*eps*panel_tau.
++        // An equal absolute-error allocation cannot pay that floor at a dense
++        // endpoint of every subdivision. Do not demand sub-roundoff INTERNAL
++        // relative accuracy; the final user tau/distance criteria below remain
++        // mandatory, including the full returned quadrature error estimate.
++        n.relative=maximum(64*DBL_EPSILON,minimum(n.relative,wanted_error/maximum(1,target)));
++        const IntegralResult integral=detail::integrate_range(p,r,c,t,beta_per_m,n);
++        result.evaluations+=integral.evaluations;
++        if (integral.status != Status::Ok) { result.status=integral.status; return result; }
++        const double residual=integral.tau-target;
++        const double combined_error=::fabs(residual)+integral.estimated_error;
++        // Convex radius along a straight line reaches its maximum at a local
++        // bracket endpoint. The corresponding density is a lower bound in that
++        // neighborhood, allowing a residual-to-distance error estimate.
++        const double near_t=maximum(c.begin_m,t-distance_tolerance);
++        const double far_t=minimum(c.end_m,t+distance_tolerance);
++        const double max_radius=maximum(detail::radius_at(r,near_t),detail::radius_at(r,far_t));
++        const double min_sigma=detail::sigma_at_height(max_radius-p.planetRadius,p.scaleHeight,beta_per_m);
++        const double distance_error=min_sigma > 0 ? combined_error/min_sigma : HUGE_VAL;
++        result.tau=integral.tau; result.tau_residual=residual;
++        result.estimated_tau_error=integral.estimated_error;
++        result.estimated_distance_error_m=distance_error;
++        if (combined_error <= p.inverseTauTolerance && distance_error <= distance_tolerance) {
++            result.scattered=true; result.endpoint=Endpoint::None;
++            result.distance_m=t; result.ray_t=t/r.norm;
++            result.transmittance=::exp(-integral.tau);
++            result.pdf_per_m=sigma*result.transmittance; result.endpoint_mass=0;
++            result.sigma_s_per_m=sigma;
++            if (!finite(result.pdf_per_m)||!(result.pdf_per_m > 0)) result.status=Status::NumericalUnderflow;
++            return result;
++        }
++        if (::fabs(residual) <= integral.estimated_error) {
++            n.absolute*=0.0625; n.relative*=0.0625;
++            continue; // An unresolved sign must not move the root bracket.
++        }
++        if (residual > 0) hi=t; else lo=t;
++        const double next_newton=t-residual/sigma;
++        const double margin=0.05*(hi-lo);
++        const double next=finite(next_newton)&&next_newton > lo+margin&&next_newton < hi-margin ?
++            next_newton : lo+0.5*(hi-lo);
++        if (next == t || !(next > lo&&next < hi)) { result.status=Status::InverseRoundoff; return result; }
++        t=next;
++    }
++    result.status=Status::InverseIterations;
++    return result;
++}
++
++} // namespace m3
++
++#undef M3_HD
+diff --git a/include/m3/parameters.hpp b/include/m3/parameters.hpp
+new file mode 100644
+index 0000000..f16b73b
+--- /dev/null
++++ b/include/m3/parameters.hpp
+@@ -0,0 +1,47 @@
++#pragma once
++
++#include <cstdint>
++#include <type_traits>
++
++namespace m3 {
++
++// Shared host/device launch data. Scene coordinates are metres, +Y is up, and
++// the opaque planet centre is (0, groundY - planetRadius, 0). The atmosphere is
++// truncated at planetRadius + atmosphereHeight. M3 has pure Rayleigh scattering
++// with beta(lambda_nm) = beta550 * (550 / lambda_nm)^4 and no absorption.
++struct AtmosphereParameters {
++    std::uint32_t enabled = 0;
++    // Disabling only area-light shadow transmittance is an explicit rendering
++    // approximation. The physically consistent default includes it.
++    std::uint32_t areaNeeTransmittance = 1;
++    double planetRadius = 6'371'000.0;
++    double atmosphereHeight = 100'000.0;
++    double scaleHeight = 8'000.0;
++    double groundY = -6.0;
++    double beta550 = 1.3e-5; // Sea-level scattering/extinction coefficient [1/m].
++    float groundAlbedo = 0.1f;
++
++    // Optical-depth error targets are dimensionless. The quadrature returns an
++    // error estimate, not a certified interval-arithmetic bound. An unresolved
++    // integral/quantile is an explicit failure, never a vacuum fallback.
++    double tauAbsoluteTolerance = 1e-10;
++    double tauRelativeTolerance = 1e-8;
++    double inverseTauTolerance = 1e-9;
++    // A millimetre allows a roundoff-resolved inverse even for rare events near
++    // the 100 km top, where the local density is extremely small. This is still
++    // below the float OptiX position spacing there; it is an explicit tolerance.
++    double distanceAbsoluteTolerance = 1e-3; // Metres.
++    double distanceRelativeTolerance = 1e-10;
++    std::uint32_t maxQuadratureDepth = 16;
++    // Per optical-depth evaluation. Inversion has its own bounded iteration
++    // count; its result also reports the total number of density evaluations.
++    std::uint32_t maxQuadratureEvaluations = 4096;
++    std::uint32_t maxInverseIterations = 64;
++};
++
++static_assert(std::is_standard_layout<AtmosphereParameters>::value,
++              "M3 parameters cross the host/device ABI verbatim");
++static_assert(std::is_trivially_copyable<AtmosphereParameters>::value,
++              "M3 parameters must be uploadable as bytes");
++
++} // namespace m3
+diff --git a/include/m3/position.hpp b/include/m3/position.hpp
+new file mode 100644
+index 0000000..0075a70
+--- /dev/null
++++ b/include/m3/position.hpp
+@@ -0,0 +1,80 @@
++#pragma once
++
++#include "m1/math.hpp"
++#include "m3/atmosphere.hpp"
++#include <cfloat>
++
++namespace m3 {
++
++struct MediumPointResult {
++    m1::Vec3 position{};
++    Status status = Status::NonfiniteGeometry;
++    bool rounded_outward = false;
++};
++
++// OptiX positions are floats. A valid double-precision scattering point close
++// to the opaque planet can round inside it, particularly far from the local
++// scene origin. Preserve the spherical domain when choosing its float image.
++// This does not move a truly invalid point out of the planet.
++//
++// Usually nearest rounding is returned unchanged. Only if that image is inside
++// the ground, round the inward-rounded coordinates toward the planet's exterior
++// by one adjacent float step. Coordinates already rounded outward stay intact.
++// Thus each absolute planet-relative coordinate is at least its exact value,
++// which preserves the sphere's exterior. This is a representational displacement
++// of at most one float step per changed coordinate, with no metric epsilon.
++M1_HD inline MediumPointResult represent_medium_point(
++    const AtmosphereParameters& parameters, DVec3 exact) {
++    MediumPointResult result;
++    result.status = validate_parameters(parameters);
++    if (result.status != Status::Ok) return result;
++    if (!finite(exact)) {
++        result.status = Status::NonfiniteGeometry;
++        return result;
++    }
++    double exact_height = 0, radius = 0;
++    result.status = detail::height_at(parameters, exact, exact_height, radius);
++    if (result.status != Status::Ok) return result;
++    if (exact_height < 0) {
++        result.status = Status::InsideGround;
++        return result;
++    }
++    // Reject values outside the float representation before performing a
++    // narrowing conversion; the renderer cannot trace such a position.
++    if (fabs(exact.x) > double(FLT_MAX) || fabs(exact.y) > double(FLT_MAX) ||
++        fabs(exact.z) > double(FLT_MAX)) {
++        result.status = Status::NonfiniteGeometry;
++        return result;
++    }
++    result.position = {float(exact.x), float(exact.y), float(exact.z)};
++    double rounded_height = 0;
++    result.status = detail::height_at(parameters,
++        {result.position.x, result.position.y, result.position.z}, rounded_height, radius);
++    if (result.status != Status::Ok || rounded_height >= 0) return result;
++
++    const double relative_y = parameters.planetRadius + (exact.y - parameters.groundY);
++    const double outward[3] = {exact.x, relative_y, exact.z};
++    const double coordinate[3] = {exact.x, exact.y, exact.z};
++    float rounded[3] = {result.position.x, result.position.y, result.position.z};
++    for (unsigned axis = 0; axis < 3; ++axis) {
++        if (outward[axis] > 0 && double(rounded[axis]) < coordinate[axis]) {
++            rounded[axis] = nextafterf(rounded[axis], HUGE_VALF);
++            result.rounded_outward = true;
++        } else if (outward[axis] < 0 && double(rounded[axis]) > coordinate[axis]) {
++            rounded[axis] = nextafterf(rounded[axis], -HUGE_VALF);
++            result.rounded_outward = true;
++        }
++    }
++    result.position = {rounded[0], rounded[1], rounded[2]};
++    if (!m1::finite(result.position)) {
++        result.status = Status::NonfiniteGeometry;
++        return result;
++    }
++    result.status = detail::height_at(parameters,
++        {rounded[0], rounded[1], rounded[2]}, rounded_height, radius);
++    if (result.status == Status::Ok && rounded_height < 0)
++        result.status = Status::InsideGround;
++    return result;
++}
++
++} // namespace m3
+diff --git a/include/m3/transport.hpp b/include/m3/transport.hpp
+new file mode 100644
+index 0000000..2799c41
+--- /dev/null
++++ b/include/m3/transport.hpp
+@@ -0,0 +1,135 @@
++#pragma once
++
++#include "m1/math.hpp"
++#include <cfloat>
++
++namespace m3 {
++
++inline constexpr double transport_pi = 3.141592653589793238462643383279502884;
++
++namespace transport_detail {
++M1_HD inline bool finite(double value) {
++    return value == value && fabs(value) <= DBL_MAX;
++}
++M1_HD inline double invalid() { return double(NAN); }
++} // namespace transport_detail
++
++// Scalar, unpolarized Rayleigh phase density per unit solid angle. The direct
++// cosine API requires its physical domain; invalid inputs remain observable.
++M1_HD inline double rayleigh_phase(double cosine) {
++    if (!transport_detail::finite(cosine) || cosine < -1.0 || cosine > 1.0)
++        return transport_detail::invalid();
++    return (3.0 / (16.0 * transport_pi)) * (1.0 + cosine * cosine);
++}
++M1_HD inline float rayleigh_phase(float cosine) {
++    return static_cast<float>(rayleigh_phase(double(cosine)));
++}
++
++// Marginal CDF in mu: azimuth has already been integrated over [0, 2*pi).
++M1_HD inline double rayleigh_mu_cdf(double cosine) {
++    if (!transport_detail::finite(cosine) || cosine < -1.0 || cosine > 1.0)
++        return transport_detail::invalid();
++    return 0.5 + cosine * (3.0 + cosine * cosine) / 8.0;
++}
++
++M1_HD inline double sample_rayleigh_mu(double u) {
++    if (!transport_detail::finite(u) || u < 0.0 || u > 1.0)
++        return transport_detail::invalid();
++    if (u == 0.0) return -1.0;
++    if (u == 1.0) return 1.0;
++    // mu^3 + 3*mu = 8*u - 4. This is the real, monotone inverse on [-1, 1].
++    return 2.0 * sinh(asinh(4.0 * u - 2.0) / 3.0);
++}
++
++// OptiX ray directions are floats and need not have exactly unit norm when
++// promoted to double. Normalize the dot product in double. For finite nonzero
++// vectors Cauchy-Schwarz guarantees [-1,1]; only roundoff can cross that range.
++// This is not an angular support tolerance, a PDF floor, or an invalid-ray fix.
++M1_HD inline double rayleigh_direction_cosine(m1::Vec3 a, m1::Vec3 b) {
++    if (!m1::finite(a) || !m1::finite(b)) return transport_detail::invalid();
++    const double ax = a.x, ay = a.y, az = a.z;
++    const double bx = b.x, by = b.y, bz = b.z;
++    const double a2 = ax * ax + ay * ay + az * az;
++    const double b2 = bx * bx + by * by + bz * bz;
++    if (!(a2 > 0.0) || !(b2 > 0.0)) return transport_detail::invalid();
++    const double cosine = (ax * bx + ay * by + az * bz) / (sqrt(a2) * sqrt(b2));
++    if (!transport_detail::finite(cosine)) return transport_detail::invalid();
++    if (cosine < -1.0) return -1.0;
++    if (cosine > 1.0) return 1.0;
++    return cosine;
++}
++
++M1_HD inline float rayleigh_phase_directions(m1::Vec3 a, m1::Vec3 b) {
++    return static_cast<float>(rayleigh_phase(rayleigh_direction_cosine(a, b)));
++}
++
++struct RayleighDirectionSample {
++    m1::Vec3 direction{};
++    float value = 0.0f;
++    float pdf = 0.0f;
++    bool valid = false;
++};
++
++// previous_ray_direction and the returned direction follow the camera path,
++// toward successive vertices. For scalar Rayleigh, reciprocity makes this
++// backward kernel equal to the forward phase density. Do not assume the same
++// convention for a future oriented, conditional neural scattering kernel.
++// value and the actual proposal pdf remain distinct fields for that reason.
++M1_HD inline RayleighDirectionSample sample_rayleigh(
++    m1::Vec3 previous_ray_direction, float u_mu, float u_phi) {
++    if (!m1::finite(previous_ray_direction) || !m1::finite(u_mu) || !m1::finite(u_phi) ||
++        u_mu < 0.0f || u_mu > 1.0f || u_phi < 0.0f || u_phi >= 1.0f)
++        return {};
++    const double dx = previous_ray_direction.x, dy = previous_ray_direction.y,
++                 dz = previous_ray_direction.z;
++    const double length_squared = dx * dx + dy * dy + dz * dz;
++    if (!(length_squared > 0.0)) return {};
++    const double inverse_length = 1.0 / sqrt(length_squared);
++    const m1::Vec3 axis{float(dx * inverse_length), float(dy * inverse_length),
++                        float(dz * inverse_length)};
++    const double cosine = sample_rayleigh_mu(double(u_mu));
++    if (!transport_detail::finite(cosine) || cosine < -1.0 || cosine > 1.0)
++        return {};
++    const double sine = sqrt((1.0 - cosine) * (1.0 + cosine));
++    const double azimuth = (2.0 * transport_pi) * double(u_phi);
++    const m1::Vec3 local{float(sine * cos(azimuth)), float(sine * sin(azimuth)),
++                         float(cosine)};
++    const auto frame = m1::make_frame(axis);
++    const auto direction = m1::normalize(frame.to_world(local));
++    const float density = rayleigh_phase_directions(previous_ray_direction, direction);
++    if (!m1::finite(direction) || !m1::finite(density) || !(density > 0.0f)) return {};
++    return {direction, density, density, true};
++}
++
++// Existing render modes: 0 = MIS, 1 = continuation sampling, 2 = NEE.
++// Callers validate nonnegative finite PDFs and the mode. These weights use
++// angular densities conditional on a reached scattering vertex. Free-flight
++// survival and roulette are represented by their sampling/throughput factors;
++// they must not be inserted a second time in an endpoint contribution.
++M1_HD inline float sun_emission_weight(int bounce, bool previous_delta,
++    unsigned direct_mode, float scattering_pdf, float sun_pdf) {
++    if (bounce == 0 || previous_delta || direct_mode == 1u) return 1.0f;
++    if (direct_mode == 2u) return 0.0f;
++    return m1::power_heuristic(scattering_pdf, sun_pdf);
++}
++
++M1_HD inline float nee_weight(unsigned direct_mode, float light_pdf, float scattering_pdf) {
++    if (direct_mode == 1u) return 0.0f;
++    if (direct_mode == 2u) return 1.0f;
++    return m1::power_heuristic(light_pdf, scattering_pdf);
++}
++
++M1_HD inline bool area_emission_needs_pdf(bool previous_medium, int bounce,
++    bool previous_delta, unsigned direct_mode) {
++    return !previous_medium && bounce > 0 && !previous_delta && direct_mode == 0u;
++}
++
++M1_HD inline float area_emission_weight(bool previous_medium, int bounce,
++    bool previous_delta, unsigned direct_mode, float scattering_pdf, float light_pdf) {
++    // M3 intentionally has no area-light NEE at a medium vertex. A phase path
++    // that reaches an emitter is therefore the sole strategy, even in mode 2.
++    if (previous_medium) return 1.0f;
++    return sun_emission_weight(bounce, previous_delta, direct_mode, scattering_pdf, light_pdf);
++}
++
++} // namespace m3
+diff --git a/include/sceneDescIO.hpp b/include/sceneDescIO.hpp
+index eca7469..991e24f 100644
+--- a/include/sceneDescIO.hpp
++++ b/include/sceneDescIO.hpp
+@@ -15,6 +15,8 @@
+ #include <cctype>
+ #include <cmath>
+ #include <stdexcept>
++#include <limits>
++#include "m3/atmosphere.hpp"
+ 
+ #if defined(_WIN32)
+ #ifndef NOMINMAX
+@@ -71,7 +73,8 @@ namespace sceneIO {
+     };
+ 
+     struct Outputs {
+-        std::array<int, 2> resolution{1920, 1090};
++        // Matches the existing initial window size when the field is absent.
++        std::array<int, 2> resolution{1280, 720};
+     };
+ 
+     struct Camera {
+@@ -103,14 +106,123 @@ namespace sceneIO {
+ 
+     struct Scene {
+         std::vector<Object>     objects         {Object{}};
++        Outputs                 outputs         {};
+         Camera                  camera          {};
+         Environment             environment     {};
+         Integrator              integrator      {};
+         Spectrum                spectrum        {};
+         Display                 display         {};
++        // Independent opt-in medium. Absent in existing M1/M2 scenes = vacuum.
++        m3::AtmosphereParameters rayleigh        {};
+         bool                    enableGroundRendering {true};
+     };
+ 
++    inline void validateRayleighParameters(const m3::AtmosphereParameters& parameters) {
++        const auto status = m3::validate_parameters(parameters);
++        if (status != m3::Status::Ok)
++            throw std::invalid_argument(std::string("Invalid rayleigh parameters: ") + m3::status_name(status));
++    }
++
++    // Keep the scene, launch, and output metadata on the same parameter POD.
++    // Method/law tags are fixed contracts, not selectable unimplemented methods.
++    inline nlohmann::ordered_json rayleighJson(const m3::AtmosphereParameters& v) {
++        return {
++            {"enabled", v.enabled != 0},
++            {"areaNeeTransmittance", v.areaNeeTransmittance != 0},
++            {"solver", "numerical_reference"},
++            {"wavelengthLaw", "lambda^-4"},
++            {"planetRadius", v.planetRadius},
++            {"atmosphereHeight", v.atmosphereHeight},
++            {"scaleHeight", v.scaleHeight},
++            {"groundY", v.groundY},
++            {"beta550", v.beta550},
++            {"groundAlbedo", v.groundAlbedo},
++            {"tauAbsoluteTolerance", v.tauAbsoluteTolerance},
++            {"tauRelativeTolerance", v.tauRelativeTolerance},
++            {"inverseTauTolerance", v.inverseTauTolerance},
++            {"distanceAbsoluteTolerance", v.distanceAbsoluteTolerance},
++            {"distanceRelativeTolerance", v.distanceRelativeTolerance},
++            {"maxQuadratureDepth", v.maxQuadratureDepth},
++            {"maxQuadratureEvaluations", v.maxQuadratureEvaluations},
++            {"maxInverseIterations", v.maxInverseIterations}
++        };
++    }
++
++    inline void readRayleigh(const nlohmann::ordered_json& j, m3::AtmosphereParameters& v) {
++        if (!j.is_object()) throw std::invalid_argument("rayleigh must be an object");
++        static const std::unordered_set<std::string> fields{
++            "enabled", "areaNeeTransmittance", "solver", "wavelengthLaw", "planetRadius",
++            "atmosphereHeight", "scaleHeight", "groundY", "beta550", "groundAlbedo",
++            "tauAbsoluteTolerance", "tauRelativeTolerance", "inverseTauTolerance",
++            "distanceAbsoluteTolerance", "distanceRelativeTolerance", "maxQuadratureDepth",
++            "maxQuadratureEvaluations", "maxInverseIterations"
++        };
++        for (auto it = j.begin(); it != j.end(); ++it)
++            if (fields.count(it.key()) == 0)
++                throw std::invalid_argument("Unknown rayleigh field: " + it.key());
++        if (j.value("solver", std::string("numerical_reference")) != "numerical_reference")
++            throw std::invalid_argument("rayleigh.solver must be numerical_reference (no LUT or Chapman backend)");
++        if (j.value("wavelengthLaw", std::string("lambda^-4")) != "lambda^-4")
++            throw std::invalid_argument("rayleigh.wavelengthLaw must be lambda^-4");
++
++        const auto flag = [&](const char* field, uint32_t fallback) {
++            if (!j.contains(field)) return fallback;
++            if (!j[field].is_boolean()) throw std::invalid_argument(std::string("rayleigh.") + field + " must be boolean");
++            return j[field].get<bool>() ? 1u : 0u;
++        };
++        const auto budget = [&](const char* field, uint32_t fallback) {
++            if (!j.contains(field)) return fallback;
++            const auto& value = j[field];
++            if (!value.is_number_integer() || (!value.is_number_unsigned() && value.get<int64_t>() < 0))
++                throw std::invalid_argument(std::string("rayleigh.") + field + " must be a positive integer");
++            const auto number = value.get<uint64_t>();
++            if (number > std::numeric_limits<uint32_t>::max())
++                throw std::invalid_argument(std::string("rayleigh.") + field + " exceeds uint32 range");
++            return static_cast<uint32_t>(number);
++        };
++        v.enabled = flag("enabled", v.enabled);
++        v.areaNeeTransmittance = flag("areaNeeTransmittance", v.areaNeeTransmittance);
++        v.planetRadius = j.value("planetRadius", v.planetRadius);
++        v.atmosphereHeight = j.value("atmosphereHeight", v.atmosphereHeight);
++        v.scaleHeight = j.value("scaleHeight", v.scaleHeight);
++        v.groundY = j.value("groundY", v.groundY);
++        v.beta550 = j.value("beta550", v.beta550);
++        v.groundAlbedo = j.value("groundAlbedo", v.groundAlbedo);
++        v.tauAbsoluteTolerance = j.value("tauAbsoluteTolerance", v.tauAbsoluteTolerance);
++        v.tauRelativeTolerance = j.value("tauRelativeTolerance", v.tauRelativeTolerance);
++        v.inverseTauTolerance = j.value("inverseTauTolerance", v.inverseTauTolerance);
++        v.distanceAbsoluteTolerance = j.value("distanceAbsoluteTolerance", v.distanceAbsoluteTolerance);
++        v.distanceRelativeTolerance = j.value("distanceRelativeTolerance", v.distanceRelativeTolerance);
++        v.maxQuadratureDepth = budget("maxQuadratureDepth", v.maxQuadratureDepth);
++        v.maxQuadratureEvaluations = budget("maxQuadratureEvaluations", v.maxQuadratureEvaluations);
++        v.maxInverseIterations = budget("maxInverseIterations", v.maxInverseIterations);
++        validateRayleighParameters(v);
++    }
++
++    inline void validateRayleighScene(const Scene& scene) {
++        validateRayleighParameters(scene.rayleigh);
++        if (!scene.rayleigh.enabled) return;
++        if (!scene.integrator.m1Surface || !scene.integrator.applySpectralRendering)
++            throw std::invalid_argument("rayleigh.enabled requires m1Surface=true and applySpectralRendering=true");
++        if (scene.integrator.type != "Path Tracing")
++            throw std::invalid_argument("rayleigh requires integrator.type=Path Tracing");
++        if (!scene.environment.file.empty() || scene.enableGroundRendering)
++            throw std::invalid_argument("rayleigh requires environment.file empty and enableGroundRendering=false; it supplies its own spherical ground");
++        for (const auto& object : scene.objects) {
++            auto extension = std::filesystem::path(object.file).extension().string();
++            for (auto& c : extension) c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
++            if (object.type != "mesh" || extension == ".vdb" || extension == ".nvdb")
++                throw std::invalid_argument("rayleigh supports only mesh objects, not VDB or other media: " + object.name);
++        }
++        for (const auto value : scene.camera.from)
++            if (!std::isfinite(value)) throw std::invalid_argument("rayleigh camera position must be finite");
++        const double centerY = scene.rayleigh.groundY - scene.rayleigh.planetRadius;
++        const double radius = std::hypot(double(scene.camera.from[0]),
++            double(scene.camera.from[1]) - centerY, double(scene.camera.from[2]));
++        if (!(radius > scene.rayleigh.planetRadius))
++            throw std::invalid_argument("rayleigh camera must start above the opaque planet surface (check groundY)");
++    }
++
+     // Environment
+     inline void from_json(const nlohmann::ordered_json& j, Environment& v){
+         v.file = j.value("file", v.file);
+@@ -205,7 +317,25 @@ namespace sceneIO {
+ 
+     // Outputs
+     inline void from_json(const nlohmann::ordered_json& j, Outputs& v){
+-        v.resolution = j.value("resolution", v.resolution);
++        if (!j.is_object()) throw std::invalid_argument("outputs must be an object");
++        for (auto it = j.begin(); it != j.end(); ++it)
++            if (it.key() != "resolution") throw std::invalid_argument("Unknown outputs field: " + it.key());
++        if (!j.contains("resolution")) return;
++        const auto& resolution = j["resolution"];
++        if (!resolution.is_array() || resolution.size() != 2)
++            throw std::invalid_argument("outputs.resolution must be [width, height]");
++        for (size_t axis = 0; axis < 2; ++axis) {
++            const auto& value = resolution[axis];
++            if (!value.is_number_integer() || (!value.is_number_unsigned() && value.get<int64_t>() <= 0))
++                throw std::invalid_argument("outputs.resolution dimensions must be positive integers");
++            const auto number = value.get<uint64_t>();
++            if (number == 0 || number > static_cast<uint64_t>(std::numeric_limits<int>::max()))
++                throw std::invalid_argument("outputs.resolution dimension is outside the supported integer range");
++            v.resolution[axis] = static_cast<int>(number);
++        }
++        const auto pixels = uint64_t(v.resolution[0]) * uint64_t(v.resolution[1]);
++        if (pixels > static_cast<uint64_t>(std::numeric_limits<int>::max()))
++            throw std::invalid_argument("outputs.resolution exceeds the framebuffer index range");
+     }
+ 
+     inline void to_json(nlohmann::ordered_json& j, const Outputs& v){
+@@ -273,23 +403,28 @@ namespace sceneIO {
+ 
+     inline void from_json(const nlohmann::ordered_json& j, Scene& v){
+         if(j.contains("objects"))       v.objects       = j["objects"].get<std::vector<Object>>();
++        if(j.contains("outputs"))       v.outputs       = j["outputs"].get<Outputs>();
+         if(j.contains("camera"))        v.camera        = j["camera"].get<Camera>();
+         if(j.contains("environment"))   v.environment   = j["environment"].get<Environment>();
+         if(j.contains("integrator"))    v.integrator    = j["integrator"].get<Integrator>();
+         if(j.contains("spectrum"))      v.spectrum      = j["spectrum"].get<Spectrum>();
+         if(j.contains("display"))       v.display       = j["display"].get<Display>();
++        if(j.contains("rayleigh"))      readRayleigh(j["rayleigh"], v.rayleigh);
+         v.enableGroundRendering                         = j.value("enableGroundRendering", v.enableGroundRendering);
++        validateRayleighScene(v);
+     }
+ 
+     inline void to_json(nlohmann::ordered_json& j, const Scene& v) 
+     {
+         j = {
+             {"objects", v.objects},
++            {"outputs", v.outputs},
+             {"camera",  v.camera},
+             {"environment", v.environment},
+             {"integrator", v.integrator},
+             {"spectrum", v.spectrum},
+             {"display", v.display},
++            {"rayleigh", rayleighJson(v.rayleigh)},
+             {"enableGroundRendering", v.enableGroundRendering}
+         };
+     }
+@@ -397,6 +532,10 @@ namespace sceneIO {
+         nlohmann::ordered_json def = defaultJson();
+         nlohmann::ordered_json merged = def;
+         merged.merge_patch(j);
++        // JSON merge-patch treats null as deletion. Preserve the submitted M3
++        // object so null/bad types cannot silently disable it or reset a value.
++        if (j.contains("rayleigh")) merged["rayleigh"] = j["rayleigh"];
++        if (j.contains("outputs")) merged["outputs"] = j["outputs"];
+         out = merged.get<Scene>();
+         if(writeBackDefaults && merged != j) saveJson(jsonPath, merged);
+         return true;
+diff --git a/scene/m3_emerald_day.json b/scene/m3_emerald_day.json
+new file mode 100644
+index 0000000..53c1bce
+--- /dev/null
++++ b/scene/m3_emerald_day.json
+@@ -0,0 +1,107 @@
++{
++  "objects": [
++    {
++      "name": "Emerald Square v4.1 Day",
++      "type": "mesh",
++      "file": "EmeraldSquare_v4_1/EmeraldSquare_Day.fbx",
++      "materialProfile": "orca_metal_rough",
++      "TRS": {
++        "transform": [
++          0,
++          0,
++          0
++        ],
++        "scale": [
++          1,
++          1,
++          1
++        ],
++        "rotation": [
++          0,
++          0,
++          0,
++          1
++        ]
++      },
++      "placeCenterBBoxAtOrigin": false,
++      "placeOnGround": false,
++      "normalizeScale": false
++    }
++  ],
++  "camera": {
++    "from": [
++      -38.370411,
++      1.460394,
++      75.72155
++    ],
++    "at": [
++      -37.153553,
++      1.50605,
++      65.795967
++    ],
++    "up": [
++      -0.0005565,
++      0.9999896,
++      0.0045326
++    ],
++    "fov": 42,
++    "focalLength": 50,
++    "fValue": 8,
++    "pintDist": 20,
++    "sensitivity": 1
++  },
++  "environment": {
++    "file": ""
++  },
++  "integrator": {
++    "type": "Path Tracing",
++    "applySpectralRendering": true,
++    "m1Surface": true,
++    "spp": 1,
++    "maxBounce": 16,
++    "isAccumulate": true,
++    "m1DirectMode": "mis",
++    "m1RrDepth": 5,
++    "m1Seed": 17,
++    "m1SunEnabled": true,
++    "m1SunScale": 1,
++    "m1SunAngularRadiusDeg": 0.25,
++    "m1SunZenithDeg": 35,
++    "m1SunAzimuthDeg": 135,
++    "m1RayEpsilon": 0.0001
++  },
++  "spectrum": {
++    "m1AssetDirectory": "spectrum/m1"
++  },
++  "enableGroundRendering": false,
++  "display": {
++    "exposure": 0.02,
++    "white": 100
++  },
++  "outputs": {
++    "resolution": [
++      640,
++      360
++    ]
++  },
++  "rayleigh": {
++    "enabled": true,
++    "areaNeeTransmittance": true,
++    "solver": "numerical_reference",
++    "wavelengthLaw": "lambda^-4",
++    "planetRadius": 6371000,
++    "atmosphereHeight": 100000,
++    "scaleHeight": 8000,
++    "groundY": -6,
++    "beta550": 1.3e-05,
++    "groundAlbedo": 0.1,
++    "tauAbsoluteTolerance": 1e-10,
++    "tauRelativeTolerance": 1e-08,
++    "inverseTauTolerance": 1e-09,
++    "distanceAbsoluteTolerance": 0.001,
++    "distanceRelativeTolerance": 1e-10,
++    "maxQuadratureDepth": 16,
++    "maxQuadratureEvaluations": 4096,
++    "maxInverseIterations": 64
++  }
++}
+diff --git a/scene/m3_emerald_overview.json b/scene/m3_emerald_overview.json
+new file mode 100644
+index 0000000..d20acaf
+--- /dev/null
++++ b/scene/m3_emerald_overview.json
+@@ -0,0 +1,107 @@
++{
++  "objects": [
++    {
++      "name": "Emerald Square v4.1 Day",
++      "type": "mesh",
++      "file": "EmeraldSquare_v4_1/EmeraldSquare_Day.fbx",
++      "materialProfile": "orca_metal_rough",
++      "TRS": {
++        "transform": [
++          0,
++          0,
++          0
++        ],
++        "scale": [
++          1,
++          1,
++          1
++        ],
++        "rotation": [
++          0,
++          0,
++          0,
++          1
++        ]
++      },
++      "placeCenterBBoxAtOrigin": false,
++      "placeOnGround": false,
++      "normalizeScale": false
++    }
++  ],
++  "camera": {
++    "from": [
++      -145,
++      95,
++      160
++    ],
++    "at": [
++      0,
++      15,
++      0
++    ],
++    "up": [
++      0,
++      1,
++      0
++    ],
++    "fov": 45,
++    "focalLength": 50,
++    "fValue": 8,
++    "pintDist": 200,
++    "sensitivity": 1
++  },
++  "environment": {
++    "file": ""
++  },
++  "integrator": {
++    "type": "Path Tracing",
++    "applySpectralRendering": true,
++    "m1Surface": true,
++    "spp": 1,
++    "maxBounce": 16,
++    "isAccumulate": true,
++    "m1DirectMode": "mis",
++    "m1RrDepth": 5,
++    "m1Seed": 17,
++    "m1SunEnabled": true,
++    "m1SunScale": 1,
++    "m1SunAngularRadiusDeg": 0.25,
++    "m1SunZenithDeg": 35,
++    "m1SunAzimuthDeg": 135,
++    "m1RayEpsilon": 0.0001
++  },
++  "spectrum": {
++    "m1AssetDirectory": "spectrum/m1"
++  },
++  "enableGroundRendering": false,
++  "display": {
++    "exposure": 0.02,
++    "white": 100
++  },
++  "outputs": {
++    "resolution": [
++      640,
++      360
++    ]
++  },
++  "rayleigh": {
++    "enabled": true,
++    "areaNeeTransmittance": true,
++    "solver": "numerical_reference",
++    "wavelengthLaw": "lambda^-4",
++    "planetRadius": 6371000,
++    "atmosphereHeight": 100000,
++    "scaleHeight": 8000,
++    "groundY": -6,
++    "beta550": 1.3e-05,
++    "groundAlbedo": 0.1,
++    "tauAbsoluteTolerance": 1e-10,
++    "tauRelativeTolerance": 1e-08,
++    "inverseTauTolerance": 1e-09,
++    "distanceAbsoluteTolerance": 0.001,
++    "distanceRelativeTolerance": 1e-10,
++    "maxQuadratureDepth": 16,
++    "maxQuadratureEvaluations": 4096,
++    "maxInverseIterations": 64
++  }
++}
+diff --git a/scene/m3_emerald_sunset.json b/scene/m3_emerald_sunset.json
+new file mode 100644
+index 0000000..ffe7fe8
+--- /dev/null
++++ b/scene/m3_emerald_sunset.json
+@@ -0,0 +1,107 @@
++{
++  "objects": [
++    {
++      "name": "Emerald Square v4.1 Day",
++      "type": "mesh",
++      "file": "EmeraldSquare_v4_1/EmeraldSquare_Day.fbx",
++      "materialProfile": "orca_metal_rough",
++      "TRS": {
++        "transform": [
++          0,
++          0,
++          0
++        ],
++        "scale": [
++          1,
++          1,
++          1
++        ],
++        "rotation": [
++          0,
++          0,
++          0,
++          1
++        ]
++      },
++      "placeCenterBBoxAtOrigin": false,
++      "placeOnGround": false,
++      "normalizeScale": false
++    }
++  ],
++  "camera": {
++    "from": [
++      -145,
++      70,
++      160
++    ],
++    "at": [
++      0,
++      20,
++      0
++    ],
++    "up": [
++      0,
++      1,
++      0
++    ],
++    "fov": 45,
++    "focalLength": 50,
++    "fValue": 8,
++    "pintDist": 200,
++    "sensitivity": 1
++  },
++  "environment": {
++    "file": ""
++  },
++  "integrator": {
++    "type": "Path Tracing",
++    "applySpectralRendering": true,
++    "m1Surface": true,
++    "spp": 1,
++    "maxBounce": 16,
++    "isAccumulate": true,
++    "m1DirectMode": "mis",
++    "m1RrDepth": 5,
++    "m1Seed": 17,
++    "m1SunEnabled": true,
++    "m1SunScale": 1,
++    "m1SunAngularRadiusDeg": 0.25,
++    "m1SunZenithDeg": 88,
++    "m1SunAzimuthDeg": 315,
++    "m1RayEpsilon": 0.0001
++  },
++  "spectrum": {
++    "m1AssetDirectory": "spectrum/m1"
++  },
++  "enableGroundRendering": false,
++  "display": {
++    "exposure": 0.02,
++    "white": 100
++  },
++  "outputs": {
++    "resolution": [
++      640,
++      360
++    ]
++  },
++  "rayleigh": {
++    "enabled": true,
++    "areaNeeTransmittance": true,
++    "solver": "numerical_reference",
++    "wavelengthLaw": "lambda^-4",
++    "planetRadius": 6371000,
++    "atmosphereHeight": 100000,
++    "scaleHeight": 8000,
++    "groundY": -6,
++    "beta550": 1.3e-05,
++    "groundAlbedo": 0.1,
++    "tauAbsoluteTolerance": 1e-10,
++    "tauRelativeTolerance": 1e-08,
++    "inverseTauTolerance": 1e-09,
++    "distanceAbsoluteTolerance": 0.001,
++    "distanceRelativeTolerance": 1e-10,
++    "maxQuadratureDepth": 16,
++    "maxQuadratureEvaluations": 4096,
++    "maxInverseIterations": 64
++  }
++}
+diff --git a/scene/m3_emerald_vacuum.json b/scene/m3_emerald_vacuum.json
+new file mode 100644
+index 0000000..2c7260d
+--- /dev/null
++++ b/scene/m3_emerald_vacuum.json
+@@ -0,0 +1,107 @@
++{
++  "objects": [
++    {
++      "name": "Emerald Square v4.1 Day",
++      "type": "mesh",
++      "file": "EmeraldSquare_v4_1/EmeraldSquare_Day.fbx",
++      "materialProfile": "orca_metal_rough",
++      "TRS": {
++        "transform": [
++          0,
++          0,
++          0
++        ],
++        "scale": [
++          1,
++          1,
++          1
++        ],
++        "rotation": [
++          0,
++          0,
++          0,
++          1
++        ]
++      },
++      "placeCenterBBoxAtOrigin": false,
++      "placeOnGround": false,
++      "normalizeScale": false
++    }
++  ],
++  "camera": {
++    "from": [
++      -38.370411,
++      1.460394,
++      75.72155
++    ],
++    "at": [
++      -37.153553,
++      1.50605,
++      65.795967
++    ],
++    "up": [
++      -0.0005565,
++      0.9999896,
++      0.0045326
++    ],
++    "fov": 42,
++    "focalLength": 50,
++    "fValue": 8,
++    "pintDist": 20,
++    "sensitivity": 1
++  },
++  "environment": {
++    "file": ""
++  },
++  "integrator": {
++    "type": "Path Tracing",
++    "applySpectralRendering": true,
++    "m1Surface": true,
++    "spp": 1,
++    "maxBounce": 16,
++    "isAccumulate": true,
++    "m1DirectMode": "mis",
++    "m1RrDepth": 5,
++    "m1Seed": 17,
++    "m1SunEnabled": true,
++    "m1SunScale": 1,
++    "m1SunAngularRadiusDeg": 0.25,
++    "m1SunZenithDeg": 35,
++    "m1SunAzimuthDeg": 135,
++    "m1RayEpsilon": 0.0001
++  },
++  "spectrum": {
++    "m1AssetDirectory": "spectrum/m1"
++  },
++  "enableGroundRendering": false,
++  "display": {
++    "exposure": 0.02,
++    "white": 100
++  },
++  "outputs": {
++    "resolution": [
++      640,
++      360
++    ]
++  },
++  "rayleigh": {
++    "enabled": true,
++    "areaNeeTransmittance": true,
++    "solver": "numerical_reference",
++    "wavelengthLaw": "lambda^-4",
++    "planetRadius": 6371000,
++    "atmosphereHeight": 100000,
++    "scaleHeight": 8000,
++    "groundY": -6,
++    "beta550": 0,
++    "groundAlbedo": 0.1,
++    "tauAbsoluteTolerance": 1e-10,
++    "tauRelativeTolerance": 1e-08,
++    "inverseTauTolerance": 1e-09,
++    "distanceAbsoluteTolerance": 0.001,
++    "distanceRelativeTolerance": 1e-10,
++    "maxQuadratureDepth": 16,
++    "maxQuadratureEvaluations": 4096,
++    "maxInverseIterations": 64
++  }
++}
+diff --git a/scene/m3_rayleigh_sky.json b/scene/m3_rayleigh_sky.json
+new file mode 100644
+index 0000000..d68ce95
+--- /dev/null
++++ b/scene/m3_rayleigh_sky.json
+@@ -0,0 +1,79 @@
++{
++  "objects": [],
++  "camera": {
++    "from": [
++      0,
++      2,
++      0
++    ],
++    "at": [
++      0,
++      2.15,
++      -1
++    ],
++    "up": [
++      0,
++      1,
++      0
++    ],
++    "fov": 60,
++    "focalLength": 50,
++    "fValue": 8,
++    "pintDist": 20,
++    "sensitivity": 1
++  },
++  "environment": {
++    "file": ""
++  },
++  "integrator": {
++    "type": "Path Tracing",
++    "applySpectralRendering": true,
++    "m1Surface": true,
++    "spp": 1,
++    "maxBounce": 16,
++    "isAccumulate": true,
++    "m1DirectMode": "mis",
++    "m1RrDepth": 5,
++    "m1Seed": 17,
++    "m1SunEnabled": true,
++    "m1SunScale": 1,
++    "m1SunAngularRadiusDeg": 0.25,
++    "m1SunZenithDeg": 35,
++    "m1SunAzimuthDeg": 135,
++    "m1RayEpsilon": 0.0001
++  },
++  "spectrum": {
++    "m1AssetDirectory": "spectrum/m1"
++  },
++  "enableGroundRendering": false,
++  "display": {
++    "exposure": 0.02,
++    "white": 100
++  },
++  "outputs": {
++    "resolution": [
++      512,
++      288
++    ]
++  },
++  "rayleigh": {
++    "enabled": true,
++    "areaNeeTransmittance": true,
++    "solver": "numerical_reference",
++    "wavelengthLaw": "lambda^-4",
++    "planetRadius": 6371000,
++    "atmosphereHeight": 100000,
++    "scaleHeight": 8000,
++    "groundY": -6,
++    "beta550": 1.3e-05,
++    "groundAlbedo": 0.1,
++    "tauAbsoluteTolerance": 1e-10,
++    "tauRelativeTolerance": 1e-08,
++    "inverseTauTolerance": 1e-09,
++    "distanceAbsoluteTolerance": 0.001,
++    "distanceRelativeTolerance": 1e-10,
++    "maxQuadratureDepth": 16,
++    "maxQuadratureEvaluations": 4096,
++    "maxInverseIterations": 64
++  }
++}
+diff --git a/shaders/device/m1_surface.cuh b/shaders/device/m1_surface.cuh
+index a1f72a0..96f9d32 100644
+--- a/shaders/device/m1_surface.cuh
++++ b/shaders/device/m1_surface.cuh
+@@ -1,11 +1,12 @@
+ #pragma once
+ 
+-// M1 is the existing NeuralPFRenderer surface pipeline in vacuum. It uses the
+-// existing launch symbol, pointer payload, mesh/instance SBT and RGB framebuffer.
++// M1/M2 surfaces and the optional M3 Rayleigh atmosphere share the existing
++// launch symbol, pointer payload, mesh/instance SBT and RGB framebuffer.
+ #include "../config.cuh"
+ #include "../params/per_ray_data.cuh"
+ #include "shader_common.cuh"
+ #include "m1_diagnostics.cuh"
++#include "m3_atmosphere.cuh"
+ #include "../../include/m1/bsdf.hpp"
+ #include "../../include/m1/light_pdf.hpp"
+ #include "../../include/m1/rgb2spec_device.hpp"
+@@ -130,6 +131,9 @@ static __forceinline__ __device__ bool visible(PRDSpectral& p,Vec3 origin,Vec3 d
+         fail(p,FailureReason::ShadowRay,{{origin.x,origin.y,origin.z,
+             direction.x,direction.y,direction.z,distance,m1::dot(direction,direction)}});return false;
+     }
++    // A mesh-free M3 scene still contains the analytic planet and atmosphere.
++    // Never pass the null IAS handle to optixTrace.
++    if(!optixLaunchParams.traversable)return true;
+     ShadowPRD shadow;shadow.random=p.random;shadow.visible=false;shadow.m1Invalid=false;shadow.m1Path=&p;
+     unsigned u0,u1;packPointer(&shadow,u0,u1);
+     optixTrace(optixLaunchParams.traversable,vector(origin),vector(direction),0.0f,distance,0.0f,
+@@ -163,9 +167,8 @@ struct SurfaceBsdf {
+ };
+ 
+ static __forceinline__ __device__ float light_hit_weight(const PRDSpectral& p,float pdf_light) {
+-    if(p.bounce==0||p.m1PreviousDelta||optixLaunchParams.m1.directMode==1)return 1.0f;
+-    if(optixLaunchParams.m1.directMode==2)return 0.0f;
+-    return m1::power_heuristic(p.pdf.bxdf,pdf_light);
++    return m3::sun_emission_weight(p.bounce,p.m1PreviousDelta,
++        optixLaunchParams.m1.directMode,p.pdf.bxdf,pdf_light);
+ }
+ static __forceinline__ __device__ void add_direct(PRDSpectral& p,const SurfaceBsdf& bsdf,
+                                                  Vec3 wo,Vec3 wi,float radiance,float pdf_light) {
+@@ -180,7 +183,7 @@ static __forceinline__ __device__ void add_direct(PRDSpectral& p,const SurfaceBs
+     if(!m1::finite(radiance)||radiance<0||!m1::finite(pdf_light)||!(pdf_light>0)){
+         fail(p,FailureReason::DirectInputs,{{radiance,pdf_light}});return;
+     }
+-    const float weight=optixLaunchParams.m1.directMode==0 ? m1::power_heuristic(pdf_light,v.pdf) : 1.0f;
++    const float weight=m3::nee_weight(optixLaunchParams.m1.directMode,pdf_light,v.pdf);
+     p.contribution+=p.albedo*v.f*wi.z*radiance*weight/pdf_light;
+     if(!m1::finite(p.contribution)||p.contribution<0)
+         fail(p,FailureReason::DirectContribution,{{radiance,pdf_light,v.f,v.pdf,wi.z,weight}});
+@@ -287,8 +290,250 @@ static __forceinline__ __device__ Vec3 shading_normal(const TriangleMeshGeomData
+     return ns;
+ }
+ 
++// Surface polygons and the analytic planet use the same BSDF, NEE and RR path.
++static __forceinline__ __device__ void scatter_surface(PRDSpectral& p,Vec3 position,
++    Vec3 ng,Vec3 normal,Vec3 facing_ns,Vec3 ray_direction,const SurfaceBsdf& bsdf) {
++    const auto frame=m1::make_frame(facing_ns);
++    const Vec3 wo=m1::normalize(frame.to_local(-ray_direction));
++    p.position=vector(position);
++
++    if(bsdf.type!=MATERIAL_TYPE_GLASS&&optixLaunchParams.m1.directMode!=1) {
++        if(optixLaunchParams.m1.sunEnabled) {
++            p.m1FailureStage=FailureStage::SunNee;
++            const Vec3 direction=sample_sun(p.random(),p.random());
++            const Vec3 local=frame.to_local(direction);
++            const float le=sun_radiance(p.waveLength),pdf=sun_pdf();
++            if(!m1::finite(le)||le<0||!m1::finite(pdf)||!(pdf>0)){
++                fail(p,FailureReason::SunParameters,{{le,pdf,optixLaunchParams.m1.sunAngularRadiusRad,
++                     optixLaunchParams.m1.sunScale}});return;
++            }
++            const Vec3 shadow_origin=offset(position,ng,direction);
++            if(local.z>0&&m1::dot(normal,direction)>0&&le>0&&
++               visible(p,shadow_origin,direction,CUDART_INF_F)) {
++                const float transmittance=m3device::connection_transmittance(
++                    p,shadow_origin,direction,CUDART_INF_F);
++                if(!p.m1Invalid)add_direct(p,bsdf,wo,local,le*transmittance,pdf);
++            }
++            if(p.m1Invalid)return;
++        }
++        const int count=optixLaunchParams.light.numLights;
++        if(count>0) {
++            p.m1FailureStage=FailureStage::AreaNee;
++            const int selected=int(p.random()*count);
++            if(selected<0||selected>=count){
++                fail(p,FailureReason::LightSelection,{{float(selected),float(count)}});return;
++            }
++            const auto definition=optixLaunchParams.light.lightDefinition[selected];
++            if(definition.lightType!=LIGHT_TYPE_TRIANGLE){
++                fail(p,FailureReason::LightType,{{float(selected),float(definition.lightType),
++                     float(definition.lightIndexInType)}});return;
++            }
++            const auto& e=optixLaunchParams.light.triangleLightData[definition.lightIndexInType];
++            const float root=sqrtf(p.random()),b1=root*(1-p.random()),b2=root-b1,a0=1-root;
++            const Vec3 point=a0*vector(e.v0)+b1*vector(e.v1)+b2*vector(e.v2);
++            const Vec3 delta=point-position;
++            const float distance2=m1::dot(delta,delta);
++            if(distance2>0) {
++                const Vec3 direction=delta/sqrtf(distance2),en=vector(e.normal);
++                const float cos_light=m1::dot(en,-direction);
++                const Vec3 local=frame.to_local(direction);
++                if(cos_light>0&&local.z>0&&m1::dot(normal,direction)>0) {
++                    const float2 light_uv=a0*e.uv0+b1*e.uv1+b2*e.uv2;
++                    const float2 alpha_uv=a0*e.opacityUV0+b1*e.opacityUV1+b2*e.opacityUV2;
++                    float3 rgb=e.constantEmission;
++                    if(e.emissiveTexture.texture)
++                        rgb*=make_float3(tex2D<float4>(e.emissiveTexture.texture,light_uv.x,1-light_uv.y));
++                    const float le=emission(rgb,p.waveLength,p)*
++                        opacity(e.opacityTexture,alpha_uv,e.opacityFactor,e.alphaCutoff,p);
++                    const auto density=m1::one_sided_area_light_pdf(distance2,e.area,cos_light,count);
++                    const float pdf=density.pdf;
++                    if(!m1::finite(le)||le<0||!density.valid||!(pdf>0)){
++                        fail(p,FailureReason::AreaLightParameters,
++                            {{le,pdf,distance2,e.area,cos_light,float(count),float(selected)}});return;
++                    }
++                    const Vec3 origin=offset(position,ng,direction);
++                    const Vec3 target=offset(point,en,-direction);
++                    const Vec3 shadow_delta=target-origin;
++                    const float shadow_distance=m1::length(shadow_delta);
++                    if(le>0&&shadow_distance>0&&visible(p,origin,shadow_delta/shadow_distance,shadow_distance)) {
++                        const float transmittance=m3device::connection_transmittance(p,
++                            origin,shadow_delta/shadow_distance,shadow_distance,
++                            optixLaunchParams.rayleigh.areaNeeTransmittance!=0);
++                        if(!p.m1Invalid)add_direct(p,bsdf,wo,local,le*transmittance,pdf);
++                    }
++                }
++            }
++        }
++    }
++    if(p.m1Invalid)return;
++    p.m1FailureStage=FailureStage::Bsdf;
++    const auto sampled=bsdf.sample(wo,p.random(),p.random(),p.random(),p);
++    if(sampled.status==m1::BsdfSampleStatus::Invalid)return;
++    if(sampled.status==m1::BsdfSampleStatus::Null){p.continueTrace=0;return;}
++    const Vec3 direction=m1::normalize(frame.to_world(sampled.wi));
++    const float geometric_cosine=m1::dot(normal,direction);
++    // Same Ng support for BSDF sampling and NEE. Removed directions are null
++    // events, not a renormalized sampling distribution. In radiance transport,
++    // use the Ns cosine; the adjoint shading-normal correction is one.
++    if((sampled.transmission&&geometric_cosine>=0)||(!sampled.transmission&&geometric_cosine<=0)) {
++        p.continueTrace=0;return;
++    }
++    p.albedo*=sampled.weight;p.m1EtaScale*=sampled.eta_scale;
++    if(!m1::finite(p.albedo)||p.albedo<0||!m1::finite(p.m1EtaScale)||!(p.m1EtaScale>0)){
++        fail(p,FailureReason::Throughput,{{sampled.weight,sampled.eta_scale}});return;
++    }
++    if(p.albedo==0){p.continueTrace=0;return;}
++    // MIS PDFs are conditional on reaching this vertex and exclude RR in BOTH
++    // strategies. Surviving path throughput alone is divided by survival.
++    if(p.bounce+1>=int(optixLaunchParams.m1.rrDepth)) {
++        const float rr_beta=p.albedo*p.m1EtaScale;
++        if(!m1::finite(rr_beta)){fail(p,FailureReason::Roulette,{{rr_beta}});return;}
++        const float survival=fminf(0.95f,rr_beta);
++        if(!(survival>0)||p.random()>=survival){p.continueTrace=0;return;}
++        p.albedo/=survival;
++    }
++    p.pdf.bxdf=sampled.pdf;p.m1PreviousDelta=sampled.delta;p.m1PreviousPosition=vector(position);
++    p.m3PreviousMedium=false;
++    p.wi=vector(direction);p.position=vector(offset(position,ng,direction));p.continueTrace=1;
++    if(!m1::finite(p.albedo)||!finite3(p.position)||!finite3(p.wi))
++        fail(p,FailureReason::Continuation,{{p.position.x,p.position.y,p.position.z,p.wi.x,p.wi.y,p.wi.z}});
++}
++
++static __forceinline__ __device__ void scatter_medium(PRDSpectral& p,Vec3 position) {
++    // One vertex consumes one scattering bounce, exactly as a surface BSDF.
++    // Free-flight collision/no-collision probabilities already carry T and
++    // sigma_s. Pure Rayleigh has sigma_s/sigma_t=1, so beta is unchanged here.
++    p.position=vector(position);
++    if(!m1::finite(position)) {
++        fail(p,FailureReason::AtmosphereContinuation,{{position.x,position.y,position.z,
++             p.wi.x,p.wi.y,p.wi.z}});return;
++    }
++    if(p.bounce>=optixLaunchParams.frame.maxBounce){p.continueTrace=0;return;}
++    const Vec3 incoming=vector(p.wi);
++    const auto& settings=optixLaunchParams.m1;
++    if(settings.sunEnabled&&settings.directMode!=1) {
++        p.m1FailureStage=FailureStage::AtmosphereSunNee;
++        const Vec3 direction=sample_sun(p.random(),p.random());
++        const float le=sun_radiance(p.waveLength),pdf=sun_pdf();
++        const float phase=m3::rayleigh_phase_directions(incoming,direction);
++        if(!m1::finite(le)||le<0||!m1::finite(pdf)||!(pdf>0)||!m1::finite(phase)||!(phase>0)){
++            fail(p,FailureReason::AtmosphereDirect,{{le,pdf,phase}});return;
++        }
++        if(le>0&&visible(p,position,direction,CUDART_INF_F)) {
++            const float transmittance=m3device::connection_transmittance(p,position,direction,CUDART_INF_F);
++            if(p.m1Invalid)return;
++            const float weight=m3::nee_weight(settings.directMode,pdf,phase);
++            p.contribution+=p.albedo*phase*le*transmittance*weight/pdf;
++            if(!m1::finite(p.contribution)||p.contribution<0){
++                fail(p,FailureReason::AtmosphereDirect,{{le,pdf,phase,transmittance,weight}});return;
++            }
++        }
++    }
++    // There is deliberately no area-light NEE at a medium vertex. Area lights
++    // remain reachable by phase continuation; their emission then has weight 1.
++    if(p.m1Invalid)return;
++    p.m1FailureStage=FailureStage::Atmosphere;
++    const float u_mu=p.random(),u_phi=p.random();
++    const auto sampled=m3::sample_rayleigh(incoming,u_mu,u_phi);
++    if(!sampled.valid||!m1::bsdf_unit_direction(sampled.direction)||
++       !m1::finite(sampled.value)||sampled.value<0||!m1::finite(sampled.pdf)||!(sampled.pdf>0)){
++        fail(p,FailureReason::AtmospherePhase,{{sampled.direction.x,sampled.direction.y,sampled.direction.z,
++             sampled.value,sampled.pdf,u_mu,u_phi}});return;
++    }
++    p.albedo*=sampled.value/sampled.pdf;
++    if(!m1::finite(p.albedo)||p.albedo<0){
++        fail(p,FailureReason::Throughput,{{sampled.value/sampled.pdf,1}});return;
++    }
++    if(p.albedo==0){p.continueTrace=0;return;}
++    if(p.bounce+1>=int(settings.rrDepth)) {
++        const float rr_beta=p.albedo*p.m1EtaScale;
++        if(!m1::finite(rr_beta)){fail(p,FailureReason::Roulette,{{rr_beta}});return;}
++        const float survival=fminf(0.95f,rr_beta);
++        if(!(survival>0)||p.random()>=survival){p.continueTrace=0;return;}
++        p.albedo/=survival;
++    }
++    p.pdf.bxdf=sampled.pdf;p.m1PreviousDelta=false;p.m3PreviousMedium=true;
++    p.m1PreviousPosition=vector(position);p.position=vector(position);
++    p.wi=vector(sampled.direction);p.continueTrace=1;
++    if(!m1::finite(p.albedo)||!finite3(p.position)||!finite3(p.wi))
++        fail(p,FailureReason::AtmosphereContinuation,{{position.x,position.y,position.z,
++             sampled.direction.x,sampled.direction.y,sampled.direction.z,sampled.value,sampled.pdf}});
++}
++
++static __forceinline__ __device__ void scatter_planet(PRDSpectral& p,
++    const m3::RaySegment& ray,double distance_m) {
++    p.m1FailureStage=FailureStage::Planet;p.m1FailureContext={};
++    const auto& a=optixLaunchParams.rayleigh;
++    const auto exact=m3device::point_at_distance(ray,distance_m);
++    const Vec3 position={float(exact.x),float(exact.y),float(exact.z)};
++    const double nx=exact.x;
++    const double ny=a.planetRadius+(exact.y-a.groundY);
++    const double nz=exact.z;
++    const double length=sqrt(nx*nx+ny*ny+nz*nz);
++    const Vec3 ng=m1::normalize(Vec3{float(nx/length),float(ny/length),float(nz/length)});
++    if(!m1::finite(position)||!m1::bsdf_unit_direction(ng)){
++        fail(p,FailureReason::PlanetIntersection,{{float(distance_m),position.x,position.y,position.z,
++             ng.x,ng.y,ng.z}});return;
++    }
++    p.position=vector(position);p.instanceID=m1::no_index;
++    if(p.bounce==0) {
++        p.m1PrimaryNormal=vector(ng);p.m1PrimaryAlbedo=make_float3(a.groundAlbedo);
++    }
++    if(p.bounce>=optixLaunchParams.frame.maxBounce){p.continueTrace=0;return;}
++    // Spectrally neutral, opaque Lambertian ground, explicitly parameterized.
++    // It uses the surface NEE policy and can exchange light with the atmosphere.
++    SurfaceBsdf bsdf;bsdf.type=MATERIAL_TYPE_DIFFUSE;
++    bsdf.simple={m1::MaterialKind::Diffuse,a.groundAlbedo,1,1};
++    const Vec3 incoming=m1::normalize(vector(p.wi));
++    scatter_surface(p,position,ng,ng,ng,incoming,bsdf);
++}
++
++// A single existing OptiX traversal first resolves alpha coverage and obtains
++// the nearest accepted triangle. We then sample the medium only up to that
++// endpoint (or the opaque planet if nearer). No stochastic alpha is re-tested.
++// Returning true means this segment was consumed by a scatter/planet/failure.
++static __forceinline__ __device__ bool advance_medium(PRDSpectral& p,float t_max) {
++    if(!optixLaunchParams.rayleigh.enabled)return false;
++    p.m1FailureStage=FailureStage::Atmosphere;p.m1FailureContext={};
++    const auto r=m3device::ray(vector(p.position),vector(p.wi),t_max);
++    double beta=0;
++    if(!m3device::coefficient(p,beta))return true;
++    // PCG32 supplies a uniform 24-bit value k/2^24. Use the midpoint of its
++    // probability cell in double, so inverse CDF never receives exactly 0/1.
++    // This consumes one draw and does not clamp a sampled flight distance.
++    const float uniform=p.random();
++    const double xi=double(uniform)+0.5/16777216.0;
++    const auto sampled=m3::sample_free_flight(optixLaunchParams.rayleigh,r,beta,xi);
++    if(sampled.status!=m3::Status::Ok){
++        fail(p,FailureReason::AtmosphereInverse,{{float(sampled.status),uniform,float(sampled.distance_m),
++             float(-log1p(-xi)),float(sampled.tau),float(sampled.tau_residual),
++             float(sampled.estimated_tau_error),float(sampled.iterations),float(sampled.evaluations)}});
++        return true;
++    }
++    if(sampled.scattered) {
++        const auto exact=m3device::point_at_distance(r,sampled.distance_m);
++        const auto represented=m3::represent_medium_point(optixLaunchParams.rayleigh,exact);
++        if(represented.status!=m3::Status::Ok) {
++            fail(p,FailureReason::AtmospherePosition,{{float(represented.status),uniform,
++                 float(sampled.distance_m),float(exact.x),float(exact.y),float(exact.z),
++                 represented.position.x,represented.position.y,represented.position.z}});
++            return true;
++        }
++        scatter_medium(p,represented.position);
++        return true;
++    }
++    if(sampled.endpoint==m3::Endpoint::Ground) {
++        scatter_planet(p,r,sampled.distance_m);
++        return true;
++    }
++    // The probability of reaching this endpoint is already exp(-tau).
++    // Adding another T here (or in miss/emitter evaluation) would give T^2.
++    return false;
++}
++
+ static __forceinline__ __device__ void hit(PRDSpectral& p) {
+     if(p.m1Invalid){p.continueTrace=0;return;}
++    if(advance_medium(p,optixGetRayTmax()))return;
+     const auto& sbt=*reinterpret_cast<const HitgroupSBTData*>(optixGetSbtDataPointer());
+     m1diagnostics::set_hit_context(p,FailureStage::Surface,sbt);
+     if(sbt.geomType!=GeomType::Triangle||sbt.tri.meshIndex>=unsigned(optixLaunchParams.numMeshes)||
+@@ -340,7 +585,8 @@ static __forceinline__ __device__ void hit(PRDSpectral& p) {
+             const Vec3 connection=position-vector(p.m1PreviousPosition);
+             const float distance2=m1::dot(connection,connection);
+             float pdf_light=0;
+-            if(m1::light_hit_needs_pdf(p.bounce,p.m1PreviousDelta,optixLaunchParams.m1.directMode)) {
++            if(m3::area_emission_needs_pdf(p.m3PreviousMedium,p.bounce,
++                    p.m1PreviousDelta,optixLaunchParams.m1.directMode)) {
+                 const float cosine=m1::dot(ng,-m1::normalize(connection));
+                 if(!m1::finite(cosine)||!m1::finite(distance2)||!(distance2>0)||
+                    !m1::finite(e.area)||!(e.area>0)||!(optixLaunchParams.light.numLights>0)){
+@@ -362,9 +608,11 @@ static __forceinline__ __device__ void hit(PRDSpectral& p) {
+                          float(optixLaunchParams.light.numLights)}});return;
+                 }
+             }
+-            p.contribution+=p.albedo*le*light_hit_weight(p,pdf_light);
++            const float emitter_weight=m3::area_emission_weight(p.m3PreviousMedium,p.bounce,
++                p.m1PreviousDelta,optixLaunchParams.m1.directMode,p.pdf.bxdf,pdf_light);
++            p.contribution+=p.albedo*le*emitter_weight;
+             if(!m1::finite(p.contribution)||p.contribution<0)
+-                fail(p,FailureReason::EmitterContribution,{{le,pdf_light,light_hit_weight(p,pdf_light)}});
++                fail(p,FailureReason::EmitterContribution,{{le,pdf_light,emitter_weight}});
+         }
+         if(p.m1Invalid)return;
+         // ORCA windows/signs may both emit and scatter. Continue through their
+@@ -403,104 +651,13 @@ static __forceinline__ __device__ void hit(PRDSpectral& p) {
+     if(p.m1Invalid)return;
+     const Vec3 normal=front?ng:-ng;
+     const Vec3 facing_ns=m1::dot(ns,-ray_direction)>=0?ns:-ns;
+-    const auto frame=m1::make_frame(facing_ns);
+-    const Vec3 wo=m1::normalize(frame.to_local(-ray_direction));
+-    p.position=vector(position);p.instanceID=instance;
+-
+-    if(material.materialType!=MATERIAL_TYPE_GLASS&&optixLaunchParams.m1.directMode!=1) {
+-        if(optixLaunchParams.m1.sunEnabled) {
+-            p.m1FailureStage=FailureStage::SunNee;
+-            const Vec3 direction=sample_sun(p.random(),p.random());
+-            const Vec3 local=frame.to_local(direction);
+-            const float le=sun_radiance(p.waveLength),pdf=sun_pdf();
+-            if(!m1::finite(le)||le<0||!m1::finite(pdf)||!(pdf>0)){
+-                fail(p,FailureReason::SunParameters,{{le,pdf,optixLaunchParams.m1.sunAngularRadiusRad,
+-                     optixLaunchParams.m1.sunScale}});return;
+-            }
+-            if(local.z>0&&m1::dot(normal,direction)>0&&le>0&&
+-               visible(p,offset(position,ng,direction),direction,CUDART_INF_F))
+-                add_direct(p,bsdf,wo,local,le,pdf);
+-            if(p.m1Invalid)return;
+-        }
+-        const int count=optixLaunchParams.light.numLights;
+-        if(count>0) {
+-            p.m1FailureStage=FailureStage::AreaNee;
+-            const int selected=int(p.random()*count);
+-            if(selected<0||selected>=count){
+-                fail(p,FailureReason::LightSelection,{{float(selected),float(count)}});return;
+-            }
+-            const auto definition=optixLaunchParams.light.lightDefinition[selected];
+-            if(definition.lightType!=LIGHT_TYPE_TRIANGLE){
+-                fail(p,FailureReason::LightType,{{float(selected),float(definition.lightType),
+-                     float(definition.lightIndexInType)}});return;
+-            }
+-            const auto& e=optixLaunchParams.light.triangleLightData[definition.lightIndexInType];
+-            const float root=sqrtf(p.random()),b1=root*(1-p.random()),b2=root-b1,a0=1-root;
+-            const Vec3 point=a0*vector(e.v0)+b1*vector(e.v1)+b2*vector(e.v2);
+-            const Vec3 delta=point-position;
+-            const float distance2=m1::dot(delta,delta);
+-            if(distance2>0) {
+-                const Vec3 direction=delta/sqrtf(distance2),en=vector(e.normal);
+-                const float cos_light=m1::dot(en,-direction);
+-                const Vec3 local=frame.to_local(direction);
+-                if(cos_light>0&&local.z>0&&m1::dot(normal,direction)>0) {
+-                    const float2 light_uv=a0*e.uv0+b1*e.uv1+b2*e.uv2;
+-                    const float2 alpha_uv=a0*e.opacityUV0+b1*e.opacityUV1+b2*e.opacityUV2;
+-                    float3 rgb=e.constantEmission;
+-                    if(e.emissiveTexture.texture)
+-                        rgb*=make_float3(tex2D<float4>(e.emissiveTexture.texture,light_uv.x,1-light_uv.y));
+-                    const float le=emission(rgb,p.waveLength,p)*
+-                        opacity(e.opacityTexture,alpha_uv,e.opacityFactor,e.alphaCutoff,p);
+-                    const auto density=m1::one_sided_area_light_pdf(distance2,e.area,cos_light,count);
+-                    const float pdf=density.pdf;
+-                    if(!m1::finite(le)||le<0||!density.valid||!(pdf>0)){
+-                        fail(p,FailureReason::AreaLightParameters,
+-                            {{le,pdf,distance2,e.area,cos_light,float(count),float(selected)}});return;
+-                    }
+-                    const Vec3 origin=offset(position,ng,direction);
+-                    const Vec3 target=offset(point,en,-direction);
+-                    const Vec3 shadow_delta=target-origin;
+-                    const float shadow_distance=m1::length(shadow_delta);
+-                    if(le>0&&shadow_distance>0&&visible(p,origin,shadow_delta/shadow_distance,shadow_distance))
+-                        add_direct(p,bsdf,wo,local,le,pdf);
+-                }
+-            }
+-        }
+-    }
+-    if(p.m1Invalid)return;
+-    p.m1FailureStage=FailureStage::Bsdf;
+-    const auto sampled=bsdf.sample(wo,p.random(),p.random(),p.random(),p);
+-    if(sampled.status==m1::BsdfSampleStatus::Invalid)return;
+-    if(sampled.status==m1::BsdfSampleStatus::Null){p.continueTrace=0;return;}
+-    const Vec3 direction=m1::normalize(frame.to_world(sampled.wi));
+-    const float geometric_cosine=m1::dot(normal,direction);
+-    // Same Ng support for BSDF sampling and NEE. Removed directions are null
+-    // events, not a renormalized sampling distribution. In radiance transport,
+-    // use the Ns cosine; the adjoint shading-normal correction is one.
+-    if((sampled.transmission&&geometric_cosine>=0)||(!sampled.transmission&&geometric_cosine<=0)) {
+-        p.continueTrace=0;return;
+-    }
+-    p.albedo*=sampled.weight;p.m1EtaScale*=sampled.eta_scale;
+-    if(!m1::finite(p.albedo)||p.albedo<0||!m1::finite(p.m1EtaScale)||!(p.m1EtaScale>0)){
+-        fail(p,FailureReason::Throughput,{{sampled.weight,sampled.eta_scale}});return;
+-    }
+-    if(p.albedo==0){p.continueTrace=0;return;}
+-    // MIS PDFs are conditional on reaching this vertex and exclude RR in BOTH
+-    // strategies. Surviving path throughput alone is divided by survival.
+-    if(p.bounce+1>=int(optixLaunchParams.m1.rrDepth)) {
+-        const float rr_beta=p.albedo*p.m1EtaScale;
+-        if(!m1::finite(rr_beta)){fail(p,FailureReason::Roulette,{{rr_beta}});return;}
+-        const float survival=fminf(0.95f,rr_beta);
+-        if(!(survival>0)||p.random()>=survival){p.continueTrace=0;return;}
+-        p.albedo/=survival;
+-    }
+-    p.pdf.bxdf=sampled.pdf;p.m1PreviousDelta=sampled.delta;p.m1PreviousPosition=vector(position);
+-    p.wi=vector(direction);p.position=vector(offset(position,ng,direction));p.continueTrace=1;
+-    if(!m1::finite(p.albedo)||!finite3(p.position)||!finite3(p.wi))
+-        fail(p,FailureReason::Continuation,{{p.position.x,p.position.y,p.position.z,p.wi.x,p.wi.y,p.wi.z}});
++    p.instanceID=instance;
++    scatter_surface(p,position,ng,normal,facing_ns,ray_direction,bsdf);
+ }
+ 
+ static __forceinline__ __device__ void miss(PRDSpectral& p) {
++    if(p.m1Invalid){p.continueTrace=0;return;}
++    if(advance_medium(p,CUDART_INF_F))return;
+     p.m1FailureStage=FailureStage::Miss;
+     p.m1FailureContext={};
+     float le=0,pdf=0;
+@@ -527,6 +684,7 @@ static __forceinline__ __device__ void render_frame() {
+     for(int sample=0;sample<optixLaunchParams.frame.numPixelSamples;++sample) {
+         p.contribution=0;p.albedo=1;p.continueTrace=1;p.bounce=0;
+         p.pdf.bxdf=0;p.m1PreviousDelta=true;p.m1Invalid=false;p.m1EtaScale=1;
++        p.m3PreviousMedium=false;
+         p.m1SampleIndex=unsigned(sample);p.m1FailureStage=FailureStage::Camera;p.m1FailureContext={};
+         p.m1PrimaryNormal=make_float3(0);p.m1PrimaryAlbedo=make_float3(0);
+         const float minimum=optixLaunchParams.spectral.wavelengthMin;
+@@ -543,9 +701,12 @@ static __forceinline__ __device__ void render_frame() {
+             fail(p,FailureReason::CameraRay,{{ray.org.x,ray.org.y,ray.org.z,
+                  ray.dir.x,ray.dir.y,ray.dir.z,ray.weight}});
+         while(p.continueTrace&&!p.m1Invalid) {
+-            optixTrace(optixLaunchParams.traversable,p.position,p.wi,0.0f,CUDART_INF_F,0.0f,
+-                       OptixVisibilityMask(MASK_SURFACE),OPTIX_RAY_FLAG_NONE,
+-                       RADIANCE_RAY_TYPE,RAY_TYPE_COUNT,RADIANCE_RAY_TYPE,u0,u1);
++            if(optixLaunchParams.traversable)
++                optixTrace(optixLaunchParams.traversable,p.position,p.wi,0.0f,CUDART_INF_F,0.0f,
++                           OptixVisibilityMask(MASK_SURFACE),OPTIX_RAY_FLAG_NONE,
++                           RADIANCE_RAY_TYPE,RAY_TYPE_COUNT,RADIANCE_RAY_TYPE,u0,u1);
++            else
++                miss(p);
+             if(p.continueTrace)++p.bounce;
+         }
+         // Exactly one wavelength-PDF division per camera sample. No HWSS,
+diff --git a/shaders/device/m3_atmosphere.cuh b/shaders/device/m3_atmosphere.cuh
+new file mode 100644
+index 0000000..63f28dd
+--- /dev/null
++++ b/shaders/device/m3_atmosphere.cuh
+@@ -0,0 +1,73 @@
++#pragma once
++
++#include "../params/per_ray_data.cuh"
++#include "shader_common.cuh"
++#include "m1_diagnostics.cuh"
++#include "../../include/m1/math.hpp"
++#include "../../include/m3/atmosphere.hpp"
++#include "../../include/m3/position.hpp"
++#include "../../include/m3/transport.hpp"
++
++// Thin OptiX adapter. The numerical atmosphere itself is the same host/device
++// implementation exercised by the CPU regression tests. All positions remain
++// in the renderer's metre-valued local coordinates; the large planet-centred
++// subtraction and optical-depth integration use double precision in the core.
++namespace m3device {
++
++static __forceinline__ __device__ m3::RaySegment ray(
++    m1::Vec3 origin,m1::Vec3 direction,float t_max) {
++    return {{double(origin.x),double(origin.y),double(origin.z)},
++            {double(direction.x),double(direction.y),double(direction.z)},double(t_max)};
++}
++
++static __forceinline__ __device__ m3::DVec3 point_at_distance(
++    const m3::RaySegment& r,double distance_m) {
++    // Keep the same metric parameterization and FMA evaluation as the
++    // numerical core. Do not narrow a valid point before checking its domain.
++    const auto direction=r.direction/m3::length(r.direction);
++    return {::fma(direction.x,distance_m,r.origin.x),
++            ::fma(direction.y,distance_m,r.origin.y),
++            ::fma(direction.z,distance_m,r.origin.z)};
++}
++
++static __forceinline__ __device__ void geometry_failure(
++    PRDSpectral& p,const m3::RaySegment& r,m3::Status status) {
++    m1diagnostics::fail(p,m1::FailureReason::AtmosphereGeometry,
++        {{float(status),float(r.t_max),float(r.origin.x),float(r.origin.y),float(r.origin.z),
++          float(r.direction.x),float(r.direction.y),float(r.direction.z)}});
++}
++
++static __forceinline__ __device__ bool coefficient(PRDSpectral& p,double& beta) {
++    if(m3::rayleigh_coefficient(optixLaunchParams.rayleigh,double(p.waveLength),beta))return true;
++    m1diagnostics::fail(p,m1::FailureReason::AtmosphereIntegral,
++        {{-1,0,0,0,0,0,p.waveLength}});
++    return false;
++}
++
++// t_max is the parameter of the raw float ray, not an assumed metric length.
++// This is used ONLY by explicit light connections. Sampled path continuation
++// already includes free-flight survival and must never multiply this T again.
++static __forceinline__ __device__ float connection_transmittance(PRDSpectral& p,
++    m1::Vec3 origin,m1::Vec3 direction,float t_max,bool include_attenuation=true) {
++    const auto& a=optixLaunchParams.rayleigh;
++    if(!a.enabled)return 1.0f;
++    const auto r=ray(origin,direction,t_max);
++    const auto segment=m3::clip_atmosphere(a,r);
++    if(segment.status!=m3::Status::Ok){geometry_failure(p,r,segment.status);return 0;}
++    // The planet remains an opaque geometric blocker even when the optional
++    // surface-to-area-light attenuation approximation is selected.
++    if(segment.ground_occludes)return 0;
++    if(!include_attenuation||!segment.has_medium)return 1.0f;
++    double beta=0;
++    if(!coefficient(p,beta))return 0;
++    const auto result=m3::transmittance(a,r,beta);
++    if(result.status!=m3::Status::Ok){
++        m1diagnostics::fail(p,m1::FailureReason::AtmosphereIntegral,
++            {{float(result.status),float(segment.begin_m),float(segment.end_m),float(result.tau),
++              float(result.estimated_error),float(result.evaluations),p.waveLength}});
++        return 0;
++    }
++    return result.ground_occluded?0.0f:float(result.transmittance);
++}
++
++} // namespace m3device
+diff --git a/shaders/params/per_ray_data.cuh b/shaders/params/per_ray_data.cuh
+index cb5bdf0..bad786f 100644
+--- a/shaders/params/per_ray_data.cuh
++++ b/shaders/params/per_ray_data.cuh
+@@ -62,6 +62,9 @@ struct PRDSpectral {
+     float3 m1PrimaryAlbedo{};
+     bool m1PreviousDelta=true;
+     bool m1Invalid=false;
++    // Atmosphere vertices sample the sun only. Their continuation may still
++    // reach area emitters, for which there is no competing NEE strategy.
++    bool m3PreviousMedium=false;
+     uint32_t m1SampleIndex=0;
+     m1::FailureStage m1FailureStage=m1::FailureStage::Camera;
+     m1::FailureContext m1FailureContext{};
+diff --git a/src/application.cpp b/src/application.cpp
+index 74b9587..28bb664 100644
+--- a/src/application.cpp
++++ b/src/application.cpp
+@@ -78,6 +78,7 @@ void Application::save(std::string fileName)
+         info["xyz_normalization"] = "none; no division by integral(ybar) and no 683 factor";
+         info["width"] = sizeX;
+         info["height"] = sizeY;
++        info["requested_initial_resolution"] = m_scene.outputs.resolution;
+         info["accumulated_frames"] = params.frame.frameID;
+         info["spp_per_frame"] = params.frame.numPixelSamples;
+         info["total_spp"] = uint64_t(params.frame.frameID) * uint64_t(params.frame.numPixelSamples);
+@@ -92,6 +93,22 @@ void Application::save(std::string fileName)
+         info["sun_azimuth_rad"] = params.sunParams.sunAzimuthRad;
+         info["light_intensity_factor"] = params.light.lightIntensityFactor;
+         info["ray_epsilon"] = params.m1.rayEpsilon;
++        info["integrator_model"] = params.rayleigh.enabled ? "M3 spherical Rayleigh path tracing" : "M1/M2 spectral surface path tracing";
++        info["rayleigh"] = sceneIO::rayleighJson(params.rayleigh);
++        if (params.rayleigh.enabled) {
++            info["rayleigh_model"] = {
++                {"coordinates", "metres; +Y up"},
++                {"planet_center_m", {0.0, params.rayleigh.groundY - params.rayleigh.planetRadius, 0.0}},
++                {"density", "exp(-altitude/scaleHeight), truncated at atmosphereHeight"},
++                {"scattering", "scalar unpolarized Rayleigh; pure scattering, no absorption"},
++                {"beta_wavelength", "beta550 * (550 / wavelength_nm)^4"},
++                {"ground", "opaque, spectrally neutral Lambertian"},
++                {"medium_area_light_nee", false},
++                {"area_shadow_transmittance_omission", params.rayleigh.areaNeeTransmittance == 0},
++                {"optical_depth_error", "estimated numerical quadrature error, not a certified bound; unresolved requests fail"},
++                {"free_flight", "numerical inverse CDF in optical depth"}
++            };
++        }
+         info["display"] = {{"exposure", m_renderer.getExposure()},
+                            {"white", m_renderer.getWhite()}};
+         info["objects"] = m_scene.objects;
+diff --git a/src/main.cpp b/src/main.cpp
+index bab0fb8..1a9d118 100644
+--- a/src/main.cpp
++++ b/src/main.cpp
+@@ -62,7 +62,7 @@ extern "C" int main(int ac, char **av)
+             std::cerr << "WARNING: failed to load model: " << obj.file << std::endl;
+           }
+       }
+-      if(sceneDesc.integrator.m1Surface && models.empty())
++      if(sceneDesc.integrator.m1Surface && models.empty() && !sceneDesc.rayleigh.enabled)
+         throw std::runtime_error("M1 scene has no loaded meshes");
+ 
+       // 環境マップの指定
+diff --git a/src/renderer.cpp b/src/renderer.cpp
+index 610fd79..eef96ff 100644
+--- a/src/renderer.cpp
++++ b/src/renderer.cpp
+@@ -61,7 +61,7 @@ struct __align__( OPTIX_SBT_RECORD_ALIGNMENT ) HitgroupRecord
+ };
+ 
+ namespace {
+-void validateM1Geometry(const std::vector<const Model*>& models)
++void validateM1Geometry(const std::vector<const Model*>& models, bool allowEmpty = false)
+ {
+     size_t meshCount = 0;
+     const auto finite3 = [](float3 p) {
+@@ -141,15 +141,25 @@ void validateM1Geometry(const std::vector<const Model*>& models)
+             }
+         }
+     }
+-    if (meshCount == 0) throw std::invalid_argument("M1 requires at least one triangle mesh");
++    if (meshCount == 0 && !allowEmpty) throw std::invalid_argument("M1 requires at least one triangle mesh");
+ }
+ } // namespace
+ 
+ 
+ Renderer::Renderer(std::vector<const Model*> models, sceneIO::Scene sceneDesc) : m_models(models), m_sceneDesc(sceneDesc)
+ {
++    // Validate again for callers that construct Scene directly instead of JSON.
++    sceneIO::validateRayleighScene(m_sceneDesc);
++    m_launchParams.rayleigh = m_sceneDesc.rayleigh;
++    if (m_launchParams.rayleigh.enabled) {
++        std::cout << "# M3 spherical Rayleigh: " << sceneIO::rayleighJson(m_launchParams.rayleigh).dump() << '\n'
++                  << "# Scene units: metres, +Y up; planet centre=(0, "
++                  << std::setprecision(std::numeric_limits<double>::max_digits10)
++                  << (m_launchParams.rayleigh.groundY - m_launchParams.rayleigh.planetRadius)
++                  << ", 0) m. Ground is neutral Lambertian.\n";
++    }
+     if (m_sceneDesc.integrator.m1Surface) {
+-        validateM1Geometry(m_models);
++        validateM1Geometry(m_models, m_sceneDesc.rayleigh.enabled != 0);
+         if (!m_sceneDesc.environment.file.empty()) {
+             throw std::invalid_argument("M1 surface rendering requires environment.file to be empty");
+         }
+@@ -1400,7 +1410,9 @@ void Renderer::buildSBT()
+         }
+     }
+ 
+-    m_hitgroupRecordsBuffer.allocAndUpload(hitgroupRecords);                        // GPU に情報を転送
++    // A pure M3 sky has no mesh IAS or hitgroup records. Its medium and planet
++    // are evaluated by the M3 path adapter without tracing handle 0.
++    if (!hitgroupRecords.empty()) m_hitgroupRecordsBuffer.allocAndUpload(hitgroupRecords);
+     m_sbt.hitgroupRecordBase            = m_hitgroupRecordsBuffer.getDevicePointer();    // hitgroupRecords バッファのデバイス上の先頭アドレスを sbt に登録
+     m_sbt.hitgroupRecordStrideInBytes   = sizeof(HitgroupRecord);                   // 
+     m_sbt.hitgroupRecordCount           = (int)hitgroupRecords.size();
+@@ -1456,7 +1468,7 @@ void Renderer::render()
+             std::ostringstream message;
+             message.imbue(std::locale::classic());
+             message << std::setprecision(std::numeric_limits<float>::max_digits10)
+-                    << "M1/M2 surface integrator reported " << invalidSamples
++                    << (m_launchParams.rayleigh.enabled ? "M3 Rayleigh integrator reported " : "M1/M2 surface integrator reported ") << invalidSamples
+                     << " invalid path/film events; the frame was not accepted\n";
+             if (failure.claimed != 0) {
+                 message << m1::format_failure(failure.first) << '\n';
+@@ -1494,6 +1506,9 @@ void Renderer::render()
+                     << " sun_azimuth_rad=" << m_launchParams.sunParams.sunAzimuthRad << '\n';
+             for (size_t i = 0; i < m_sceneDesc.objects.size(); ++i)
+                 message << "object[" << i << "]=" << std::quoted(m_sceneDesc.objects[i].file) << '\n';
++            // JSON uses double round-trip formatting for the physical/numerical
++            // parameters; do not truncate them to the film's float precision.
++            message << "rayleigh=" << sceneIO::rayleighJson(m_launchParams.rayleigh).dump() << '\n';
+ 
+             // Persist the full report even if a launched console closes after
+             // main catches the exception. A failed log write never hides it.
+@@ -2495,8 +2510,8 @@ void Renderer::loadAssets()
+     }
+ 
+     // GPU にアップロード
+-    m_meshTableBuffer.allocAndUpload(m_meshTable);
+-    m_materialTableBuffer.allocAndUpload(m_materialTable);
++    if (!m_meshTable.empty()) m_meshTableBuffer.allocAndUpload(m_meshTable);
++    if (!m_materialTable.empty()) m_materialTableBuffer.allocAndUpload(m_materialTable);
+ 
+     // launch params に登録
+     m_launchParams.meshes = (TriangleMeshGeomData *)m_meshTableBuffer.getDevicePointer();
+diff --git a/tests/m1/CMakeLists.txt b/tests/m1/CMakeLists.txt
+index b53f3d6..452061b 100644
+--- a/tests/m1/CMakeLists.txt
++++ b/tests/m1/CMakeLists.txt
+@@ -1,5 +1,5 @@
+ cmake_minimum_required(VERSION 3.18)
+-project(NeuralPFRenderer_M1_CPU_Checks LANGUAGES C CXX)
++project(NeuralPFRenderer_Spectral_CPU_Checks LANGUAGES C CXX)
+ 
+ # Configure this directory directly. No GPU, DirectXTex, OpenGL or OptiX is
+ # required for the portable mathematical and asset checks.
+@@ -37,6 +37,18 @@ add_executable(m2_tangent_frame_check "${M1_ROOT}/tests/test_m2_tangent_frame.cp
+ target_include_directories(m2_tangent_frame_check PRIVATE "${M1_ROOT}/include")
+ add_test(NAME m2_tangent_frame_check COMMAND m2_tangent_frame_check)
+ 
++add_executable(m3_atmosphere_check "${M1_ROOT}/tests/test_m3_atmosphere.cpp")
++target_include_directories(m3_atmosphere_check PRIVATE "${M1_ROOT}/include")
++add_test(NAME m3_atmosphere_check COMMAND m3_atmosphere_check)
++
++add_executable(m3_transport_check "${M1_ROOT}/tests/test_m3_transport.cpp")
++target_include_directories(m3_transport_check PRIVATE "${M1_ROOT}/include")
++add_test(NAME m3_transport_check COMMAND m3_transport_check)
++
++add_executable(m3_position_check "${M1_ROOT}/tests/test_m3_position.cpp")
++target_include_directories(m3_position_check PRIVATE "${M1_ROOT}/include")
++add_test(NAME m3_position_check COMMAND m3_position_check)
++
+ add_executable(m1_spectral_check "${M1_ROOT}/tests/test_m1_spectral_assets.cpp")
+ target_link_libraries(m1_spectral_check PRIVATE m1_spectral_assets)
+ add_test(NAME m1_spectral_check COMMAND m1_spectral_check "${M1_ROOT}/spectrum/m1")
+@@ -50,7 +62,7 @@ target_include_directories(m1_scene_check PRIVATE "${M1_ROOT}/include" "${M1_JSO
+ add_test(NAME m1_scene_check COMMAND m1_scene_check "${M1_ROOT}")
+ 
+ if(MSVC)
+-    foreach(target m1_bsdf_check m1_light_pdf_check m1_diagnostics_check m2_alpha_check m2_tangent_frame_check m1_spectral_check m1_scene_check m1_spectral_assets)
++    foreach(target m1_bsdf_check m1_light_pdf_check m1_diagnostics_check m2_alpha_check m2_tangent_frame_check m3_atmosphere_check m3_transport_check m3_position_check m1_spectral_check m1_scene_check m1_spectral_assets)
+         target_compile_options(${target} PRIVATE /utf-8 /W4)
+     endforeach()
+ endif()
+diff --git a/tests/test_m1_scene.cpp b/tests/test_m1_scene.cpp
+index 175dbfb..083f5d2 100644
+--- a/tests/test_m1_scene.cpp
++++ b/tests/test_m1_scene.cpp
+@@ -1,11 +1,19 @@
+ #include "sceneDescIO.hpp"
+ #include <chrono>
++#include <limits>
+ #include <stdexcept>
+ 
+ static void require(bool value, const char* message) {
+     if (!value) throw std::runtime_error(message);
+ }
+ 
++static void rejects(const nlohmann::ordered_json& input, const char* message) {
++    bool rejected = false;
++    try { (void)input.get<sceneIO::Scene>(); }
++    catch (const std::exception&) { rejected = true; }
++    require(rejected, message);
++}
++
+ int main(int argc, char** argv) {
+     try {
+         require(argc == 2, "pass repository root");
+@@ -15,6 +23,8 @@ int main(int argc, char** argv) {
+             std::string error;
+             require(sceneIO::loadOrCreate(root / "scene" / name, scene, &error, false), "legacy scene parse");
+             require(!scene.integrator.m1Surface, "legacy input must not enable M1");
++            require(!scene.rayleigh.enabled, "legacy input must not enable M3");
++            require(scene.outputs.resolution == std::array<int,2>{1280,720}, "existing initial window size is preserved");
+             require(scene.objects[0].materialProfile == "legacy", "legacy material profile default");
+             require(scene.display.exposure == 1.1f && scene.display.white == 100.0f,
+                     "existing scenes retain their display defaults");
+@@ -28,6 +38,7 @@ int main(int argc, char** argv) {
+             require(scene.integrator.m1Surface && scene.integrator.applySpectralRendering &&
+                     scene.integrator.m1DirectMode == "mis", "M2 reuses the spectral MIS integrator");
+             require(scene.environment.file.empty() && !scene.enableGroundRendering, "M2 vacuum configuration");
++            require(!scene.rayleigh.enabled, "M2 input remains in vacuum");
+             require(!scene.objects[0].normalizeScale && !scene.objects[0].placeOnGround &&
+                     !scene.objects[0].placeCenterBBoxAtOrigin, "M2 preserves authored coordinates");
+             const nlohmann::ordered_json serialized = scene;
+@@ -54,6 +65,7 @@ int main(int argc, char** argv) {
+                 require(scene.integrator.m1Surface && scene.integrator.applySpectralRendering, "M1 spectral selection");
+                 require(scene.integrator.m1DirectMode == mode, "direct estimator mode selection");
+                 require(scene.environment.file.empty() && !scene.enableGroundRendering, "M1 vacuum configuration");
++                require(!scene.rayleigh.enabled, "M1 input remains in vacuum");
+                 require(std::filesystem::is_directory(root / scene.spectrum.m1AssetDirectory), "spectral assets directory");
+                 for (const auto& object : scene.objects) {
+                     require(!object.placeCenterBBoxAtOrigin && !object.placeOnGround, "fixture instance transforms");
+@@ -65,6 +77,112 @@ int main(int argc, char** argv) {
+                         "M1 settings survive JSON serialization");
+             }
+         }
++        nlohmann::ordered_json skyJson, dayJson, vacuumJson;
++        for (const auto* name : {"m3_rayleigh_sky.json", "m3_emerald_day.json", "m3_emerald_overview.json",
++                                 "m3_emerald_sunset.json", "m3_emerald_vacuum.json"}) {
++            sceneIO::Scene scene;
++            std::string error;
++            require(sceneIO::loadOrCreate(root / "scene" / name, scene, &error, false), "M3 preset parse");
++            const bool sky = std::string(name) == "m3_rayleigh_sky.json";
++            const bool vacuum = std::string(name) == "m3_emerald_vacuum.json";
++            require(scene.rayleigh.enabled == 1, "M3 presets retain the spherical planet, including the vacuum control");
++            require(vacuum ? scene.rayleigh.beta550 == 0.0 : scene.rayleigh.beta550 > 0.0,
++                    "vacuum control changes only atmospheric scattering to zero");
++            require(scene.integrator.m1Surface && scene.integrator.applySpectralRendering,
++                    "M3 reuses the existing spectral path and assets");
++            require(scene.environment.file.empty() && !scene.enableGroundRendering, "M3 must not select legacy sky/ground");
++            require(scene.integrator.spp == 1, "M3 reference presets start at one sample per launch");
++            require(scene.rayleigh.groundY == -6.0 && scene.rayleigh.planetRadius == 6371000.0,
++                    "M3 metre-based ground datum and radius are explicit");
++            require(scene.rayleigh.areaNeeTransmittance == 1, "M3 default area MIS includes medium transmittance");
++            require(scene.outputs.resolution == (sky ? std::array<int,2>{512,288} : std::array<int,2>{640,360}),
++                    "M3 initial preview resolution is present in each scene");
++            if (sky) require(scene.objects.empty(), "clean M3 sky has no external mesh dependency");
++            else require(scene.objects.size() == 1 && scene.objects[0].materialProfile == "orca_metal_rough" &&
++                         !scene.objects[0].normalizeScale && !scene.objects[0].placeOnGround &&
++                         !scene.objects[0].placeCenterBBoxAtOrigin, "M3 Emerald retains authored coordinates");
++            if (std::string(name) == "m3_emerald_sunset.json")
++                require(scene.integrator.m1SunZenithDeg == 88.0f, "sunset preset has a low finite sun disk");
++            const nlohmann::ordered_json serialized = scene;
++            const auto copy = serialized.get<sceneIO::Scene>();
++            require(sceneIO::rayleighJson(copy.rayleigh) == sceneIO::rayleighJson(scene.rayleigh) &&
++                    copy.outputs.resolution == scene.outputs.resolution, "M3 physical/numerical settings survive serialization");
++            if (sky) skyJson = serialized;
++            if (std::string(name) == "m3_emerald_day.json") dayJson = serialized;
++            if (vacuum) vacuumJson = serialized;
++        }
++        dayJson["rayleigh"]["beta550"] = 0.0;
++        require(dayJson == vacuumJson, "M3 vacuum control changes only beta550; camera, planet, sun, and estimator stay fixed");
++
++        // Every mutable parameter is changed from its default. A dropped field
++        // must not pass a round-trip test by accidentally restoring its default.
++        const auto customRayleigh = nlohmann::ordered_json::parse(R"({
++            "enabled":true,"areaNeeTransmittance":false,
++            "solver":"numerical_reference","wavelengthLaw":"lambda^-4",
++            "planetRadius":6000001,"atmosphereHeight":90001,"scaleHeight":7501,"groundY":-5.75,
++            "beta550":0.000025,"groundAlbedo":0.25,
++            "tauAbsoluteTolerance":3e-10,"tauRelativeTolerance":2e-8,"inverseTauTolerance":4e-9,
++            "distanceAbsoluteTolerance":5e-5,"distanceRelativeTolerance":6e-10,
++            "maxQuadratureDepth":17,"maxQuadratureEvaluations":98765,"maxInverseIterations":53
++        })");
++        auto custom = skyJson;
++        custom["rayleigh"] = customRayleigh;
++        custom["outputs"]["resolution"] = {320,180};
++        const auto customScene = custom.get<sceneIO::Scene>();
++        const nlohmann::ordered_json customSerialized = customScene;
++        require(customSerialized["rayleigh"] == customRayleigh, "all explicit M3 settings are retained exactly");
++        require(customSerialized["outputs"]["resolution"] == custom["outputs"]["resolution"], "output resolution round trip");
++
++        for (const auto& field : {"enabled", "areaNeeTransmittance"}) {
++            auto bad = skyJson; bad["rayleigh"][field] = 1;
++            rejects(bad, "M3 flags accept JSON booleans, not integers");
++        }
++        for (const auto& value : {nlohmann::ordered_json(-1), nlohmann::ordered_json(4294967296ULL),
++                                  nlohmann::ordered_json(12.5)}) {
++            auto bad = skyJson; bad["rayleigh"]["maxQuadratureEvaluations"] = value;
++            rejects(bad, "work budgets reject wrapped/fractional integers before uint32 conversion");
++        }
++        for (const auto* field : {"tauAbsoluteTolerance", "inverseTauTolerance", "distanceAbsoluteTolerance"}) {
++            auto bad = skyJson; bad["rayleigh"][field] = 0;
++            rejects(bad, "required numerical error tolerances must be positive");
++        }
++        {
++            auto bad = skyJson; bad["rayleigh"]["scaleHieght"] = 8000;
++            rejects(bad, "unknown M3 field must not silently use a default");
++            bad = skyJson; bad["rayleigh"]["solver"] = "chapman";
++            rejects(bad, "unimplemented attenuation solver is rejected");
++            bad = skyJson; bad["rayleigh"]["wavelengthLaw"] = "constant";
++            rejects(bad, "unimplemented wavelength law is rejected");
++            bad = skyJson; bad["integrator"]["m1Surface"] = false;
++            rejects(bad, "M3 must not silently select the legacy renderer");
++            bad = skyJson; bad["integrator"]["applySpectralRendering"] = false;
++            rejects(bad, "M3 requires explicit spectral rendering");
++            bad = skyJson; bad["environment"]["file"] = "sky.hdr";
++            rejects(bad, "M3 does not mix an environment map with its atmosphere");
++            bad = skyJson; bad["enableGroundRendering"] = true;
++            rejects(bad, "M3 does not mix the old ground renderer with its planet");
++            bad = skyJson; bad["objects"] = nlohmann::ordered_json::array({{{"type","vdb"},{"file","cloud.vdb"}}});
++            rejects(bad, "M3 does not accept VDB media");
++            bad = skyJson; bad["camera"]["from"] = {0,-7,0};
++            rejects(bad, "M3 camera cannot start inside the planet");
++            bad = skyJson; bad["camera"]["from"] = {0,-6,0};
++            rejects(bad, "M3 camera cannot start exactly on the planet boundary");
++            bad = skyJson; bad["rayleigh"] = nullptr;
++            rejects(bad, "null M3 settings must not silently disable the medium");
++        }
++        for (const auto* resolution : {"[0,288]", "[-1,288]", "[512.5,288]", "[512]", "[512,288,1]",
++                                      "[4294967297,1]", "[65536,65536]"}) {
++            auto bad = skyJson; bad["outputs"]["resolution"] = nlohmann::ordered_json::parse(resolution);
++            rejects(bad, "output dimensions must be exactly two positive representable integers");
++        }
++        {
++            auto invalid = customScene;
++            invalid.rayleigh.beta550 = std::numeric_limits<double>::quiet_NaN();
++            bool rejected = false;
++            try { sceneIO::validateRayleighScene(invalid); }
++            catch (const std::exception&) { rejected = true; }
++            require(rejected, "programmatically constructed M3 scenes also validate before upload");
++        }
+         const auto temporary = std::filesystem::temp_directory_path() /
+             ("neuralpf-m1-json-" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+         std::filesystem::create_directory(temporary);
+@@ -78,8 +196,17 @@ int main(int argc, char** argv) {
+         require(!std::filesystem::exists(path.string() + ".bad"), "strict parse must not rename input");
+         std::string contents;
+         require(sceneIO::loadText(path, contents) && contents == "{invalid JSON", "strict parse must preserve input");
++        for (const auto* nullInput : {"{\"rayleigh\":null}", "{\"rayleigh\":{\"enabled\":null}}",
++                                      "{\"outputs\":{\"resolution\":null}}"}) {
++            { std::ofstream output(path); output << nullInput; }
++            bool rejected = false;
++            try { rejected = !sceneIO::loadOrCreate(path, scene, &error, false); }
++            catch (const std::exception&) { rejected = true; }
++            require(rejected, "merge-patch null must not erase an invalid M3/output setting");
++            require(sceneIO::loadText(path, contents) && contents == nullInput, "semantic error must preserve scene input");
++        }
+         std::filesystem::remove_all(temporary);
+-        std::cout << "Scene selection: 9 M1 fixtures + 2 M2 presets + 2 legacy scenes; strict failures preserve inputs\n";
++        std::cout << "Scene selection: 9 M1 fixtures + 2 M2 + 5 M3 presets + 2 legacy scenes; strict failures preserve inputs\n";
+         return 0;
+     } catch (const std::exception& e) {
+         std::cerr << "FAIL: " << e.what() << '\n';
+diff --git a/tests/test_m3_atmosphere.cpp b/tests/test_m3_atmosphere.cpp
+new file mode 100644
+index 0000000..0197e2c
+--- /dev/null
++++ b/tests/test_m3_atmosphere.cpp
+@@ -0,0 +1,328 @@
++#include "m3/atmosphere.hpp"
++
++#include <algorithm>
++#include <cmath>
++#include <cstdlib>
++#include <iomanip>
++#include <iostream>
++#include <limits>
++#include <stdexcept>
++#include <string>
++
++namespace {
++
++void check(bool condition,const char* message) {
++    if (!condition) throw std::runtime_error(message);
++}
++
++void ok(m3::Status status,const char* operation) {
++    if (status != m3::Status::Ok)
++        throw std::runtime_error(std::string(operation)+": "+m3::status_name(status));
++}
++
++void near(double actual,long double expected,double relative,double absolute,const char* message) {
++    const long double error=std::abs(static_cast<long double>(actual)-expected);
++    if (!(error <= absolute+relative*std::abs(expected))) {
++        std::cerr << std::setprecision(20) << message << ": actual=" << actual
++                  << " expected=" << expected << " error=" << error << '\n';
++        throw std::runtime_error(message);
++    }
++}
++
++m3::AtmosphereParameters precise() {
++    m3::AtmosphereParameters p;
++    p.tauAbsoluteTolerance=1e-12;
++    p.tauRelativeTolerance=1e-11;
++    p.distanceAbsoluteTolerance=1e-5;
++    return p;
++}
++
++long double vertical_tau(const m3::AtmosphereParameters& p,long double height,
++                         long double distance,long double beta) {
++    const long double h=p.scaleHeight;
++    return beta*std::exp(-height/h)*h*(-std::expm1(-distance/h));
++}
++
++// Independent long-double composite Simpson integration in Cartesian distance.
++// This does not use production clipping, outward pieces, radial-change formula,
++// adaptive Gauss/Kronrod rule, or bounded-tail omission. Cases provide explicit
++// finite intervals wholly in the atmosphere.
++long double independent_tau(const m3::AtmosphereParameters& p,const m3::RaySegment& ray,
++                            long double length_m,long double beta,unsigned panels=262144) {
++    const long double norm=std::sqrt(static_cast<long double>(ray.direction.x)*ray.direction.x+
++        static_cast<long double>(ray.direction.y)*ray.direction.y+
++        static_cast<long double>(ray.direction.z)*ray.direction.z);
++    const long double dx=ray.direction.x/norm,dy=ray.direction.y/norm,dz=ray.direction.z/norm;
++    const long double radius=p.planetRadius;
++    const long double step=length_m/panels;
++    auto f=[&](long double s) {
++        const long double x=ray.origin.x+dx*s;
++        const long double y=static_cast<long double>(ray.origin.y)-p.groundY+radius+dy*s;
++        const long double z=ray.origin.z+dz*s;
++        const long double r=std::sqrt(x*x+y*y+z*z);
++        return beta*std::exp(-(r-radius)/static_cast<long double>(p.scaleHeight));
++    };
++    long double sum=f(0)+f(length_m);
++    for (unsigned i=1;i<panels;++i) sum+=(i%2 == 0 ? 2 : 4)*f(step*i);
++    return sum*step/3;
++}
++
++void shell_and_metric() {
++    const auto p=precise();
++    const double infinity=std::numeric_limits<double>::infinity();
++    auto c=m3::clip_atmosphere(p,{{0,p.groundY+1000,0},{0,-2,0},infinity});
++    ok(c.status,"ground clip");
++    check(c.has_medium&&c.hits_ground&&c.ground_occludes,"Ground is an opaque endpoint");
++    near(c.ground_distance_m,1000,0,1e-9,"Ground distance in metres");
++    near(c.direction_length,2,0,0,"Raw direction metric norm");
++    near(c.end_m,1000,0,1e-9,"Clip stops at ground");
++    c=m3::clip_atmosphere(p,{{0,p.groundY+1000,0},{0,-2,0},500});
++    check(c.hits_ground&&!c.ground_occludes,"Ground at endpoint does not occlude that endpoint");
++    c=m3::clip_atmosphere(p,{{0,p.groundY,0},{0,-1,0},infinity});
++    check(c.hits_ground&&c.ground_distance_m == 0&&c.ground_occludes&&!c.has_medium,
++          "Inward ray on ground is blocked at zero");
++    c=m3::clip_atmosphere(p,{{0,p.groundY,0},{0,1,0},infinity});
++    check(!c.hits_ground&&c.has_medium,"Outward ground ray is not self-occluded");
++    near(c.end_m,p.atmosphereHeight,0,1e-8,"Outward atmosphere exit");
++    c=m3::clip_atmosphere(p,{{0,p.groundY+p.atmosphereHeight+2000,0},{0,-1,0},infinity});
++    near(c.begin_m,2000,0,1e-8,"Exterior atmosphere entry");
++    near(c.end_m,p.atmosphereHeight+2000,0,1e-8,"Exterior ray stops at first ground");
++    c=m3::clip_atmosphere(p,{{-100000,p.groundY,0},{1,0,0},200000});
++    check(c.hits_ground&&c.ground_occludes,"Future tangent to opaque sphere is blocked");
++    near(c.ground_distance_m,100000,0,1e-7,"Future tangent distance");
++    const auto failed=m3::clip_atmosphere(p,{{0,p.groundY-1e-6,0},{0,1,0},10});
++    check(failed.status == m3::Status::InsideGround,"Genuine inside-ground origin fails");
++
++    // A float-normalized direction is not exactly unit when promoted to double.
++    const float fx=0.6f,fy=0.8f;
++    const m3::RaySegment raw{{0,p.groundY+1000,0},{fx,fy,0},10000};
++    const double n=m3::length(raw.direction);
++    const m3::RaySegment metric{raw.origin,raw.direction/n,raw.t_max*n};
++    const auto a=m3::optical_depth(p,raw,p.beta550);
++    const auto b=m3::optical_depth(p,metric,p.beta550);
++    ok(a.status,"raw float direction");ok(b.status,"metric unit direction");
++    near(a.tau,b.tau,3e-13,1e-14,"OptiX parameter to physical distance agreement");
++}
++
++void vertical_and_local_density() {
++    const auto p=precise();
++    for (double height : {0.0,1e-6,1234.0,10000.0}) {
++        double sigma=-1;
++        ok(m3::local_scattering_coefficient(p,{0,p.groundY+height,0},p.beta550,sigma),"local density");
++        near(sigma,p.beta550*std::exp(-height/p.scaleHeight),3e-13,1e-18,"Exponential local density");
++        for (double distance : {1e-6,0.25,100.0,20000.0}) {
++            const auto integral=m3::optical_depth(p,{{0,p.groundY+height,0},{0,1,0},distance},p.beta550);
++            ok(integral.status,"vertical integral");
++            near(integral.tau,vertical_tau(p,height,distance,p.beta550),4e-11,2e-14,"Exact vertical optical depth");
++            check(integral.estimated_error <= p.tauAbsoluteTolerance+p.tauRelativeTolerance*integral.tau,
++                  "Successful integral satisfies its advertised estimated error");
++        }
++    }
++    const auto down=m3::optical_depth(p,{{0,p.groundY+10000,0},{0,-1,0},8000},p.beta550);
++    ok(down.status,"downward radial integral");
++    near(down.tau,vertical_tau(p,2000,8000,p.beta550),4e-11,2e-14,"Downward radial reversal");
++    const auto ground=m3::transmittance(p,{{0,p.groundY+1000,0},{0,-1,0},2000},p.beta550);
++    ok(ground.status,"ground transmittance");
++    check(ground.ground_occluded&&ground.transmittance > 0,
++          "Opaque visibility is separate from nonzero transmittance to ground");
++}
++
++void tangent_short_and_additivity() {
++    const auto p=precise();
++    const m3::RaySegment cross{{-250000,p.groundY+800,0},{1,0,0},500000};
++    const auto a=m3::optical_depth(p,cross,p.beta550);
++    ok(a.status,"cross-tangent integral");
++    const long double ref=independent_tau(p,cross,500000,p.beta550);
++    near(a.tau,ref,3e-11,2e-12,"Cross-tangent independent Cartesian Simpson");
++    std::cout << "METRIC tangent_tau=" << a.tau << " independent_tau=" << ref
++              << " evaluations=" << a.evaluations << '\n';
++    const m3::RaySegment short_ray{{123,p.groundY+10,17},{0.8,0.6,0},1e-4};
++    const auto short_value=m3::optical_depth(p,short_ray,p.beta550);
++    ok(short_value.status,"short interval");
++    near(short_value.tau,independent_tau(p,short_ray,1e-4,p.beta550,1024),2e-10,1e-18,
++         "Short interval avoids primitive subtraction");
++    const double split=177123;
++    const m3::RaySegment first{cross.origin,cross.direction,split};
++    const m3::RaySegment second{cross.origin+cross.direction*split,cross.direction,cross.t_max-split};
++    const m3::RaySegment reversed{cross.origin+cross.direction*cross.t_max,{-1,0,0},cross.t_max};
++    const auto b=m3::optical_depth(p,first,p.beta550),c=m3::optical_depth(p,second,p.beta550);
++    const auto d=m3::optical_depth(p,reversed,p.beta550);
++    ok(b.status,"additivity first");ok(c.status,"additivity second");ok(d.status,"reverse");
++    near(a.tau,b.tau+c.tau,4e-11,2e-12,"Optical-depth segment additivity");
++    near(a.tau,d.tau,4e-11,2e-12,"Endpoint symmetry");
++    near(std::exp(-a.tau),std::exp(-b.tau)*std::exp(-c.tau),4e-11,2e-14,
++         "Transmittance multiplicativity");
++    const m3::RaySegment horizon{{0,p.groundY,0},{1,0,0},500000};
++    const auto h=m3::optical_depth(p,horizon,p.beta550);
++    ok(h.status,"ground horizon");
++    near(h.tau,independent_tau(p,horizon,500000,p.beta550),3e-11,2e-12,"Grazing ground integral");
++}
++
++void sampling_and_refinement() {
++    auto p=precise();
++    const m3::RaySegment ray{{0,p.groundY+1000,0},{0,2,0},15000};
++    const long double total=vertical_tau(p,1000,30000,p.beta550);
++    for (double fraction : {1e-5,0.03,0.4,0.95,0.999999}) {
++        const double target=static_cast<double>(total)*fraction;
++        const double xi=-std::expm1(-target);
++        const auto sample=m3::sample_free_flight(p,ray,p.beta550,xi);
++        ok(sample.status,"free-flight inverse");
++        check(sample.scattered&&sample.endpoint == m3::Endpoint::None,"Sample is a collision");
++        const long double prefactor=static_cast<long double>(p.beta550)*p.scaleHeight*
++            std::exp(-1000.0L/p.scaleHeight);
++        const long double expected=-p.scaleHeight*std::log1p(-static_cast<long double>(target)/prefactor);
++        near(sample.distance_m,expected,2e-10,2e-5,"Exact vertical inverse distance");
++        near(sample.ray_t,sample.distance_m/2,0,0,"Sample parameter/metric distance conversion");
++        near(static_cast<double>(vertical_tau(p,1000,sample.distance_m,p.beta550)),target,1e-10,2e-10,
++             "Independent inverse optical-depth residual");
++        near(sample.pdf_per_m,sample.sigma_s_per_m*sample.transmittance,1e-14,0,"Continuous event PDF");
++        check(sample.endpoint_mass == 0,"Collision does not carry a discrete endpoint mass");
++    }
++    const auto no_event=m3::sample_free_flight(p,ray,p.beta550,0.99);
++    ok(no_event.status,"free-flight endpoint");
++    check(!no_event.scattered&&no_event.endpoint == m3::Endpoint::SegmentEnd,"No-event endpoint");
++    near(no_event.endpoint_mass,std::exp(-total),3e-11,1e-13,"Survival endpoint mass");
++    check(no_event.pdf_per_m == 0,"Endpoint is not assigned a continuous PDF");
++    const auto zero=m3::sample_free_flight(p,ray,p.beta550,0);
++    ok(zero.status,"zero quantile");
++    check(zero.scattered&&zero.distance_m == 0&&zero.transmittance == 1,"Zero quantile is interval entry");
++    const auto vacuum=m3::sample_free_flight(p,ray,0,0);
++    ok(vacuum.status,"vacuum zero quantile");
++    check(!vacuum.scattered&&vacuum.endpoint_mass == 1,"True vacuum stays distinguishable");
++
++    // Both targets start within the deliberately loose initial error budget.
++    // Correct endpoint classification requires tightening that same integral.
++    p.tauAbsoluteTolerance=1e-5;p.tauRelativeTolerance=1e-4;
++    for (double sign : {-1.0,1.0}) {
++        const double target=static_cast<double>(total)+sign*2e-11;
++        const auto sample=m3::sample_free_flight(p,ray,p.beta550,-std::expm1(-target));
++        ok(sample.status,"near-endpoint refinement");
++        check(sample.scattered == (sign < 0),"Near-endpoint classification agrees with analytic depth");
++    }
++    const double thin_beta=1e-18;
++    const double thin_target=static_cast<double>(vertical_tau(p,1000,10000,thin_beta));
++    const auto thin=m3::sample_free_flight(p,ray,thin_beta,-std::expm1(-thin_target));
++    ok(thin.status,"thin positive-medium refinement");
++    check(thin.scattered,"A small positive medium is not silently treated as vacuum");
++    near(thin.distance_m,10000,1e-8,2e-5,"Thin-medium exact inverse");
++}
++
++void explicit_failures() {
++    auto p=precise();
++    const m3::RaySegment ray{{0,p.groundY,0},{0,1,0},100000};
++    const double nan=std::numeric_limits<double>::quiet_NaN();
++    check(m3::optical_depth(p,ray,nan).status == m3::Status::InvalidCoefficient,"NaN coefficient fails");
++    check(m3::sample_free_flight(p,ray,p.beta550,1).status == m3::Status::InvalidQuantile,"xi=1 fails");
++    check(m3::sample_free_flight(p,ray,p.beta550,nan).status == m3::Status::InvalidQuantile,"NaN xi fails");
++    check(m3::clip_atmosphere(p,{ray.origin,{0,0,0},1}).status == m3::Status::InvalidRay,"Zero direction fails");
++    p.maxQuadratureEvaluations=15;
++    check(m3::optical_depth(p,ray,p.beta550).status == m3::Status::QuadratureBudget,"Work-budget exhaustion fails");
++    p=precise();p.maxInverseIterations=1;
++    check(m3::sample_free_flight(p,ray,p.beta550,0.05).status == m3::Status::InverseIterations,
++          "Unconverged inverse is not returned as a successful sample");
++    p=precise();p.maxQuadratureDepth=25;
++    check(m3::validate_parameters(p) == m3::Status::InvalidParameters,"Fixed stack capacity is validated");
++}
++
++void high_altitude_precision() {
++    m3::AtmosphereParameters p;
++    const m3::RaySegment ray{{0,p.groundY,0},{0,1,0},HUGE_VAL};
++    double largest_distance_error=0,largest_estimate=0;
++    for (double wavelength : {360.0,550.0,830.0}) {
++        double beta=0;
++        check(m3::rayleigh_coefficient(p,wavelength,beta),"Wavelength coefficient");
++        for (double height : {80000.0,90000.0,95000.0,99000.0,99900.0,99990.0}) {
++            const double target=static_cast<double>(vertical_tau(p,0,height,beta));
++            const auto sample=m3::sample_free_flight(p,ray,beta,-std::expm1(-target));
++            ok(sample.status,"rare high-altitude free flight");
++            check(sample.scattered,"High-altitude quantile must collide before atmosphere top");
++            const double tolerance=p.distanceAbsoluteTolerance+p.distanceRelativeTolerance*p.atmosphereHeight;
++            near(sample.distance_m,height,0,tolerance,"High-altitude analytic inverse distance");
++            check(std::abs(sample.tau_residual)+sample.estimated_tau_error <= p.inverseTauTolerance,
++                  "High-altitude sample satisfies final optical-depth criterion");
++            check(sample.estimated_distance_error_m <= tolerance,
++                  "High-altitude sample satisfies final distance criterion");
++            largest_distance_error=std::max(largest_distance_error,std::abs(sample.distance_m-height));
++            largest_estimate=std::max(largest_estimate,sample.estimated_distance_error_m);
++        }
++    }
++    // A user can ask for 10 micrometres, but the estimated quadrature roundoff
++    // at this near-top event exceeds that distance budget. Internal precision
++    // safeguards must NOT turn this genuinely unresolved request into success.
++    p.distanceAbsoluteTolerance=1e-5;
++    const double target=static_cast<double>(vertical_tau(p,0,99900,p.beta550));
++    const auto strict=m3::sample_free_flight(p,ray,p.beta550,-std::expm1(-target));
++    check(strict.status == m3::Status::InverseIterations || strict.status == m3::Status::InverseRoundoff,
++          "Unachievable user distance accuracy fails explicitly");
++    check(strict.estimated_distance_error_m >
++          p.distanceAbsoluteTolerance+p.distanceRelativeTolerance*p.atmosphereHeight,
++          "Strict failure retains the unresolved distance estimate");
++    std::cout << "METRIC high_altitude_max_distance_error_m=" << largest_distance_error
++              << " high_altitude_max_estimate_m=" << largest_estimate << '\n';
++}
++
++void grazing_discriminant() {
++    const auto p=precise();
++    unsigned checked=0;
++    for (double requested_height : {1e-5,1e-4,1e-3,0.1,1.0,1000.0}) {
++        const float origin_y=static_cast<float>(p.groundY+requested_height);
++        const long double height=static_cast<long double>(origin_y)-p.groundY;
++        const long double radius=p.planetRadius;
++        const long double c=height*(2*radius+height);
++        const float critical=static_cast<float>(-std::sqrt(c)/radius);
++        for (int offset=-10;offset<=10;++offset) {
++            float dy=critical;
++            for (int i=0;i<std::abs(offset);++i)
++                dy=std::nextafter(dy,offset < 0 ? -INFINITY : INFINITY);
++            const long double a=1+static_cast<long double>(dy)*dy;
++            const long double b=(radius+height)*dy;
++            const long double discriminant=b*b-a*c;
++            const bool reference_hit=discriminant >= 0;
++            const m3::RaySegment ray{{0,origin_y,0},{1,dy,0},HUGE_VAL};
++            const auto clip=m3::clip_atmosphere(p,ray);
++            ok(clip.status,"near-tangent clipping");
++            check(clip.hits_ground == reference_hit,
++                  "Ground support agrees with independent long-double discriminant");
++            if (reference_hit) {
++                const long double first_t=(-b-std::sqrt(discriminant))/a;
++                near(clip.ground_distance_m,first_t*std::sqrt(a),1e-11,1e-6,
++                     "Near-tangent ground distance");
++            } else {
++                // The closest altitude can be far below one double ULP of R.
++                // Both the clipping and the two integration pieces must retain
++                // its positive sign; a rounded impact-R would cut this path in
++                // half or incorrectly report an inside-ground error.
++                const double physical_length=static_cast<double>(-2*b/std::sqrt(a)+1);
++                const m3::RaySegment finite_ray{ray.origin,ray.direction,
++                    physical_length/m3::length(ray.direction)};
++                const auto integral=m3::optical_depth(p,finite_ray,p.beta550);
++                ok(integral.status,"positive sub-ULP closest altitude");
++                near(integral.tau,independent_tau(p,finite_ray,physical_length,p.beta550,2048),
++                     8e-11,2e-13,"Near-tangent miss integrates the full interval");
++            }
++            ++checked;
++        }
++    }
++    std::cout << "METRIC near_tangent_float_direction_cases=" << checked << " disagreements=0\n";
++}
++
++} // namespace
++
++int main() {
++    try {
++        std::cout << std::setprecision(17);
++        shell_and_metric();
++        vertical_and_local_density();
++        tangent_short_and_additivity();
++        sampling_and_refinement();
++        high_altitude_precision();
++        grazing_discriminant();
++        explicit_failures();
++        std::cout << "M3 atmosphere: shell/ground, metric conversion, analytic radial, independent tangent/short, "
++                     "additivity, inverse-CDF and explicit-failure checks passed\n";
++        return EXIT_SUCCESS;
++    } catch (const std::exception& e) {
++        std::cerr << "FAIL: " << e.what() << '\n';
++        return EXIT_FAILURE;
++    }
++}
+diff --git a/tests/test_m3_position.cpp b/tests/test_m3_position.cpp
+new file mode 100644
+index 0000000..3b53300
+--- /dev/null
++++ b/tests/test_m3_position.cpp
+@@ -0,0 +1,171 @@
++#include "m3/position.hpp"
++
++#include <array>
++#include <cmath>
++#include <iomanip>
++#include <iostream>
++#include <limits>
++#include <stdexcept>
++
++namespace {
++void require(bool condition, const char* message) {
++    if (!condition) throw std::runtime_error(message);
++}
++
++double height(const m3::AtmosphereParameters& parameters, m3::DVec3 point) {
++    double result = 0, radius = 0;
++    require(m3::detail::height_at(parameters, point, result, radius) == m3::Status::Ok,
++            "test point has a finite spherical height");
++    return result;
++}
++
++void verify_representation(const m3::AtmosphereParameters& parameters,
++                           m3::DVec3 exact, const m3::MediumPointResult& result) {
++    require(result.status == m3::Status::Ok && m1::finite(result.position),
++            "valid medium point has a finite float representation");
++    require(height(parameters, {result.position.x, result.position.y, result.position.z}) >= 0,
++            "represented medium point remains outside the opaque ground");
++    const double source[3] = {exact.x, exact.y, exact.z};
++    const float nearest[3] = {float(exact.x), float(exact.y), float(exact.z)};
++    const float represented[3] = {result.position.x, result.position.y, result.position.z};
++    const double relative[3] = {exact.x, parameters.planetRadius + (exact.y - parameters.groundY), exact.z};
++    bool changed = false;
++    for (unsigned axis = 0; axis < 3; ++axis) {
++        if (represented[axis] == nearest[axis]) continue;
++        changed = true;
++        const float outward = represented[axis] > nearest[axis] ?
++            std::numeric_limits<float>::infinity() : -std::numeric_limits<float>::infinity();
++        require(represented[axis] == std::nextafter(nearest[axis], outward),
++                "only one adjacent float step is used for each changed coordinate");
++        require(relative[axis] * (double(represented[axis]) - nearest[axis]) > 0,
++                "changed coordinate moves toward the planetary exterior");
++        require((relative[axis] > 0 && double(nearest[axis]) < source[axis]) ||
++                (relative[axis] < 0 && double(nearest[axis]) > source[axis]),
++                "coordinates already rounded outward are not moved");
++        const double spacing = std::abs(double(represented[axis]) - nearest[axis]);
++        require(std::abs(double(represented[axis]) - source[axis]) <= spacing,
++                "directed representation differs from the double coordinate by at most one float step");
++    }
++    require(changed == result.rounded_outward, "outward rounding is reported explicitly");
++    for (const auto direction : std::array<m3::DVec3, 6>{{{1,0,0},{-1,0,0},{0,1,0},
++                                                        {0,-1,0},{0,0,1},{0,0,-1}}}) {
++        const auto clip = m3::clip_atmosphere(parameters,
++            {{result.position.x, result.position.y, result.position.z}, direction,
++             std::numeric_limits<double>::infinity()});
++        require(clip.status == m3::Status::Ok, "represented point can start another physical ray");
++    }
++}
++
++void test_actual_freeflight_counterexample() {
++    m3::AtmosphereParameters parameters;
++    parameters.enabled = 1;
++    // A valid 24-bit PCG probability cell, not an arbitrary value closer to an
++    // endpoint than the renderer's RNG can produce. The local x position is
++    // 250 km from the tangent point on an Earth-radius sphere.
++    const m3::RaySegment ray{{250000, -4902.92822265625, 0}, {0, -1, 0},
++                             std::numeric_limits<double>::infinity()};
++    double beta = 0;
++    require(m3::rayleigh_coefficient(parameters, 360, beta), "Rayleigh coefficient at 360 nm");
++    const double xi = (11870.0 + 0.5) / 16777216.0;
++    const auto sampled = m3::sample_free_flight(parameters, ray, beta, xi);
++    require(sampled.status == m3::Status::Ok && sampled.scattered,
++            "the real free-flight counterexample is a valid scattering event");
++    const double norm = m3::length(ray.direction);
++    const auto unit = ray.direction / norm;
++    const m3::DVec3 exact{std::fma(unit.x, sampled.distance_m, ray.origin.x),
++                         std::fma(unit.y, sampled.distance_m, ray.origin.y),
++                         std::fma(unit.z, sampled.distance_m, ray.origin.z)};
++    const m3::DVec3 nearest{double(float(exact.x)), double(float(exact.y)), double(float(exact.z))};
++    const double exact_height = height(parameters, exact);
++    const double nearest_height = height(parameters, nearest);
++    require(exact_height > 0 && nearest_height < 0,
++            "nearest float conversion reproduces an outside-to-inside domain change");
++    const auto rejected = m3::clip_atmosphere(parameters, {nearest, {0, 1, 0}, 1});
++    require(rejected.status == m3::Status::InsideGround, "uncorrected next ray is rejected");
++    const auto represented = m3::represent_medium_point(parameters, exact);
++    verify_representation(parameters, exact, represented);
++    require(represented.rounded_outward, "counterexample needs directed representation");
++    require(represented.position.x == float(exact.x) && represented.position.z == float(exact.z),
++            "exactly representable coordinates remain unchanged");
++    std::cout << "Medium point counterexample: exact_height_m=" << exact_height
++              << " nearest_height_m=" << nearest_height
++              << " represented_height_m=" << height(parameters,
++                  {represented.position.x, represented.position.y, represented.position.z})
++              << " y_step_m=" << double(represented.position.y) - nearest.y << '\n';
++}
++
++void test_spherical_sides_and_unchanged_points() {
++    m3::AtmosphereParameters parameters;
++    parameters.enabled = 1;
++    unsigned corrected = 0, checked = 0;
++    for (const double theta : std::array<double, 7>{{0, 0.25, 0.8, 1.4, 1.7, 2.6, 3.0}})
++        for (const double phi : std::array<double, 5>{{0, 0.7, 1.6, 3.2, 4.8}}) {
++            const double radius = parameters.planetRadius + 0.0001;
++            const m3::DVec3 exact{radius * std::sin(theta) * std::cos(phi),
++                parameters.groundY - parameters.planetRadius + radius * std::cos(theta),
++                radius * std::sin(theta) * std::sin(phi)};
++            require(height(parameters, exact) > 0, "constructed spherical point is outside");
++            const auto result = m3::represent_medium_point(parameters, exact);
++            verify_representation(parameters, exact, result);
++            corrected += result.rounded_outward ? 1u : 0u;
++            ++checked;
++        }
++    require(corrected > 0, "hemisphere cases exercise outward representation");
++
++    for (const auto exact : std::array<m3::DVec3, 5>{{{0, parameters.groundY, 0},
++        {0, parameters.groundY + 0.01, 0}, {100, 200, 30}, {100000, -750, 0},
++        {0, parameters.groundY + parameters.atmosphereHeight + 100, 0}}}) {
++        const auto result = m3::represent_medium_point(parameters, exact);
++        verify_representation(parameters, exact, result);
++        require(!result.rounded_outward && result.position.x == float(exact.x) &&
++                result.position.y == float(exact.y) && result.position.z == float(exact.z),
++                "nearest representations already outside the planet stay unchanged");
++    }
++    std::cout << "Spherical representation: checked=" << checked << " corrected=" << corrected << '\n';
++}
++
++void test_invalid_points_are_not_repaired() {
++    m3::AtmosphereParameters parameters;
++    parameters.enabled = 1;
++    require(m3::represent_medium_point(parameters, {0, parameters.groundY - 0.0001, 0}).status ==
++            m3::Status::InsideGround, "a truly inside point is never moved to the surface");
++    bool checked_inside_with_outside_image = false;
++    for (const double x : std::array<double, 7>{{1000, 10000, 50000, 100000, 150000, 500000, 1000000}}) {
++        const double sag = x * x / (parameters.planetRadius +
++            std::sqrt(parameters.planetRadius * parameters.planetRadius - x * x));
++        const m3::DVec3 exact{x, parameters.groundY - sag - 1e-6, 0};
++        require(height(parameters, exact) < 0, "adversarial point is truly inside the sphere");
++        const double nearest_height = height(parameters,
++            {double(float(exact.x)), double(float(exact.y)), 0});
++        checked_inside_with_outside_image |= nearest_height >= 0;
++        require(m3::represent_medium_point(parameters, exact).status == m3::Status::InsideGround,
++                "inside double point is rejected even if its nearest float happens to be outside");
++    }
++    require(checked_inside_with_outside_image, "test includes an invalid point whose float image looks valid");
++
++    const double nan = std::numeric_limits<double>::quiet_NaN();
++    const double infinity = std::numeric_limits<double>::infinity();
++    for (const auto invalid : std::array<m3::DVec3, 5>{{{nan, 0, 0}, {0, infinity, 0},
++        {0, 0, -infinity}, {double(FLT_MAX) * 2, 0, 0}, {DBL_MAX, 0, 0}}})
++        require(m3::represent_medium_point(parameters, invalid).status == m3::Status::NonfiniteGeometry,
++                "nonfinite or unrepresentable positions are rejected");
++    parameters.scaleHeight = 0;
++    require(m3::represent_medium_point(parameters, {}).status == m3::Status::InvalidParameters,
++            "invalid atmosphere parameters remain observable");
++}
++} // namespace
++
++int main() {
++    try {
++        std::cout << std::setprecision(12);
++        test_actual_freeflight_counterexample();
++        test_spherical_sides_and_unchanged_points();
++        test_invalid_points_are_not_repaired();
++        std::cout << "M3 position checks passed: real PCG free-flight counterexample, sphere-domain "
++                     "preservation, one-float-step bound, unchanged valid points, and invalid-input rejection\n";
++        return 0;
++    } catch (const std::exception& error) {
++        std::cerr << "M3 position check failed: " << error.what() << '\n';
++        return 1;
++    }
++}
+diff --git a/tests/test_m3_transport.cpp b/tests/test_m3_transport.cpp
+new file mode 100644
+index 0000000..e1f7dcf
+--- /dev/null
++++ b/tests/test_m3_transport.cpp
+@@ -0,0 +1,308 @@
++#include "m3/atmosphere.hpp"
++#include "m3/transport.hpp"
++#include "m1/bsdf.hpp"
++
++#include <algorithm>
++#include <array>
++#include <cmath>
++#include <iomanip>
++#include <iostream>
++#include <limits>
++#include <stdexcept>
++
++namespace {
++void require(bool condition, const char* message) {
++    if (!condition) throw std::runtime_error(message);
++}
++void close(double actual, double expected, double tolerance, const char* message) {
++    require(std::isfinite(actual) && std::abs(actual - expected) <= tolerance, message);
++}
++
++template<class Function>
++double simpson(Function function, double begin, double end, unsigned count) {
++    require(count > 0 && count % 2 == 0, "Simpson integration needs an even interval count");
++    const double step = (end - begin) / count;
++    double total = function(begin) + function(end);
++    for (unsigned i = 1; i < count; ++i)
++        total += (i % 2 ? 4.0 : 2.0) * function(begin + step * i);
++    return total * step / 3.0;
++}
++
++void test_rayleigh_scalar_distribution() {
++    const auto density = [](double mu) { return 2.0 * m3::transport_pi * m3::rayleigh_phase(mu); };
++    close(simpson(density, -1, 1, 128), 1.0, 2e-15, "Rayleigh solid-angle normalization");
++    close(simpson([&](double mu) { return mu * density(mu); }, -1, 1, 128),
++          0.0, 2e-15, "Rayleigh first angular moment");
++    close(simpson([&](double mu) { return mu * mu * density(mu); }, -1, 1, 4096),
++          0.4, 2e-14, "Rayleigh second angular moment is 2/5");
++
++    constexpr unsigned count = 16384;
++    double first = 0, second = 0, maximum_cdf_error = 0;
++    double previous = -1;
++    for (unsigned i = 0; i < count; ++i) {
++        const double u = (i + 0.5) / count;
++        const double mu = m3::sample_rayleigh_mu(u);
++        require(mu > previous && mu > -1 && mu < 1, "Rayleigh inverse CDF is strictly ordered");
++        previous = mu;
++        maximum_cdf_error = std::max(maximum_cdf_error, std::abs(m3::rayleigh_mu_cdf(mu) - u));
++        first += mu / count;
++        second += mu * mu / count;
++    }
++    close(first, 0, 2e-15, "Rayleigh quantile mean is zero");
++    close(second, 0.4, 3e-9, "Rayleigh quantile second moment");
++    require(maximum_cdf_error < 5e-16, "Rayleigh inverse CDF round trip");
++    close(m3::sample_rayleigh_mu(0), -1, 0, "Rayleigh lower endpoint");
++    close(m3::sample_rayleigh_mu(1), 1, 0, "Rayleigh upper endpoint");
++    std::cout << "Rayleigh quantiles: mean=" << first << " second_moment=" << second
++              << " max_cdf_error=" << maximum_cdf_error << '\n';
++}
++
++void test_rayleigh_direction_sampling() {
++    const std::array<m1::Vec3, 7> axes{{{0, 1, 0}, {0, 0, 1}, {0, 0, -1},
++        {1, 2, 3}, {1e30f, -2e30f, 3e30f}, {1e-30f, -2e-30f, 3e-30f},
++        {0.70710677f, 0.70710677f, 0}}};
++    double maximum_cdf_error = 0, maximum_norm_error = 0;
++    for (const auto axis : axes) {
++        close(m3::rayleigh_direction_cosine(axis, axis), 1, 3e-16, "same-direction cosine");
++        close(m3::rayleigh_direction_cosine(axis, -axis), -1, 3e-16, "opposite-direction cosine");
++        for (unsigned i = 0; i < 256; ++i) {
++            const float u = (float(i) + 0.5f) / 256.0f;
++            const float v = (float((i * 73) % 256) + 0.5f) / 256.0f;
++            const auto sampled = m3::sample_rayleigh(axis, u, v);
++            require(sampled.valid && sampled.value > 0 && sampled.pdf > 0,
++                    "Rayleigh direction sample is valid");
++            const double cosine = m3::rayleigh_direction_cosine(axis, sampled.direction);
++            maximum_cdf_error = std::max(maximum_cdf_error, std::abs(m3::rayleigh_mu_cdf(cosine) - u));
++            maximum_norm_error = std::max(maximum_norm_error,
++                std::abs(double(m1::dot(sampled.direction, sampled.direction)) - 1.0));
++            close(sampled.value, m3::rayleigh_phase_directions(axis, sampled.direction), 0,
++                  "returned phase is evaluated at the final float direction");
++            close(sampled.pdf, sampled.value, 0, "Rayleigh samples its normalized phase");
++        }
++    }
++    require(maximum_cdf_error < 2e-7, "float direction retains the sampled Rayleigh quantile");
++    require(maximum_norm_error < 5e-7, "Rayleigh output directions remain unit length");
++
++    const float nan = std::numeric_limits<float>::quiet_NaN();
++    const float infinity = std::numeric_limits<float>::infinity();
++    for (const auto invalid : std::array<m1::Vec3, 3>{{{}, {nan, 0, 0}, {infinity, 0, 0}}}) {
++        require(!std::isfinite(m3::rayleigh_direction_cosine(invalid, {0, 1, 0})),
++                "invalid ray direction remains observable");
++        require(!m3::sample_rayleigh(invalid, 0.5f, 0.5f).valid,
++                "invalid ray direction is not silently replaced");
++    }
++    for (const double invalid : std::array<double, 4>{{-1.001, 1.001, nan, infinity}}) {
++        require(!std::isfinite(m3::rayleigh_phase(invalid)), "phase rejects an invalid cosine");
++        require(!std::isfinite(m3::rayleigh_mu_cdf(invalid)), "CDF rejects an invalid cosine");
++    }
++    for (const double invalid : std::array<double, 4>{{-0.01, 1.01, nan, infinity}})
++        require(!std::isfinite(m3::sample_rayleigh_mu(invalid)), "inverse CDF rejects invalid probability");
++    require(!m3::sample_rayleigh({0, 1, 0}, 0.5f, 1.0f).valid,
++            "azimuth random input follows the documented half-open interval");
++    std::cout << "Rayleigh float directions: max_cdf_error=" << maximum_cdf_error
++              << " max_norm_error=" << maximum_norm_error << '\n';
++}
++
++void test_strategy_support() {
++    for (unsigned mode = 0; mode < 3; ++mode) {
++        for (const int bounce : std::array<int, 3>{{0, 1, 7}}) {
++            for (const bool delta : std::array<bool, 2>{{false, true}}) {
++                require(!m3::area_emission_needs_pdf(true, bounce, delta, mode),
++                        "medium area hits have no competing light strategy");
++                close(m3::area_emission_weight(true, bounce, delta, mode, 0.1f, 12.0f),
++                      1.0, 0, "medium area hits retain weight one in every mode");
++                require(m3::area_emission_needs_pdf(false, bounce, delta, mode) ==
++                        (bounce > 0 && !delta && mode == 0), "surface area PDF is evaluated only when needed");
++                if (bounce == 0 || delta) {
++                    close(m3::sun_emission_weight(bounce, delta, mode, 0, 12), 1, 0,
++                          "camera and delta solar endpoints are retained");
++                    close(m3::area_emission_weight(false, bounce, delta, mode, 0, 12), 1, 0,
++                          "camera and delta area endpoints are retained");
++                }
++            }
++        }
++        for (const float scattering_pdf : std::array<float, 4>{{0.001f, 0.1f, 1, 1000}})
++            for (const float light_pdf : std::array<float, 4>{{0.001f, 0.1f, 1, 1000}}) {
++                const float a = m3::sun_emission_weight(1, false, mode, scattering_pdf, light_pdf);
++                const float b = m3::nee_weight(mode, light_pdf, scattering_pdf);
++                close(double(a) + b, 1, 1e-7, "solar continuation and NEE weights partition unity");
++                close(m3::area_emission_weight(false, 1, false, mode, scattering_pdf, light_pdf),
++                      a, 0, "surface endpoints use the same angular MIS convention");
++            }
++    }
++    close(m3::area_emission_weight(false, 1, false, 0, 0.1f, 0), 1, 0,
++          "zero competing area support is valid, without a PDF floor");
++    close(m3::nee_weight(0, 12, 0), 1, 0, "light-only angular support has weight one");
++}
++
++m3::AtmosphereParameters reference_atmosphere() {
++    m3::AtmosphereParameters parameters;
++    parameters.enabled = 1;
++    parameters.atmosphereHeight = 16000;
++    parameters.scaleHeight = 8000;
++    return parameters;
++}
++
++void test_vertical_ballistic_transport() {
++    const auto parameters = reference_atmosphere();
++    constexpr double height = 250, distance = 6000, target_tau = 0.8;
++    const double column = std::exp(-height / parameters.scaleHeight) * parameters.scaleHeight *
++                          (-std::expm1(-distance / parameters.scaleHeight));
++    const double beta = target_tau / column;
++    const m3::RaySegment segment{{0, parameters.groundY + height, 0}, {0, 1, 0}, distance};
++    const auto attenuation = m3::transmittance(parameters, segment, beta);
++    require(attenuation.status == m3::Status::Ok && !attenuation.ground_occluded,
++            "vertical reference transmittance is valid and unobstructed");
++    close(attenuation.tau, target_tau, 2e-9, "vertical exponential column has analytic optical depth");
++    const double expected = std::exp(-target_tau);
++    close(attenuation.transmittance, expected, 2e-9, "vertical Beer-Lambert transmittance");
++
++    constexpr unsigned count = 1024;
++    unsigned escaped = 0;
++    double wrong_double_attenuation = 0, maximum_distance_error = 0, maximum_tau_residual = 0;
++    for (unsigned i = 0; i < count; ++i) {
++        const double xi = (i + 0.5) / count;
++        const auto sample = m3::sample_free_flight(parameters, segment, beta, xi);
++        require(sample.status == m3::Status::Ok, "vertical free-flight quantile converges");
++        if (sample.scattered) {
++            const double tau = -std::log1p(-xi);
++            const double coefficient = beta * std::exp(-height / parameters.scaleHeight) * parameters.scaleHeight;
++            const double exact_distance = -parameters.scaleHeight * std::log1p(-tau / coefficient);
++            maximum_distance_error = std::max(maximum_distance_error, std::abs(sample.distance_m - exact_distance));
++            maximum_tau_residual = std::max(maximum_tau_residual, std::abs(sample.tau_residual));
++            close(sample.endpoint_mass, 0, 0, "a medium event has no endpoint mass");
++            close(sample.transmittance, std::exp(-tau), 2e-9, "event transmittance follows the sampled optical depth");
++            close(sample.pdf_per_m, sample.sigma_s_per_m * sample.transmittance, 2e-12,
++                  "pure Rayleigh collision density is sigma_s times T");
++        } else {
++            // This is the zero-scattering endpoint estimator. A surviving path
++            // contributes one, not T: its survival probability already is T.
++            ++escaped;
++            wrong_double_attenuation += sample.transmittance / count;
++            close(sample.endpoint_mass, expected, 2e-9, "no-collision probability equals T");
++        }
++    }
++    const double escaped_fraction = double(escaped) / count;
++    close(escaped_fraction, expected, 1.0 / count, "ballistic endpoint estimator has expectation T");
++    require(std::abs(wrong_double_attenuation - expected) > 0.2,
++            "regression distinguishes an erroneous additional endpoint T factor");
++    close(wrong_double_attenuation, expected * expected, 1.0 / count,
++          "double attenuation gives T squared rather than the required T");
++    require(maximum_distance_error < 5e-4, "vertical free-flight distance agrees with analytic inverse");
++
++    // The same zero-scattering term for the sun uses an infinite geometric ray
++    // clipped by the atmosphere; no surface endpoint is needed.
++    const double top_distance = parameters.atmosphereHeight - height;
++    const double sun_tau = beta * std::exp(-height / parameters.scaleHeight) * parameters.scaleHeight *
++                           (-std::expm1(-top_distance / parameters.scaleHeight));
++    const m3::RaySegment sun_ray{segment.origin, {0, 1, 0}, std::numeric_limits<double>::infinity()};
++    const auto sun = m3::transmittance(parameters, sun_ray, beta);
++    require(sun.status == m3::Status::Ok && !sun.ground_occluded, "vertical sun ray exits the atmosphere");
++    close(sun.tau, sun_tau, 2e-9, "sun transmittance includes exactly the truncated atmosphere column");
++    unsigned sun_escaped = 0;
++    for (unsigned i = 0; i < count; ++i) {
++        const auto sample = m3::sample_free_flight(parameters, sun_ray, beta, (i + 0.5) / count);
++        require(sample.status == m3::Status::Ok, "solar free-flight quantile converges");
++        if (!sample.scattered) ++sun_escaped;
++    }
++    close(double(sun_escaped) / count, std::exp(-sun_tau), 1.0 / count,
++          "unscattered solar endpoint receives survival only once");
++    std::cout << "Vertical transport: analytic_T=" << expected << " escaped_fraction=" << escaped_fraction
++              << " erroneous_T_twice=" << wrong_double_attenuation
++              << " max_distance_error_m=" << maximum_distance_error
++              << " max_tau_residual=" << maximum_tau_residual
++              << " sun_T=" << std::exp(-sun_tau)
++              << " sun_escaped_fraction=" << double(sun_escaped) / count << '\n';
++}
++
++void test_solar_mis_expectations() {
++    const auto parameters = reference_atmosphere();
++    constexpr double height = 800, beta = 1.3e-5;
++    const m3::DVec3 origin{0, parameters.groundY + height, 0};
++    const auto transmittance = [&](m1::Vec3 direction) {
++        const m3::RaySegment ray{origin, {direction.x, direction.y, direction.z},
++                                 std::numeric_limits<double>::infinity()};
++        const auto result = m3::transmittance(parameters, ray, beta);
++        require(result.status == m3::Status::Ok && !result.ground_occluded,
++                "solar MIS direction has valid atmosphere visibility");
++        return result.transmittance;
++    };
++    const auto direction_at = [](double mu) {
++        return m1::Vec3{float(std::sqrt((1 - mu) * (1 + mu))), float(mu), 0};
++    };
++    // A deliberately wide finite cap gives both strategies appreciable density
++    // in this mathematical regression. It does not change the renderer's sun.
++    constexpr double minimum_mu = 0.4;
++    const float light_pdf = float(1.0 / (2.0 * m3::transport_pi * (1 - minimum_mu)));
++    constexpr unsigned count = 2048;
++    const double surface_reference = simpson([&](double mu) {
++        return 2.0 * mu * transmittance(direction_at(mu));
++    }, minimum_mu, 1, count);
++    const double medium_reference = simpson([&](double mu) {
++        return 2.0 * m3::transport_pi * m3::rayleigh_phase(mu) * transmittance(direction_at(mu));
++    }, minimum_mu, 1, count);
++
++    double maximum_error = 0;
++    const m1::BsdfParameters diffuse{m1::MaterialKind::Diffuse, 1, 1, 1};
++    for (unsigned mode = 0; mode < 3; ++mode) {
++        double surface_nee = 0, surface_path = 0, medium_nee = 0, medium_path = 0;
++        const double surface_cap_mass = 1 - minimum_mu * minimum_mu;
++        const double phase_cdf_begin = m3::rayleigh_mu_cdf(minimum_mu);
++        const double medium_cap_mass = 1 - phase_cdf_begin;
++        for (unsigned i = 0; i < count; ++i) {
++            const double u = (i + 0.5) / count;
++            const double mu = minimum_mu + (1 - minimum_mu) * u;
++            const auto direction = direction_at(mu);
++            const double attenuation = transmittance(direction);
++            const float surface_pdf = float(mu / m3::transport_pi);
++            const float phase_pdf = m3::rayleigh_phase_directions({0, 1, 0}, direction);
++            surface_nee += (mu / m3::transport_pi) * attenuation / light_pdf *
++                m3::nee_weight(mode, light_pdf, surface_pdf) / count;
++            medium_nee += phase_pdf * attenuation / light_pdf *
++                m3::nee_weight(mode, light_pdf, phase_pdf) / count;
++
++            // Integrate continuation samples over the cap's known probability
++            // mass. T here marginalizes the unsampled free-flight survival;
++            // the preceding test explicitly samples it with endpoint weight 1.
++            const auto surface = m1::sample_bsdf(diffuse, {0, 0, 1}, 0.5f,
++                float(surface_cap_mass * u), 0.31f);
++            require(surface.status == m1::BsdfSampleStatus::Valid, "Lambert continuation sample");
++            const m1::Vec3 surface_world{surface.wi.x, surface.wi.z, surface.wi.y};
++            surface_path += surface_cap_mass * surface.weight * transmittance(surface_world) *
++                m3::sun_emission_weight(1, false, mode, surface.pdf, light_pdf) / count;
++
++            const auto medium = m3::sample_rayleigh({0, 1, 0},
++                float(phase_cdf_begin + medium_cap_mass * u), 0.31f);
++            require(medium.valid, "Rayleigh continuation sample");
++            medium_path += medium_cap_mass * double(medium.value / medium.pdf) * transmittance(medium.direction) *
++                m3::sun_emission_weight(1, false, mode, medium.pdf, light_pdf) / count;
++        }
++        maximum_error = std::max(maximum_error, std::abs(surface_nee + surface_path - surface_reference));
++        maximum_error = std::max(maximum_error, std::abs(medium_nee + medium_path - medium_reference));
++        close(surface_nee + surface_path, surface_reference, 2e-6,
++              "surface solar NEE plus attenuated continuation has the reference expectation");
++        close(medium_nee + medium_path, medium_reference, 2e-6,
++              "medium solar NEE plus phase continuation has the reference expectation");
++    }
++    std::cout << "Solar angular MIS: surface_reference=" << surface_reference
++              << " medium_reference=" << medium_reference
++              << " max_expected_value_error=" << maximum_error << '\n';
++}
++} // namespace
++
++int main() {
++    try {
++        std::cout << std::setprecision(12);
++        test_rayleigh_scalar_distribution();
++        test_rayleigh_direction_sampling();
++        test_strategy_support();
++        test_vertical_ballistic_transport();
++        test_solar_mis_expectations();
++        std::cout << "M3 transport checks passed: Rayleigh normalization/sampling, ballistic survival, "
++                     "sun MIS expectation, and absent medium-to-area NEE support\n";
++        return 0;
++    } catch (const std::exception& error) {
++        std::cerr << "M3 transport check failed: " << error.what() << '\n';
++        return 1;
++    }
++}
+diff --git a/viewer/glfw_window.cpp b/viewer/glfw_window.cpp
+index 410e88e..9b3f5fa 100644
+--- a/viewer/glfw_window.cpp
++++ b/viewer/glfw_window.cpp
+@@ -4,14 +4,17 @@
+ 
+ #include <chrono>
+ #include <iostream>
++#include <stdexcept>
+ 
+ 
+ 
+ // --------------------------------------------
+ // コンストラクタ
+ // --------------------------------------------
+-MyGLFWWindow::MyGLFWWindow(const std::string & title)
++MyGLFWWindow::MyGLFWWindow(const std::string & title, int initialWidth, int initialHeight)
+ {
++    if (initialWidth <= 0 || initialHeight <= 0)
++        throw std::invalid_argument("Initial window dimensions must be positive");
+     glfwSetErrorCallback(
+         [](int error, const char* description) -> void {
+             fprintf(stderr, "Error: %s\n", description);
+@@ -38,7 +41,7 @@ MyGLFWWindow::MyGLFWWindow(const std::string & title)
+         glfwWindowHint(GLFW_VISIBLE, GLFW_TRUE);
+ 
+ #endif
+-    m_handle = glfwCreateWindow(1280, 720, title.c_str(), NULL, NULL);
++    m_handle = glfwCreateWindow(initialWidth, initialHeight, title.c_str(), NULL, NULL);
+     if(!m_handle){
+         glfwTerminate();
+         exit(EXIT_FAILURE);
+diff --git a/viewer/glfw_window.hpp b/viewer/glfw_window.hpp
+index 5539778..55b3e0c 100644
+--- a/viewer/glfw_window.hpp
++++ b/viewer/glfw_window.hpp
+@@ -23,7 +23,7 @@
+ class MyGLFWWindow{
+ 
+ public:
+-    MyGLFWWindow(const std::string &title);
++    MyGLFWWindow(const std::string &title, int initialWidth = 1280, int initialHeight = 720);
+     virtual ~MyGLFWWindow();
+ 
+     virtual void draw()
+@@ -392,8 +392,10 @@ public:
+         const float fov,
+         const float sensitivity,
+         const float pintDist,
+-        const float worldScale
+-    ) : MyGLFWWindow(title),
++        const float worldScale,
++        const int initialWidth = 1280,
++        const int initialHeight = 720
++    ) : MyGLFWWindow(title, initialWidth, initialHeight),
+     m_cameraFrame(worldScale)
+     {
+         m_cameraFrame.setOrientation(cameraFrom, cameraAt, cameraUp);
+@@ -657,4 +659,4 @@ inline void GLFWCameraWindow::drawImGuiContents()
+         ImGui::End();
+     }
+ 
+-#endif // GLFW_WINDOW_HPP_
+\ No newline at end of file
++#endif // GLFW_WINDOW_HPP_

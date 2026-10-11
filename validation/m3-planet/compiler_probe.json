@@ -1,0 +1,181 @@
+{
+  "scope": "Offline CUDA/PTX/SASS microprobe; no GPU execution and no OptiX pipeline JIT",
+  "nvcc_version": "13.0.88",
+  "nvdisasm_version": "13.2.51",
+  "gpu_architecture": "sm_86",
+  "cxx_standard": 20,
+  "source": "/workspace/scratch/6fbbff5708b2/m3-planet-validation/fma-probe/pair_probe.cu",
+  "source_sha256": "f392537fdf250a7e4aee9ef8663aba078fda011863ecd862e76eaf81d1e34fce",
+  "baseline_git_revision": "9595de355e3797bca7570f4d80f672e1839fa242",
+  "baseline_header_sha256": {
+    "include/m3/tracking_float.hpp": "9f4b82dcf1a85a40297460a9424d7eb7595a3d3c28ef5d31fbd16d632f4b6656",
+    "include/m3/tracking_geometry.hpp": "f4e4675393d5f27a0c4062a76a8bc4b5afa5d698456c0a900492810c9f7b5bde"
+  },
+  "candidate_header_sha256": {
+    "include/m3/tracking_float.hpp": "827e4bacf5804985eccef062573099653e259cdf13cc0a95cd28f7a67bd7ab47",
+    "include/m3/tracking_geometry.hpp": "ea0f5dfbf986e4748bd140324489cd99b532b95ca78ebbec310749acef27692e"
+  },
+  "artifacts": {
+    "contract.ptx": {
+      "path": "/workspace/scratch/6fbbff5708b2/m3-planet-validation/fma-probe/contract.ptx",
+      "sha256": "77459363137cda2b07a7e7c2d137bb582545f2e01d9c83bb01168e48409b1af3"
+    },
+    "nocontract.ptx": {
+      "path": "/workspace/scratch/6fbbff5708b2/m3-planet-validation/fma-probe/nocontract.ptx",
+      "sha256": "866d9bb809248b590484a12c93f243e1216a8b0c27bf0d11bece7e6132bf6c1c"
+    },
+    "candidate.ptx": {
+      "path": "/workspace/scratch/6fbbff5708b2/m3-planet-validation/fma-probe/candidate.ptx",
+      "sha256": "df7690cb8dc17eec85dd2bfc6ccc4599d2f74fd8ecbb5a5ebaf810a8e2b2f0c9"
+    },
+    "contract.cubin": {
+      "path": "/workspace/scratch/6fbbff5708b2/m3-planet-validation/fma-probe/contract.cubin",
+      "sha256": "7cc603e528504c9dbfc0fbbbe6103e002ce6dd7be4b721229d60200a6349370d"
+    },
+    "nocontract.cubin": {
+      "path": "/workspace/scratch/6fbbff5708b2/m3-planet-validation/fma-probe/nocontract.cubin",
+      "sha256": "eb987706a12fbd9d4f887fd3e46e71b45e094690785396e93bd6c50069d67741"
+    },
+    "candidate.cubin": {
+      "path": "/workspace/scratch/6fbbff5708b2/m3-planet-validation/fma-probe/candidate.cubin",
+      "sha256": "efb9bd3a101fe14ea430da09f4a9d6999579e60fe902a07e6bf0ff153ae9af30"
+    },
+    "contract.sass": {
+      "path": "/workspace/scratch/6fbbff5708b2/m3-planet-validation/fma-probe/contract.sass",
+      "sha256": "3a1676ad1e2f49ca3380e5ff64d33a663ff2867e5c56113d901da735201753d9"
+    },
+    "nocontract.sass": {
+      "path": "/workspace/scratch/6fbbff5708b2/m3-planet-validation/fma-probe/nocontract.sass",
+      "sha256": "f599ed1c97da0d8ab9d6f5bf054659f51952912f0a64de45d8919046da885a62"
+    },
+    "candidate.sass": {
+      "path": "/workspace/scratch/6fbbff5708b2/m3-planet-validation/fma-probe/candidate.sass",
+      "sha256": "3cb2a3db77d0e46158d77f1902c1e39772652cfd97c71d873336206bdb548813"
+    }
+  },
+  "sass_counts": {
+    "contract": {
+      "original_two_product": {
+        "FFMA": 1,
+        "FADD": 0,
+        "FMUL": 1
+      },
+      "original_two_sum": {
+        "FFMA": 0,
+        "FADD": 6,
+        "FMUL": 0
+      },
+      "original_product_add": {
+        "FFMA": 1,
+        "FADD": 26,
+        "FMUL": 1
+      },
+      "original_pair_mul": {
+        "FFMA": 4,
+        "FADD": 6,
+        "FMUL": 1
+      },
+      "reference_two_product": {
+        "FFMA": 1,
+        "FADD": 0,
+        "FMUL": 1
+      },
+      "reference_two_sum": {
+        "FFMA": 0,
+        "FADD": 6,
+        "FMUL": 0
+      },
+      "dynamic_geometry": {
+        "FFMA": 355,
+        "FADD": 2165,
+        "FMUL": 82
+      }
+    },
+    "nocontract": {
+      "original_two_product": {
+        "FFMA": 1,
+        "FADD": 0,
+        "FMUL": 1
+      },
+      "original_two_sum": {
+        "FFMA": 0,
+        "FADD": 6,
+        "FMUL": 0
+      },
+      "original_product_add": {
+        "FFMA": 1,
+        "FADD": 26,
+        "FMUL": 1
+      },
+      "original_pair_mul": {
+        "FFMA": 4,
+        "FADD": 6,
+        "FMUL": 1
+      },
+      "reference_two_product": {
+        "FFMA": 1,
+        "FADD": 0,
+        "FMUL": 1
+      },
+      "reference_two_sum": {
+        "FFMA": 0,
+        "FADD": 6,
+        "FMUL": 0
+      },
+      "dynamic_geometry": {
+        "FFMA": 352,
+        "FADD": 2169,
+        "FMUL": 85
+      }
+    },
+    "candidate": {
+      "original_two_product": {
+        "FFMA": 1,
+        "FADD": 0,
+        "FMUL": 1
+      },
+      "original_two_sum": {
+        "FFMA": 0,
+        "FADD": 6,
+        "FMUL": 0
+      },
+      "original_product_add": {
+        "FFMA": 1,
+        "FADD": 26,
+        "FMUL": 1
+      },
+      "original_pair_mul": {
+        "FFMA": 4,
+        "FADD": 6,
+        "FMUL": 1
+      },
+      "reference_two_product": {
+        "FFMA": 1,
+        "FADD": 0,
+        "FMUL": 1
+      },
+      "reference_two_sum": {
+        "FFMA": 0,
+        "FADD": 6,
+        "FMUL": 0
+      },
+      "dynamic_geometry": {
+        "FFMA": 351,
+        "FADD": 2172,
+        "FMUL": 82
+      }
+    }
+  },
+  "findings": [
+    "Baseline two_product emits unqualified mul.f32 in PTX plus explicit fma.rn.f32 residual; candidate emits mul.rn.f32.",
+    "Baseline two_sum emits unqualified add.f32/sub.f32; candidate emits add.rn.f32/sub.rn.f32.",
+    "Actual baseline standalone ptxas SASS preserves FMUL+FFMA and full six-FADD two_sum; no collapsed error-free transform was observed in the isolated primitive probes.",
+    "Default-vs-fmad=false dynamic geometry PTX differs by only three FMA contractions, in the radial error bound and normal length. They do not explain the different ground root.",
+    "The locally observed standalone CUDA compiler outputs do not reproduce the logged OptiX GPU failure. OptiX JIT behavior remains unverified and must not be described as a confirmed root cause.",
+    "The candidate rounding barriers encode the required per-operation FP32 rounding explicitly and preserve the explicitly requested FMA residuals."
+  ],
+  "gpu_execution_performed": false,
+  "optix_pipeline_jit_performed": false,
+  "exact_logged_gpu_failure_reproduced": false,
+  "product_source_modified_by_auditor": false
+}

@@ -1,0 +1,151 @@
+{
+  "title": "M3 viewer UTF-8 compilation diagnosis",
+  "baseline_package": "nf-renderer-M3-FP32-delta-ratio-6e4794f.zip",
+  "baseline_package_sha256": "b96dd041ab366d50a8aef5994e97fa8ec9efb6d879ce08a4120854a86601a7bb",
+  "method": "Byte-level CP932 lead-byte scanning model, compared with supplied MSVC diagnostic line numbers. This is a source/log consistency check, not execution of MSVC.",
+  "msvc_executed": false,
+  "finding": "viewer was created in add_subdirectory before parent add_compile_options(/utf-8); executable-specific /utf-8 did not reach viewer. BOM-less UTF-8 Japanese line comments are decoded using the user code page without the target option.",
+  "source_files": [
+    {
+      "path": "viewer/glfw_window.hpp",
+      "baseline_sha256": "02fe3eebbf47cc635dfb63630a0532da5c76280d1d5f35444aba3a40b4dab5bf",
+      "utf8_bom": false,
+      "lf_count": 662,
+      "crlf_count": 0,
+      "scanner_consumed_lf_at_physical_lines": [
+        19,
+        86,
+        99,
+        309,
+        310,
+        318,
+        319,
+        340,
+        349,
+        442,
+        445
+      ],
+      "matched_diagnostics": [
+        {
+          "physical_line": 88,
+          "reported_msvc_line": 86,
+          "scanner_logical_line": 86,
+          "context": "forceUpFrame body"
+        },
+        {
+          "physical_line": 102,
+          "reported_msvc_line": 99,
+          "scanner_logical_line": 99,
+          "context": "setOrientation parameter"
+        },
+        {
+          "physical_line": 105,
+          "reported_msvc_line": 102,
+          "scanner_logical_line": 102,
+          "context": "setOrientation body"
+        },
+        {
+          "physical_line": 312,
+          "reported_msvc_line": 307,
+          "scanner_logical_line": 307,
+          "context": "strafe(float3) body"
+        },
+        {
+          "physical_line": 342,
+          "reported_msvc_line": 334,
+          "scanner_logical_line": 334,
+          "context": "mouseDragMiddle body"
+        },
+        {
+          "physical_line": 351,
+          "reported_msvc_line": 342,
+          "scanner_logical_line": 342,
+          "context": "mouseDragRight body"
+        },
+        {
+          "physical_line": 444,
+          "reported_msvc_line": 434,
+          "scanner_logical_line": 434,
+          "context": "mouseMotion if"
+        },
+        {
+          "physical_line": 472,
+          "reported_msvc_line": 461,
+          "scanner_logical_line": 461,
+          "context": "mouseButton declaration"
+        },
+        {
+          "physical_line": 508,
+          "reported_msvc_line": 497,
+          "scanner_logical_line": 497,
+          "context": "CameraFrame member"
+        }
+      ]
+    },
+    {
+      "path": "viewer/glfw_window.cpp",
+      "baseline_sha256": "cd36abdfbe2242b3be544d7c81de6ade297108c9bed92ad415f96588fdec7642",
+      "utf8_bom": false,
+      "lf_count": 181,
+      "crlf_count": 0,
+      "scanner_consumed_lf_at_physical_lines": [
+        82,
+        88,
+        95,
+        102,
+        109,
+        117,
+        124
+      ],
+      "matched_diagnostics": [
+        {
+          "physical_line": 98,
+          "reported_msvc_line": 95,
+          "scanner_logical_line": 95,
+          "context": "mouse callback close"
+        },
+        {
+          "physical_line": 113,
+          "reported_msvc_line": 108,
+          "scanner_logical_line": 108,
+          "context": "key callback body close"
+        },
+        {
+          "physical_line": 114,
+          "reported_msvc_line": 109,
+          "scanner_logical_line": 109,
+          "context": "key callback call close"
+        },
+        {
+          "physical_line": 127,
+          "reported_msvc_line": 120,
+          "scanner_logical_line": 120,
+          "context": "cursor callback call close"
+        },
+        {
+          "physical_line": 128,
+          "reported_msvc_line": 121,
+          "scanner_logical_line": 121,
+          "context": "constructor close"
+        },
+        {
+          "physical_line": 134,
+          "reported_msvc_line": 127,
+          "scanner_logical_line": 127,
+          "context": "destructor body"
+        }
+      ]
+    }
+  ],
+  "fixes": [
+    "Add target-scoped /utf-8 to viewer for MSVC.",
+    "Include <memory> directly for std::shared_ptr.",
+    "Use scalar multiplication by -1.0f rather than passing a temporary to helper_math unary operator-(float3&).",
+    "Return CameraFrame& from getCameraFramePtr so its existing reference caller receives the owned object."
+  ],
+  "sources": [
+    "https://learn.microsoft.com/cpp/build/reference/utf-8-set-source-and-executable-character-sets-to-utf-8",
+    "https://cmake.org/cmake/help/latest/command/add_subdirectory.html",
+    "https://cmake.org/cmake/help/latest/prop_tgt/COMPILE_OPTIONS.html"
+  ]
+}

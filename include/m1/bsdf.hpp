@@ -1,5 +1,7 @@
 #pragma once
 
+#include "m1/bounded_trig.hpp"
+
 #include "m1/math.hpp"
 
 namespace m1 {
@@ -125,8 +127,9 @@ M1_HD inline Vec3 sample_ggx_visible_normal(Vec3 wo,float alpha,float u1,float u
     const Vec3 t1=xy2>0.0f ? Vec3{-v.y,v.x,0}/sqrtf(xy2) : Vec3{1,0,0};
     const Vec3 t2=cross(v,t1);
     const float radius=sqrtf(u1),phi=2.0f*pi*u2;
-    const float x=radius*cosf(phi);
-    float y=radius*sinf(phi);
+    const auto azimuth=m1::bounded_sincos(phi);
+    const float x=radius*azimuth.cosine;
+    float y=radius*azimuth.sine;
     const float s=0.5f*(1.0f+v.z);
     y=(1.0f-s)*sqrtf(fmaxf(0.0f,1.0f-x*x))+s*y;
     const float z=sqrtf(fmaxf(0.0f,1.0f-x*x-y*y));
@@ -164,7 +167,8 @@ M1_HD inline BsdfSample sample_bsdf(const BsdfParameters& p,Vec3 wo,
     }
     if(p.kind==MaterialKind::Diffuse) {
         const float radius=sqrtf(u1),phi=2.0f*pi*u2;
-        r.wi={radius*cosf(phi),radius*sinf(phi),sqrtf(1.0f-u1)};
+        const auto azimuth=m1::bounded_sincos(phi);
+        r.wi={radius*azimuth.cosine,radius*azimuth.sine,sqrtf(1.0f-u1)};
         r.pdf=r.wi.z/pi;
         r.weight=p.color;
     } else {

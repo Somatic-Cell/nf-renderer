@@ -1,0 +1,89 @@
+M3 Rayleigh integrator reported 1 invalid path/film events; the frame was not accepted
+reason=BsdfSample (32), stage=bsdf (4)
+location (zero-based frame/pixel/sample): frame=333, pixel=(446, 153), sample=0, bounce=4, seed=17
+context (none=no_index): mesh=214, material=214, instance=214, primitive=3071
+state: wavelength_nm=778.595642, throughput=4.25289591e-06, radiance=0.0011921688, bsdf_pdf=0.238381028, eta_scale=1
+path: current_position=(-36.3462334, 11.3342228, 38.1680641), direction=(-0.823370457, -0.556853652, -0.109431364)
+payload (all 16 slots; unlabeled slots retain their raw values):
+  [0] wo.x=0.983927369
+  [1] wo.y=0.178569198
+  [2] wo.z=-3.38422979e-09
+  [3] branch=0.184663296
+  [4] u1=0.352240622
+  [5] u2=0.592529833
+  [6] color=0.0247990787
+  [7] metallic=0
+  [8] roughness_or_alpha=0.741176486
+  [9] wi.x=0
+  [10] wi.y=0
+  [11] wi.z=0
+  [12] bsdf_pdf=0
+  [13] weight=0
+  [14] eta_scale=1
+  [15] eta_i_over_t=1
+material_name="White_Oak_Leaves_Hero_1.DoubleSided" two_sided=1 normal_texture=1
+resolution=640x360 samples_per_frame=1 max_bounce=16 rr_depth=5 direct_mode=0 ray_epsilon=9.99999975e-05
+camera_from=(-38.3704109,1.46039402,75.72155) camera_at=(-37.153553,1.50604999,65.7959671) camera_up=(-0.000556499988,0.999989629,0.00453259982) fov=42
+sun_enabled=1 sun_scale=1 sun_angular_radius_rad=0.0043633231 sun_zenith_rad=0.610865235 sun_azimuth_rad=2.3561945
+object[0]="EmeraldSquare_v4_1/EmeraldSquare_Day.fbx"
+rayleigh={"enabled":true,"areaNeeTransmittance":true,"solver":"numerical_reference","wavelengthLaw":"lambda^-4","planetRadius":6371000.0,"atmosphereHeight":100000.0,"scaleHeight":8000.0,"groundY":-6.0,"beta550":1.3e-05,"groundAlbedo":0.10000000149011612,"tauAbsoluteTolerance":1e-10,"tauRelativeTolerance":1e-08,"inverseTauTolerance":1e-09,"distanceAbsoluteTolerance":0.001,"distanceRelativeTolerance":1e-10,"maxQuadratureDepth":16,"maxQuadratureEvaluations":4096,"maxInverseIterations":64}
+
+M3 Rayleigh integrator reported 9178 invalid path/film events; the frame was not accepted
+reason=PlanetIntersection (54), stage=planet (11)
+location (zero-based frame/pixel/sample): frame=0, pixel=(113, 60), sample=0, bounce=2, seed=17
+context (none=no_index): mesh=none, material=none, instance=none, primitive=none
+state: wavelength_nm=467.01651, throughput=0.331344783, radiance=0.0542387292, bsdf_pdf=0.0816818103, eta_scale=1
+path: current_position=(3374.39648, 14831.293, -8108.75244), direction=(-0.702025175, -0.673400521, -0.231716275)
+payload (all 16 slots; unlabeled slots retain their raw values):
+  [0] ray_t=22070.8789
+  [1] position.x=0
+  [2] position.y=0
+  [3] position.z=0
+  [4] normal.x=0
+  [5] normal.y=0
+  [6] normal.z=0
+  [7] value[7]=0
+  [8] value[8]=0
+  [9] value[9]=0
+  [10] value[10]=0
+  [11] value[11]=0
+  [12] value[12]=0
+  [13] value[13]=0
+  [14] value[14]=0
+  [15] value[15]=0
+resolution=640x360 samples_per_frame=1 max_bounce=16 rr_depth=5 direct_mode=0 ray_epsilon=9.99999975e-05
+camera_from=(-38.3704109,1.46039402,75.72155) camera_at=(-37.153553,1.50604999,65.7959671) camera_up=(-0.000556499988,0.999989629,0.00453259982) fov=42
+sun_enabled=1 sun_scale=1 sun_angular_radius_rad=0.0043633231 sun_zenith_rad=0.610865235 sun_azimuth_rad=2.3561945
+object[0]="EmeraldSquare_v4_1/EmeraldSquare_Day.fbx"
+rayleigh={"enabled":true,"areaNeeTransmittance":true,"solver":"delta_ratio_fp32","wavelengthLaw":"lambda^-4","planetRadius":6371000.0,"atmosphereHeight":100000.0,"scaleHeight":8000.0,"groundY":-6.0,"beta550":1.2999999853491317e-05,"groundAlbedo":0.10000000149011612,"ratioRrThreshold":0.009999999776482582,"maxTrackingEvents":1048576}
+
+M3 Rayleigh integrator reported 1 invalid path/film events; the frame was not accepted
+reason=BsdfSample (32), stage=bsdf (4)
+location (zero-based frame/pixel/sample): frame=111, pixel=(354, 234), sample=0, bounce=0, seed=17
+context (none=no_index): mesh=196, material=196, instance=196, primitive=21533
+state: wavelength_nm=442.710419, throughput=1, radiance=0, bsdf_pdf=0, eta_scale=1
+path: current_position=(-44.1337013, 0.0589986369, 63.1896095), direction=(-0.415682137, -0.101076782, -0.903876126)
+payload (all 16 slots; unlabeled slots retain their raw values):
+  [0] wo.x=0.0777869374
+  [1] wo.y=0.996969998
+  [2] wo.z=-1.47486912e-08
+  [3] branch=0.233046412
+  [4] u1=0.572265685
+  [5] u2=0.70618248
+  [6] color=0.0516714454
+  [7] metallic=0
+  [8] roughness_or_alpha=0.741176486
+  [9] wi.x=0
+  [10] wi.y=0
+  [11] wi.z=0
+  [12] bsdf_pdf=0
+  [13] weight=0
+  [14] eta_scale=1
+  [15] eta_i_over_t=1
+material_name="Grass_blades.DoubleSided" two_sided=1 normal_texture=1
+resolution=1236x849 samples_per_frame=1 max_bounce=16 rr_depth=5 direct_mode=0 ray_epsilon=9.99999975e-05
+camera_from=(-38.3704109,1.46039402,75.72155) camera_at=(-38.1907883,3.84491825,66.0115967) camera_up=(-0.000556499988,0.999989629,0.00453259982) fov=78.9550018
+sun_enabled=1 sun_scale=1 sun_angular_radius_rad=0.0043633231 sun_zenith_rad=1.43047178 sun_azimuth_rad=1.43047178
+object[0]="EmeraldSquare_v4_1/EmeraldSquare_Day.fbx"
+rayleigh={"enabled":true,"areaNeeTransmittance":true,"solver":"delta_ratio_fp32","wavelengthLaw":"lambda^-4","planetRadius":6371000.0,"atmosphereHeight":100000.0,"scaleHeight":8000.0,"groundY":-6.0,"beta550":1.2999999853491317e-05,"groundAlbedo":0.10000000149011612,"ratioRrThreshold":0.009999999776482582,"maxTrackingEvents":1048576}
+

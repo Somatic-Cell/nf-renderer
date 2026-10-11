@@ -1,0 +1,68 @@
+{
+  "scope": "Standalone CUDA geometry/EFT regression build plus actual device-availability check",
+  "source": "tests/test_m3_tracking_geometry_cuda.cu",
+  "source_sha256_after_compile": "d4851101d43872b33f2ec37f86cb7855dc21692c8fab56ec176f4a8e0c2668ec",
+  "compiler": "/workspace/scratch/6fbbff5708b2/m1-toolchain/nvidia/cu13/bin/nvcc",
+  "compiler_version": "13.0.88",
+  "compile_command": [
+    "/workspace/scratch/6fbbff5708b2/m1-toolchain/nvidia/cu13/bin/nvcc",
+    "-std=c++17",
+    "-O3",
+    "-lineinfo",
+    "-arch=sm_86",
+    "--fmad=true",
+    "--ftz=false",
+    "-L/workspace/scratch/6fbbff5708b2/m1-toolchain/nvidia/cu13/lib",
+    "-Iinclude",
+    "tests/test_m3_tracking_geometry_cuda.cu",
+    "-o",
+    "/workspace/scratch/6fbbff5708b2/m3-planet-validation/test_m3_tracking_geometry_cuda"
+  ],
+  "compile_returncode": 0,
+  "binary": "/workspace/scratch/6fbbff5708b2/m3-planet-validation/test_m3_tracking_geometry_cuda",
+  "binary_sha256": "fb472e5ea82e6fc728bfa45b311709af754ea0070ffabd0b2afba0d80792c8b6",
+  "ptx_command": [
+    "/workspace/scratch/6fbbff5708b2/m1-toolchain/nvidia/cu13/bin/nvcc",
+    "--ptx",
+    "-std=c++17",
+    "-O3",
+    "-lineinfo",
+    "-arch=sm_86",
+    "--fmad=true",
+    "--ftz=false",
+    "-Iinclude",
+    "tests/test_m3_tracking_geometry_cuda.cu",
+    "-o",
+    "/workspace/scratch/6fbbff5708b2/m3-planet-validation/test_m3_tracking_geometry_cuda.ptx"
+  ],
+  "ptx_compile_returncode": 0,
+  "ptx": "/workspace/scratch/6fbbff5708b2/m3-planet-validation/test_m3_tracking_geometry_cuda.ptx",
+  "ptx_sha256": "fbd6713f8f958d1c5d57ed60e9ebedcc52f6beb202b39bcbc7aef723d98faa13",
+  "ptx_scan": {
+    "scope": "Entire module: all entries, functions, conversions and declarations; comments excluded",
+    "symbols_seen": [
+      "_ZN62_GLOBAL__N__f8faf3f7_33_test_m3_tracking_geometry_cuda_cu_main10eft_kernelEPKNS_8EftInputEPNS_9EftOutputEj",
+      "_ZN62_GLOBAL__N__f8faf3f7_33_test_m3_tracking_geometry_cuda_cu_main15geometry_kernelEPKN2m318TrackingParametersEPKNS_8RayInputEPNS_9RayOutputEj"
+    ],
+    "fp64_occurrence_count": 0,
+    "fp64_instruction_line_count": 0,
+    "fp64_occurrences": [],
+    "fp64_literal_count": 0,
+    "fp64_literals": []
+  },
+  "execution_command": [
+    "/workspace/scratch/6fbbff5708b2/m3-planet-validation/test_m3_tracking_geometry_cuda"
+  ],
+  "execution_returncode": 77,
+  "execution_stdout": "SKIP: CUDA regression was not executed; no usable CUDA device/driver (CUDA driver version is insufficient for CUDA runtime version, device_count=0).\n",
+  "execution_stderr": "",
+  "test_outcome": "SKIP",
+  "gpu_test_executed": false,
+  "optix_pipeline_jit_executed": false,
+  "planned_coverage": "20 ray cases, 12 EFT composition cases; these assertions were not executed without a GPU",
+  "notes": [
+    "The binary compiled and linked against the real CUDA runtime without source stubs.",
+    "Exit77 is a skipped GPU regression, not a passing GPU result.",
+    "The device PTX contains no FP64; the independent long-double oracle is host-only."
+  ]
+}

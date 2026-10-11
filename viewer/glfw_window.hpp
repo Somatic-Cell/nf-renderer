@@ -3,6 +3,7 @@
 
 #include <string>
 #include <iostream>
+#include <memory>
 #include <GLFW/glfw3.h>
 
 #include <cuda_runtime.h>
@@ -23,7 +24,7 @@
 class MyGLFWWindow{
 
 public:
-    MyGLFWWindow(const std::string &title);
+    MyGLFWWindow(const std::string &title, int initialWidth = 1280, int initialHeight = 720);
     virtual ~MyGLFWWindow();
 
     virtual void draw()
@@ -105,7 +106,7 @@ public:
     {
         m_position = origin;
         m_upVector = up;
-        m_zAxis = (interest == origin) ? make_float3(0.0f, 0.0f, 1.0f) : -normalize(interest - origin);
+        m_zAxis = (interest == origin) ? make_float3(0.0f, 0.0f, 1.0f) : -1.0f * normalize(interest - origin);
         m_xAxis = cross(m_upVector, m_zAxis);
         if(dot(m_xAxis, m_xAxis) < 1e-8f){
             m_xAxis = make_float3(0.0f, 1.0f, 0.0f);
@@ -392,8 +393,10 @@ public:
         const float fov,
         const float sensitivity,
         const float pintDist,
-        const float worldScale
-    ) : MyGLFWWindow(title),
+        const float worldScale,
+        const int initialWidth = 1280,
+        const int initialHeight = 720
+    ) : MyGLFWWindow(title, initialWidth, initialHeight),
     m_cameraFrame(worldScale)
     {
         m_cameraFrame.setOrientation(cameraFrom, cameraAt, cameraUp);
@@ -490,7 +493,7 @@ public:
         }
     }
 
-    CameraFrame getCameraFramePtr() 
+    CameraFrame& getCameraFramePtr()
     {
         return m_cameraFrame;
     }

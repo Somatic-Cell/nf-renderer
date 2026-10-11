@@ -39,7 +39,7 @@ extern "C" __global__ void __miss__radiance_rgb()
     thetaPhiFromPatch(row, col, wp, hp, &th0, &th1, &ph0, &ph1);
 
     const float deltaPhi = ph1 - ph0;
-    const float deltaCosT = cosf(th0) - cosf(th1);
+    const float deltaCosT = m1::bounded_cos(th0) - m1::bounded_cos(th1);
     const float dOmega = deltaPhi *deltaCosT;
 
     const float totalWeight = optixLaunchParams.envMapInfo.totalWeight;
@@ -90,7 +90,7 @@ extern "C" __global__ void __miss__radiance_spectral()
     thetaPhiFromPatch(row, col, wp, hp, &th0, &th1, &ph0, &ph1);
 
     const float deltaPhi = ph1 - ph0;
-    const float deltaCosT = cosf(th0) - cosf(th1);
+    const float deltaCosT = m1::bounded_cos(th0) - m1::bounded_cos(th1);
     const float dOmega = deltaPhi *deltaCosT;
 
     const float totalWeight = optixLaunchParams.envMapInfo.totalWeight;

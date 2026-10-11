@@ -1,0 +1,180 @@
+command: ["/workspace/scratch/6fbbff5708b2/m1-toolchain/cmake/data/bin/cmake", "-S", "tests/m1", "-B", "build-m3-fp32-cpu", "-DM1_JSON_INCLUDE_DIR=/workspace/scratch/6fbbff5708b2/m1-deps/json/include", "-DCMAKE_BUILD_TYPE=Release"]
+-- Configuring done (0.0s)
+-- Generating done (0.0s)
+-- Build files have been written to: /workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/build-m3-fp32-cpu
+
+command: ["/workspace/scratch/6fbbff5708b2/m1-toolchain/cmake/data/bin/cmake", "--build", "build-m3-fp32-cpu", "-j4"]
+[  7%] Built target m1_rgb2spec
+[ 14%] Built target m1_diagnostics_check
+[ 17%] Building CXX object CMakeFiles/m1_bsdf_check.dir/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/tests/test_m1_bsdf.cpp.o
+[ 25%] Built target m1_light_pdf_check
+[ 39%] Built target m2_alpha_check
+[ 39%] Built target m2_tangent_frame_check
+[ 46%] Built target m3_atmosphere_check
+[ 50%] Building CXX object CMakeFiles/m3_transport_check.dir/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/tests/test_m3_transport.cpp.o
+[ 57%] Built target m3_position_check
+[ 64%] Built target m3_tracking_geometry_check
+[ 67%] Building CXX object CMakeFiles/m3_tracking_check.dir/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/tests/test_m3_tracking.cpp.o
+[ 75%] Built target m1_scene_check
+[ 82%] Built target m1_spectral_assets
+[ 89%] Built target m1_spectral_check
+[ 92%] Linking CXX executable m1_bsdf_check
+[ 92%] Built target m1_bsdf_check
+[ 96%] Linking CXX executable m3_transport_check
+[ 96%] Built target m3_transport_check
+[100%] Linking CXX executable m3_tracking_check
+[100%] Built target m3_tracking_check
+
+command: ["/workspace/scratch/6fbbff5708b2/m1-toolchain/cmake/data/bin/ctest", "--test-dir", "build-m3-fp32-cpu", "-C", "Release", "--verbose", "--output-on-failure", "--output-junit", "/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/validation/m3-fp32/m3_fp32_cpu_junit.xml"]
+Internal ctest changing into directory: /workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/build-m3-fp32-cpu
+UpdateCTestConfiguration  from :/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/build-m3-fp32-cpu/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/build-m3-fp32-cpu/DartConfiguration.tcl
+Test project /workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/build-m3-fp32-cpu
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 1
+      Start  1: m1_bsdf_check
+
+1: Test command: /workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/build-m3-fp32-cpu/m1_bsdf_check
+1: Working Directory: /workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/build-m3-fp32-cpu
+1: Test timeout computed to be: 10000000
+1: GGX alpha=1: albedo=0.3068528424 exact=0.3068528194 acceptance=0.5
+1: GGX alpha=0.200000003 cos_o=0.8999999762 albedo quadrature=0.6967915198 sampled=0.6967906612 PDF mass=0.9600190732 accepted=0.9600067139
+1: GGX alpha=0.200000003 cos_o=0.200000003 albedo quadrature=0.6673431858 sampled=0.6673428151 PDF mass=0.9487273378 accepted=0.9487495422
+1: GGX alpha=0.6999999881 cos_o=0.8999999762 albedo quadrature=0.3801558832 sampled=0.3801558749 PDF mass=0.6848344995 accepted=0.6848487854
+1: GGX alpha=0.6999999881 cos_o=0.200000003 albedo quadrature=0.5471985694 sampled=0.5471984207 PDF mass=0.8831377176 accepted=0.8831520081
+1: MIS + RR constant illumination estimate=0.7004681698 expected=0.6999999881
+1: Existing metallic model: albedo quadrature=0.6164091377 sampled=0.6167723749 PDF mass=0.9557935299 accepted=0.9563331604
+1: Shading-normal support: acceptance=0.7499885559 exact=0.75
+1: M1 BSDF tests: 9 groups passed
+ 1/12 Test  #1: m1_bsdf_check ....................   Passed    0.69 sec
+test 2
+      Start  2: m1_light_pdf_check
+
+2: Test command: /workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/build-m3-fp32-cpu/m1_light_pdf_check
+2: Working Directory: /workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/build-m3-fp32-cpu
+2: Test timeout computed to be: 10000000
+2: offset triangle hit: traced cosine=0.009999500588 connection cosine=-0.005385788158 competing PDF=0
+2: FP32 PDF exponent sweep: finite=3724 range_rejections=2324 max_normal_relative_error=8.94069689e-08 max_subnormal_absolute_error=7.171628505e-46
+2: M1 area-light PDF: finite offset support, analytic Jacobian, intermediate range, invalid geometry and mode checks passed
+ 2/12 Test  #2: m1_light_pdf_check ...............   Passed    0.00 sec
+test 3
+      Start  3: m1_diagnostics_check
+
+3: Test command: /workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/build-m3-fp32-cpu/m1_diagnostics_check
+3: Working Directory: /workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/build-m3-fp32-cpu
+3: Test timeout computed to be: 10000000
+3: M1/M2 failure report checks passed
+ 3/12 Test  #3: m1_diagnostics_check .............   Passed    0.00 sec
+test 4
+      Start  4: m2_alpha_check
+
+4: Test command: /workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/build-m3-fp32-cpu/m2_alpha_check
+4: Working Directory: /workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/build-m3-fp32-cpu
+4: Test timeout computed to be: 10000000
+4: legacy alpha: BSDF=4 NEE=4 MIS=4 exact=4; double-alpha mutation=1.4375
+4: M2 alpha: cutoff boundaries, opacity composition, endpoint/MIS consistency, double-weighting sensitivity and invalid-input rejection passed
+ 4/12 Test  #4: m2_alpha_check ...................   Passed    0.00 sec
+test 5
+      Start  5: m2_tangent_frame_check
+
+5: Test command: /workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/build-m3-fp32-cpu/m2_tangent_frame_check
+5: Working Directory: /workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/build-m3-fp32-cpu
+5: Test timeout computed to be: 10000000
+5: FP32 frame reference: scaled_charts=64 max_component_error=8.99521489294e-08
+5: M2 tangent frame: mixed-sign interior regression, non-flat normal map, mirrored UV, world transforms, smooth normal, tiny regular UV, pinned Assimp degenerate-UV chart and invalid-input checks passed
+ 5/12 Test  #5: m2_tangent_frame_check ...........   Passed    0.00 sec
+test 6
+      Start  6: m3_atmosphere_check
+
+6: Test command: /workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/build-m3-fp32-cpu/m3_atmosphere_check
+6: Working Directory: /workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/build-m3-fp32-cpu
+6: Test timeout computed to be: 10000000
+6: METRIC tangent_tau=4.8720163769784541 independent_tau=4.8720163769784524 evaluations=30
+6: METRIC high_altitude_max_distance_error_m=0.00093780079623684287 high_altitude_max_estimate_m=0.00095208452733417629
+6: METRIC near_tangent_float_direction_cases=126 disagreements=0
+6: M3 atmosphere: shell/ground, metric conversion, analytic radial, independent tangent/short, additivity, inverse-CDF and explicit-failure checks passed
+ 6/12 Test  #6: m3_atmosphere_check ..............   Passed    0.05 sec
+test 7
+      Start  7: m3_transport_check
+
+7: Test command: /workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/build-m3-fp32-cpu/m3_transport_check
+7: Working Directory: /workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/build-m3-fp32-cpu
+7: Test timeout computed to be: 10000000
+7: Rayleigh quantiles: mean=0 second_moment=0.399999999625 max_cdf_error=3.45721126171e-08 max_quantile_error=4.87478122313e-08 max_phase_relative_error=1.20691220573e-07 max_cdf_evaluation_error=4.28783528683e-08
+7: Rayleigh float directions: max_cdf_error=6.32559402636e-08 max_norm_error=2.38418579102e-07 max_cosine_error=1.8751076214e-07
+7: Vertical transport: analytic_T=0.449328964117 escaped_fraction=0.44921875 erroneous_T_twice=0.2018469956 max_distance_error_m=5.52847211566e-06 max_tau_residual=9.87533832486e-10 sun_T=0.271309626327 sun_escaped_fraction=0.271484375
+7: Solar angular MIS: surface_reference=0.749689742811 medium_reference=0.304356481025 max_expected_value_error=4.00626958275e-08
+7: M3 transport checks passed: Rayleigh normalization/sampling, ballistic survival, sun MIS expectation, and absent medium-to-area NEE support
+ 7/12 Test  #7: m3_transport_check ...............   Passed    0.03 sec
+test 8
+      Start  8: m3_position_check
+
+8: Test command: /workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/build-m3-fp32-cpu/m3_position_check
+8: Working Directory: /workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/build-m3-fp32-cpu
+8: Test timeout computed to be: 10000000
+8: Medium point counterexample: exact_height_m=0.000117409813938 nearest_height_m=-0.000115249068991 represented_height_m=0.000372656108023 y_step_m=0.00048828125
+8: Spherical representation: checked=35 corrected=20
+8: M3 position checks passed: real PCG free-flight counterexample, sphere-domain preservation, one-float-step bound, unchanged valid points, and invalid-input rejection
+ 8/12 Test  #8: m3_position_check ................   Passed    0.00 sec
+test 9
+      Start  9: m3_tracking_geometry_check
+
+9: Test command: /workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/build-m3-fp32-cpu/m3_tracking_geometry_check
+9: Working Directory: /workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/build-m3-fp32-cpu
+9: Test timeout computed to be: 10000000
+9: METRIC pair_subulp_progress_m=0.999998569590389
+9: METRIC fp32_height_max_radial_error_m=0.0078125
+9: METRIC fp32_grazing_cases=126 disagreements=0 max_root_error_t=3.55007500729698e-07
+9: METRIC fp32_medium_position_directions=35 corrected=20 planet_hits=35
+9: FP32 tracking geometry checks passed: sub-ULP progress, spherical shell/raw ray metric, stable altitude, 126 grazing cases, 35 spherical representations, and invalid-input rejection
+ 9/12 Test  #9: m3_tracking_geometry_check .......   Passed    0.00 sec
+test 10
+      Start 10: m3_tracking_check
+
+10: Test command: /workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/build-m3-fp32-cpu/m3_tracking_check
+10: Working Directory: /workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/build-m3-fp32-cpu
+10: Test timeout computed to be: 10000000
+10: deterministic: vacuum, exterior, planet, endpoint, raw RNG, invalid coefficient/ray, budget passed
+10: case=vertical_6km/360nm N=65536 tau=0.28975753425 expected_T=0.748445017862 escaped=0.747619628906 ratio_mean=0.751057678186 ratio_variance=0.127293346257 expected_ratio_variance=0.128658232168 max_CDF_sigma=0.728662890307 delta_candidates=0.361343383789 delta_nulls=0.108963012695 ratio_candidates=0.419418334961
+10: case=vertical_6km/550nm N=65536 tau=0.0531855861619 expected_T=0.948204022607 escaped=0.949569702148 ratio_mean=0.947764608192 ratio_variance=0.0351470541688 expected_ratio_variance=0.0347759107112 max_CDF_sigma=1.08604534675 delta_candidates=0.0739898681641 delta_nulls=0.0235595703125 ratio_candidates=0.0784759521484
+10: case=vertical_6km/830nm N=65536 tau=0.0102549208701 expected_T=0.98979748155 escaped=0.989974975586 ratio_mean=0.989878586421 ratio_variance=0.00716586927329 expected_ratio_variance=0.00719497239576 max_CDF_sigma=0.860339860596 delta_candidates=0.0146636962891 delta_nulls=0.004638671875 ratio_candidates=0.0147857666016
+10: case=grazing_80km/360nm N=65536 tau=5.54820571914 expected_T=0.00389443869507 escaped=0.00343322753906 ratio_mean=0.00390020815525 ratio_variance=0.0034634246546 expected_ratio_variance=0.00346164456599 max_CDF_sigma=1.14312025916 delta_candidates=1.00067138672 delta_nulls=0.00410461425781 ratio_candidates=5.65519714355
+10: case=grazing_80km/550nm N=65536 tau=1.01838447129 expected_T=0.36117796247 escaped=0.362991333008 ratio_mean=0.358441846951 ratio_variance=0.222482542399 expected_ratio_variance=0.223286087858 max_CDF_sigma=1.4083662613 delta_candidates=0.647201538086 delta_nulls=0.0101928710938 ratio_candidates=1.04182434082
+10: case=grazing_80km/830nm N=65536 tau=0.196358692684 expected_T=0.821717437777 escaped=0.821029663086 ratio_mean=0.821584988194 ratio_variance=0.143301476346 expected_ratio_variance=0.143205647317 max_CDF_sigma=0.616299268899 delta_candidates=0.182693481445 delta_nulls=0.00372314453125 ratio_candidates=0.200805664062
+10: case=high_20km_grazing_300km/360nm N=65536 tau=1.34351872022 expected_T=0.26092592604 escaped=0.26155090332 ratio_mean=0.260948426486 ratio_variance=0.00633807745182 expected_ratio_variance=0.00639973053375 max_CDF_sigma=1.16190022714 delta_candidates=10.7193450928 delta_nulls=9.98089599609 ratio_candidates=21.2341156006
+10: case=high_20km_grazing_300km/550nm N=65536 tau=0.246605600227 expected_T=0.781448836005 escaped=0.779968261719 ratio_mean=0.781505769151 ratio_variance=0.0102916163798 expected_ratio_variance=0.0101535665984 max_CDF_sigma=1.53978903545 delta_candidates=3.40821838379 delta_nulls=3.18818664551 ratio_candidates=3.89952087402
+10: case=high_20km_grazing_300km/830nm N=65536 tau=0.0475489902236 expected_T=0.953563756687 escaped=0.953277587891 ratio_mean=0.953289013522 ratio_variance=0.00292144735539 expected_ratio_variance=0.00289574430024 max_CDF_sigma=0.665088868753 delta_candidates=0.732299804688 delta_nulls=0.685577392578 ratio_candidates=0.756042480469
+10: case=outside_down_to_10km/360nm N=65536 tau=0.162330591176 expected_T=0.85016010265 escaped=0.85124206543 ratio_mean=0.850512422837 ratio_variance=0.0170261196242 expected_ratio_variance=0.0170046934812 max_CDF_sigma=1.35380033051 delta_candidates=6.29151916504 delta_nulls=6.14276123047 ratio_candidates=6.36149597168
+10: case=outside_down_to_10km/550nm N=65536 tau=0.0297961109657 expected_T=0.970643416924 escaped=0.971206665039 ratio_mean=0.970411642892 ratio_variance=0.00409391255064 expected_ratio_variance=0.0040300809165 max_CDF_sigma=1.20073611493 delta_candidates=1.16165161133 delta_nulls=1.13285827637 ratio_candidates=1.16815185547
+10: case=outside_down_to_10km/830nm N=65536 tau=0.00574510468418 expected_T=0.994271366871 escaped=0.99446105957 ratio_mean=0.994149602328 ratio_variance=0.000846831750296 expected_ratio_variance=0.00081394318216 max_CDF_sigma=1.08484110058 delta_candidates=0.222686767578 delta_nulls=0.217147827148 ratio_candidates=0.227722167969
+10: roulette: N=65536 threshold=0.00999999977648 expected_T=0.00726211803312 mean=0.00724938911735 estimated_standard_error=2.5383630012e-05 tolerance=0.000182301780072 tests=342178 terminated=25007 candidates=57.4894866943 erroneous_hard_cutoff_mean=0.00309838823357 hard_cutoff_error_over_tolerance=22.8397649102
+10: transport: expected_T=0.449328970495 ballistic=0.449020385742 ratio=0.449119663328 erroneous_T_twice=0.201757867657 double_T_error_over_tolerance=21.1808911982
+10: M3 FP32 delta/ratio tracking regressions passed; CPU statistical validation only.
+10/12 Test #10: m3_tracking_check ................   Passed    3.15 sec
+test 11
+      Start 11: m1_spectral_check
+
+11: Test command: /workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/build-m3-fp32-cpu/m1_spectral_check "/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/spectrum/m1"
+11: Working Directory: /workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/build-m3-fp32-cpu
+11: Test timeout computed to be: 10000000
+11: RGB2Spec official/common parity: 10126 colors, max evaluation abs error 7.56979e-06
+11: M1 spectral asset tests passed
+11/12 Test #11: m1_spectral_check ................   Passed    0.08 sec
+test 12
+      Start 12: m1_scene_check
+
+12: Test command: /workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/build-m3-fp32-cpu/m1_scene_check "/workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32"
+12: Working Directory: /workspace/scratch/6fbbff5708b2/nf-renderer-m3-fp32/build-m3-fp32-cpu
+12: Test timeout computed to be: 10000000
+12: Scene selection: 9 M1 fixtures + 2 M2 + 5 M3 presets + 2 legacy scenes; strict failures preserve inputs
+12/12 Test #12: m1_scene_check ...................   Passed    0.01 sec
+
+100% tests passed, 0 tests failed out of 12
+
+Total Test time (real) =   4.01 sec
+

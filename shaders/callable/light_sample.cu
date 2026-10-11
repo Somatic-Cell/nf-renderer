@@ -11,7 +11,7 @@
 extern "C" __device__ LightSample_RGB __direct_callable__light_env_sphere_constant_rgb(LightDefinition light, PRDRGB* prd)
 {
     LightSample_RGB lightSample;
-    lightSample.pdf = 1.0f /  (4.0f * (float)M_PI) / float(optixLaunchParams.light.numLights);
+    lightSample.pdf = 1.0f / (4.0f * m1::pi) / float(optixLaunchParams.light.numLights);
     lightSample.distance = 1e7f;
     
     const float3 direction = random_unit_sphere(prd->random(), prd->random()); 
@@ -37,7 +37,7 @@ extern "C" __device__ LightSample_RGB __direct_callable__light_env_sphere_is_rgb
 
     if(totalWeight <= 0.0f){
         // 普通の一様サンプリング
-        lightSample.pdf = 1.0f /  (4.0f * (float)M_PI) / float(optixLaunchParams.light.numLights);
+        lightSample.pdf = 1.0f / (4.0f * m1::pi) / float(optixLaunchParams.light.numLights);
         const float3 direction = random_unit_sphere(prd->random(), prd->random()); 
         lightSample.direction = direction; 
         float u, v;
@@ -63,11 +63,14 @@ extern "C" __device__ LightSample_RGB __direct_callable__light_env_sphere_is_rgb
     thetaPhiFromPatch(row, col, wp, hp, &th0, &th1, &ph0, &ph1);
 
     const float deltaPhi = ph1 - ph0;
-    const float deltaCosT = cosf(th0) - cosf(th1);
+    // thetaPhiFromPatch produces polar endpoints in [0,pi].
+    const float cosTh0 = m1::bounded_cos(th0);
+    const float cosTh1 = m1::bounded_cos(th1);
+    const float deltaCosT = cosTh0 - cosTh1;
     const float dOmega = deltaPhi *deltaCosT;
     
     const float phi = ph0 + xi3 * deltaPhi;
-    const float cosTheta = cosf(th0) + xi4 * deltaCosT;
+    const float cosTheta = cosTh0 + xi4 * deltaCosT;
     const float theta = acosf(fminf(fmaxf(cosTheta, -1.0f), 1.0f));
 
     const float3 wi = sphericalToOrthogonalCoord(theta, phi);
@@ -126,7 +129,7 @@ extern "C" __device__ LightSample_RGB __direct_callable__light_triangle_rgb(Ligh
             const float2 u2 = triangleLightData.uv2;
 
             const float2 sampledUVCoodinate = u0 + ta * (u1 - u0) + tb * (u2 - u0);
-            emission *= make_float3(tex2D<float4>(triangleLightData.emissiveTexture.texture, sampledUVCoodinate.x, 1.0 - sampledUVCoodinate.y));
+            emission *= make_float3(tex2D<float4>(triangleLightData.emissiveTexture.texture, sampledUVCoodinate.x, 1.0f - sampledUVCoodinate.y));
         }
 
         float pdfInTriangle = 1.0f / areaInWorld; // 面積
@@ -145,7 +148,7 @@ extern "C" __device__ LightSample_RGB __direct_callable__light_triangle_rgb(Ligh
 extern "C" __device__ LightSample_Spectral __direct_callable__light_env_sphere_constant_spectral(LightDefinition light, PRDSpectral* prd)
 {
     LightSample_Spectral lightSample;
-    lightSample.pdf = 1.0f /  (4.0f * (float)M_PI) / float(optixLaunchParams.light.numLights);
+    lightSample.pdf = 1.0f / (4.0f * m1::pi) / float(optixLaunchParams.light.numLights);
     lightSample.distance = 1e7f;
     
     const float3 direction = random_unit_sphere(prd->random(), prd->random()); 
@@ -171,7 +174,7 @@ extern "C" __device__ LightSample_Spectral __direct_callable__light_env_sphere_i
 
     if(totalWeight <= 0.0f){
         // 普通の一様サンプリング
-        lightSample.pdf = 1.0f /  (4.0f * (float)M_PI) / float(optixLaunchParams.light.numLights);
+        lightSample.pdf = 1.0f / (4.0f * m1::pi) / float(optixLaunchParams.light.numLights);
         const float3 direction = random_unit_sphere(prd->random(), prd->random()); 
         lightSample.direction = direction; 
         float u, v;
@@ -197,11 +200,14 @@ extern "C" __device__ LightSample_Spectral __direct_callable__light_env_sphere_i
     thetaPhiFromPatch(row, col, wp, hp, &th0, &th1, &ph0, &ph1);
 
     const float deltaPhi = ph1 - ph0;
-    const float deltaCosT = cosf(th0) - cosf(th1);
+    // thetaPhiFromPatch produces polar endpoints in [0,pi].
+    const float cosTh0 = m1::bounded_cos(th0);
+    const float cosTh1 = m1::bounded_cos(th1);
+    const float deltaCosT = cosTh0 - cosTh1;
     const float dOmega = deltaPhi *deltaCosT;
     
     const float phi = ph0 + xi3 * deltaPhi;
-    const float cosTheta = cosf(th0) + xi4 * deltaCosT;
+    const float cosTheta = cosTh0 + xi4 * deltaCosT;
     const float theta = acosf(fminf(fmaxf(cosTheta, -1.0f), 1.0f));
 
     const float3 wi = sphericalToOrthogonalCoord(theta, phi);

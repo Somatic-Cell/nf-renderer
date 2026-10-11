@@ -1,6 +1,9 @@
 #include "m2/tangent_frame.hpp"
 
+#include <algorithm>
+#include <array>
 #include <cmath>
+#include <iomanip>
 #include <iostream>
 #include <limits>
 #include <stdexcept>
@@ -11,14 +14,100 @@ using m1::Vec3;
 static void require(bool condition,const char* message){if(!condition)throw std::runtime_error(message);}
 static bool close(float a,float b,float tolerance=2.e-6f){return std::abs(a-b)<=tolerance;}
 static bool close(Vec3 a,Vec3 b){return close(a.x,b.x)&&close(a.y,b.y)&&close(a.z,b.z);}
+
+// Independent host arithmetic is deliberately wider than the production
+// float path, including the exact 1e-60 determinant and grazing projections.
+struct R3 {long double x,y,z;};
+static R3 ref(Vec3 v){return {v.x,v.y,v.z};}
+static R3 sub(R3 a,R3 b){return {a.x-b.x,a.y-b.y,a.z-b.z};}
+static R3 mul(R3 v,long double s){return {v.x*s,v.y*s,v.z*s};}
+static long double dot(R3 a,R3 b){return a.x*b.x+a.y*b.y+a.z*b.z;}
+static R3 cross(R3 a,R3 b){return {a.y*b.z-a.z*b.y,a.z*b.x-a.x*b.z,a.x*b.y-a.y*b.x};}
+static R3 unit(R3 v){return mul(v,1.0L/std::sqrt(dot(v,v)));}
+static long double ref_det(Vec2 a,Vec2 b,Vec2 c){
+    return (static_cast<long double>(b.x)-a.x)*(static_cast<long double>(c.y)-a.y)-
+           (static_cast<long double>(b.y)-a.y)*(static_cast<long double>(c.x)-a.x);
+}
+static long double component_error(Vec3 actual,R3 expected){
+    return std::max({std::abs(actual.x-expected.x),std::abs(actual.y-expected.y),std::abs(actual.z-expected.z)});
+}
 static void frame_valid(const m2::UvTangentFrame& frame,Vec3 ns){
     require(frame.valid,"expected a valid UV tangent frame");
-    ns=m1::normalize(ns);
+    const R3 reference_normal=unit(ref(ns));
+    ns={float(reference_normal.x),float(reference_normal.y),float(reference_normal.z)};
     require(close(m1::dot(frame.tangent,frame.tangent),1),"tangent is not unit");
     require(close(m1::dot(frame.bitangent,frame.bitangent),1),"bitangent is not unit");
     require(close(m1::dot(frame.tangent,ns),0),"tangent is not perpendicular to Ns");
     require(close(m1::dot(frame.bitangent,ns),0),"bitangent is not perpendicular to Ns");
     require(close(m1::dot(frame.tangent,frame.bitangent),0),"T/B are not orthogonal");
+}
+
+static long double check_reference(Vec3 e1,Vec3 e2,Vec2 a,Vec2 b,Vec2 c,Vec3 ns){
+    const auto actual=m2::triangle_uv_tangent_frame(e1,e2,a,b,c,ns);
+    frame_valid(actual,ns);
+    const long double determinant=ref_det(a,b,c);
+    const long double decoded=std::ldexp(static_cast<long double>(actual.uv_determinant),actual.uv_determinant_exponent);
+    require((decoded>0)==(determinant>0)&&(decoded<0)==(determinant<0),
+            "FP32 scaled UV determinant changed the reference sign or zero classification");
+    require(actual.used_degenerate_uv_chart==(determinant==0),
+            "only the exactly degenerate UV chart may use the imported fallback");
+    if(determinant!=0)
+        require(std::abs(decoded/determinant-1.0L)<=4.0L*std::numeric_limits<float>::epsilon(),
+                "scaled determinant value does not agree with the independent reference");
+    const long double orientation=determinant>0?1.0L:-1.0L;
+    const R3 raw_u=determinant==0?ref(e2):mul(sub(
+        mul(ref(e1),static_cast<long double>(c.y)-a.y),
+        mul(ref(e2),static_cast<long double>(b.y)-a.y)),orientation);
+    const R3 bitangent=unit(cross(ref(ns),raw_u));
+    const R3 tangent=unit(cross(bitangent,unit(ref(ns))));
+    const long double error=std::max(component_error(actual.tangent,tangent),
+        component_error(actual.bitangent,mul(bitangent,-orientation)));
+    require(error<=8.0L*std::numeric_limits<float>::epsilon(),
+            "FP32 frame direction disagrees with independent projected UV derivatives");
+    return error;
+}
+
+static void test_fp32_range_and_cancellation(){
+    const Vec3 e1{2,0,0},e2{0,3,0},ns{.3f,.2f,2.f};
+    const std::array<int,8> exponents{{-149,-126,-100,-40,0,40,100,126}};
+    long double maximum_frame_error=0;
+    unsigned count=0;
+    for(int eu:exponents)for(int ev:exponents){
+        const float u=std::ldexp(1.0f,eu),v=std::ldexp(1.0f,ev);
+        maximum_frame_error=std::max(maximum_frame_error,
+            check_reference(e1,e2,{0,0},{u,0},{0,v},ns));
+        ++count;
+    }
+    const float epsilon=std::numeric_limits<float>::epsilon();
+    // The exact du2 is 2+epsilon, but subtracting in float rounds it to 2.
+    // A naive determinant consequently creates a false degenerate chart.
+    const Vec2 a{-1,0},b{1,1},c{1+epsilon,1};
+    require((b.x-a.x)*(c.y-a.y)-(b.y-a.y)*(c.x-a.x)==0.0f,
+            "coordinate-subtraction cancellation regression was not triggered");
+    maximum_frame_error=std::max(maximum_frame_error,check_reference(e1,e2,a,b,c,ns));
+
+    // Two rounded products are equal although the exact determinant is -eps^2.
+    maximum_frame_error=std::max(maximum_frame_error,
+        check_reference(e1,e2,{0,0},{1+epsilon,1},{1,1-epsilon},ns));
+    const float half_maximum=(std::numeric_limits<float>::max)()*0.5f;
+    maximum_frame_error=std::max(maximum_frame_error,check_reference(e1,e2,
+        {-half_maximum,-half_maximum},{half_maximum,-half_maximum},{-half_maximum,half_maximum},ns));
+
+    // Different edge magnitudes may be separated by 60 orders of magnitude.
+    // Project before reducing a vector to a single shared exponent.
+    maximum_frame_error=std::max(maximum_frame_error,
+        check_reference({1e30f,0,0},{0,1e-30f,0},{0,0},{1,0},{0,1},{0,0,1e-30f}));
+    maximum_frame_error=std::max(maximum_frame_error,
+        check_reference({1e30f,1e-30f,0},{0,0,1},{0,0},{1,0},{0,1},{1,0,0}));
+
+    // U=(1-eps^2,1,0), N=(1,1,0). Rounding U before projection would erase
+    // its valid perpendicular component and reject this grazing normal.
+    maximum_frame_error=std::max(maximum_frame_error,
+        check_reference({1,1,0},{epsilon,0,0},{0,0},{1,epsilon},{0,1},{1,1,0}));
+    maximum_frame_error=std::max(maximum_frame_error,
+        check_reference(e1,e2,{0,0},{1,0},{2,0},ns));
+    std::cout<<"FP32 frame reference: scaled_charts="<<count
+             <<" max_component_error="<<std::setprecision(12)<<maximum_frame_error<<'\n';
 }
 
 int main(){
@@ -64,6 +153,9 @@ int main(){
         frame_valid(tiny,ns);
         require(tiny.uv_determinant>0&&close(tiny.tangent,regular.tangent)&&close(tiny.bitangent,regular.bitangent),
             "tiny regular UV chart was rejected or reoriented");
+        require(std::abs(std::ldexp(double(tiny.uv_determinant),tiny.uv_determinant_exponent)/
+            (double(1.e-30f)*double(1.e-30f))-1.0)<=2.0*std::numeric_limits<float>::epsilon(),
+            "tiny determinant mantissa/exponent must reconstruct its actual magnitude");
 
         const auto degenerate=m2::triangle_uv_tangent_frame(e1,e2,a,b,{2,0},ns);
         frame_valid(degenerate,ns);
@@ -83,6 +175,8 @@ int main(){
         require(!m2::triangle_uv_tangent_frame(e1,e2,{nan,0},b,c,ns).valid,"NaN UV was accepted");
         require(!m2::triangle_uv_tangent_frame({inf,0,0},e2,a,b,c,ns).valid,"infinite geometry was accepted");
         require(!m2::triangle_uv_tangent_frame(e1,e2,a,b,c,{0,nan,1}).valid,"NaN normal was accepted");
+
+        test_fp32_range_and_cancellation();
 
         std::cout<<"M2 tangent frame: mixed-sign interior regression, non-flat normal map, mirrored UV, "
             "world transforms, smooth normal, tiny regular UV, pinned Assimp degenerate-UV chart "

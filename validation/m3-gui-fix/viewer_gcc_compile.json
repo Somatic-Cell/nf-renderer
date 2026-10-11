@@ -1,0 +1,66 @@
+{
+  "compiler": "g++ (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0",
+  "command": [
+    "g++",
+    "-std=c++17",
+    "-O2",
+    "-c",
+    "-I/workspace/scratch/6fbbff5708b2/m3-gui-host-deps",
+    "-I/workspace/scratch/6fbbff5708b2/m3-gui-host-deps/imgui",
+    "-I/workspace/scratch/6fbbff5708b2/m3-gui-host-deps/imgui/backends",
+    "-I/workspace/scratch/6fbbff5708b2/m1-toolchain/nvidia/cu13/include",
+    "-I/workspace/scratch/6fbbff5708b2/nf-renderer-m3-gui-fix/utils",
+    "/workspace/scratch/6fbbff5708b2/nf-renderer-m3-gui-fix/viewer/glfw_window.cpp",
+    "-o",
+    "/workspace/scratch/6fbbff5708b2/m3-gui-viewer-validation/glfw_window.o"
+  ],
+  "exit_code": 0,
+  "scope": "Compile the complete viewer/glfw_window.cpp translation unit with real pinned upstream headers. No linking, no GUI execution, no MSVC compilation.",
+  "object_bytes": 32368,
+  "source_sha256": {
+    "viewer/glfw_window.cpp": "cd36abdfbe2242b3be544d7c81de6ade297108c9bed92ad415f96588fdec7642",
+    "viewer/glfw_window.hpp": "426008f678d85fadcd2b1c1c29996f8a7eca5d261db644db5d8f26ac263d18cf",
+    "viewer/CMakeLists.txt": "3ebaac901f69cfe82badf1d6050ba95d4f20e36bbbda087c88e355c320402d81"
+  },
+  "dependencies": [
+    {
+      "repository": "glfw/glfw",
+      "revision": "e7ea71be039836da3a98cea55ae5569cb5eb885c",
+      "source": "nf-renderer gitlink",
+      "headers": [
+        "GLFW/glfw3.h"
+      ]
+    },
+    {
+      "repository": "ocornut/imgui",
+      "revision": "b4bd596a393f09eb39c8fa9cf1b4430dbe6272b0",
+      "source": "nf-renderer gitlink",
+      "headers": [
+        "imgui/imgui.h",
+        "imgui/imconfig.h",
+        "imgui/backends/imgui_impl_glfw.h",
+        "imgui/backends/imgui_impl_opengl3.h"
+      ]
+    },
+    {
+      "repository": "NVIDIA/libglvnd",
+      "revision": "606f6627cf481ee6dcb32387edc010c502cdf38b",
+      "source": "Pinned upstream OpenGL development headers for this Linux validation",
+      "headers": [
+        "GL/gl.h",
+        "GL/glext.h",
+        "KHR/khrplatform.h"
+      ]
+    }
+  ],
+  "header_sha256": {
+    "imgui/imgui.h": "0222712bc87f700e717644d36d83f02e9722064e233f78d84700c179a4166209",
+    "imgui/imconfig.h": "c5c4ae77bf102cc86deaf07c71e9077b0e0dc66716bc7c8fa33213ffe599738b",
+    "KHR/khrplatform.h": "674696aae5066bd462b31d22d1cbedc8b8216c538acb04e26719a67a4b277607",
+    "GLFW/glfw3.h": "a56c5ac944534175787542e73b4cf26cb1692bd4bfd1c7ef2d6aca8b064a7e40",
+    "GL/glext.h": "56530bcbf7976c3a5193164bc2aa4960b5ccf81ffa95aa39fb34bf4d4f460aa0",
+    "GL/gl.h": "2e7ee8f99f45682bac838f54337897e098273d5f776cfc13c1dccdeb9c13e44e",
+    "imgui/backends/imgui_impl_opengl3.h": "6b1aa51d784b2fc2d7af9c3d78266252b649e40e788b1217c701b7fe6d5e136a",
+    "imgui/backends/imgui_impl_glfw.h": "f2071f51df4fcdfdc10745d18e6e79aa9a9403728bd26455d9baf675df2bbb51"
+  }
+}

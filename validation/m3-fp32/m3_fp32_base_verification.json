@@ -1,0 +1,542 @@
+{
+  "remote_commit": "6e4794fb50fe3d9eafaacd78e5fe0b6e2098a103",
+  "checked_files": 89,
+  "all_matched": true,
+  "files": [
+    {
+      "path": "CMakeLists.txt",
+      "github_blob": "f94bb1ce82a1100370bd6a25f6e6f7fda18ce839",
+      "local_blob": "f94bb1ce82a1100370bd6a25f6e6f7fda18ce839",
+      "match": true
+    },
+    {
+      "path": "include/application.hpp",
+      "github_blob": "942853b904f3197afcdabbf64a59c48db9c1e172",
+      "local_blob": "942853b904f3197afcdabbf64a59c48db9c1e172",
+      "match": true
+    },
+    {
+      "path": "include/atmosphere_lut.h",
+      "github_blob": "ed6e9f9ef007401a7adc1f75eab4d9c96ecb4c8b",
+      "local_blob": "ed6e9f9ef007401a7adc1f75eab4d9c96ecb4c8b",
+      "match": true
+    },
+    {
+      "path": "include/cuda_buffer.h",
+      "github_blob": "3e040302724ca5be8cdd5d66fd4fb4bd0a00f884",
+      "local_blob": "3e040302724ca5be8cdd5d66fd4fb4bd0a00f884",
+      "match": true
+    },
+    {
+      "path": "include/cuda_texture.h",
+      "github_blob": "0c12e769856800803f2491063856cce95e55f785",
+      "local_blob": "0c12e769856800803f2491063856cce95e55f785",
+      "match": true
+    },
+    {
+      "path": "include/launch_params.h",
+      "github_blob": "0fbbdc4bf2ea29b082b59b22012a0fba6626a3c4",
+      "local_blob": "0fbbdc4bf2ea29b082b59b22012a0fba6626a3c4",
+      "match": true
+    },
+    {
+      "path": "include/m1/bsdf.hpp",
+      "github_blob": "0bbc4b0e20cb3ea8a59b7e0180c41363c61df87a",
+      "local_blob": "0bbc4b0e20cb3ea8a59b7e0180c41363c61df87a",
+      "match": true
+    },
+    {
+      "path": "include/m1/diagnostics.hpp",
+      "github_blob": "f9a9c18aa01be9f20c103e18f09f009fad36f855",
+      "local_blob": "f9a9c18aa01be9f20c103e18f09f009fad36f855",
+      "match": true
+    },
+    {
+      "path": "include/m1/failure_report.hpp",
+      "github_blob": "e5b1cfffe488f8cdcae873169ca59b45ca6b3c08",
+      "local_blob": "e5b1cfffe488f8cdcae873169ca59b45ca6b3c08",
+      "match": true
+    },
+    {
+      "path": "include/m1/light_pdf.hpp",
+      "github_blob": "1ca3cfe0f2570adfd487dc2058765b18b6916854",
+      "local_blob": "1ca3cfe0f2570adfd487dc2058765b18b6916854",
+      "match": true
+    },
+    {
+      "path": "include/m1/math.hpp",
+      "github_blob": "45693cab3062612a1750853a9231d949835ee763",
+      "local_blob": "45693cab3062612a1750853a9231d949835ee763",
+      "match": true
+    },
+    {
+      "path": "include/m1/render_params.h",
+      "github_blob": "332e7a8699b8ae8d5d7b3a1e77e174177c17ac7d",
+      "local_blob": "332e7a8699b8ae8d5d7b3a1e77e174177c17ac7d",
+      "match": true
+    },
+    {
+      "path": "include/m1/rgb2spec_device.hpp",
+      "github_blob": "dd6089d12fb2d624a133e99d67370993fdbf5270",
+      "local_blob": "dd6089d12fb2d624a133e99d67370993fdbf5270",
+      "match": true
+    },
+    {
+      "path": "include/m1/spectral_assets.hpp",
+      "github_blob": "e45568fa91c42e159ade990720b1295fd2092028",
+      "local_blob": "e45568fa91c42e159ade990720b1295fd2092028",
+      "match": true
+    },
+    {
+      "path": "include/m1/spectral_types.hpp",
+      "github_blob": "d331899fd1777165d685cf91df0d6257658f7fd1",
+      "local_blob": "d331899fd1777165d685cf91df0d6257658f7fd1",
+      "match": true
+    },
+    {
+      "path": "include/m2/alpha.hpp",
+      "github_blob": "b3d02d57dc0027bcf8c7f7cb4274c06992693cd0",
+      "local_blob": "b3d02d57dc0027bcf8c7f7cb4274c06992693cd0",
+      "match": true
+    },
+    {
+      "path": "include/m2/orca_material.hpp",
+      "github_blob": "4db3b4d917bab4b1f1a6de37547a5fd3d1c07cee",
+      "local_blob": "4db3b4d917bab4b1f1a6de37547a5fd3d1c07cee",
+      "match": true
+    },
+    {
+      "path": "include/m2/orca_scene.hpp",
+      "github_blob": "148559839d7659e6eb7c16671895a4bad30e8cdc",
+      "local_blob": "148559839d7659e6eb7c16671895a4bad30e8cdc",
+      "match": true
+    },
+    {
+      "path": "include/m2/tangent_frame.hpp",
+      "github_blob": "30c60a6418ff25617b0363ea8c289e1c6ebeb84f",
+      "local_blob": "30c60a6418ff25617b0363ea8c289e1c6ebeb84f",
+      "match": true
+    },
+    {
+      "path": "include/mie_tables_txt_loader.h",
+      "github_blob": "0fcebf4598ad8a80b3bbfea3b816a9d3f4677712",
+      "local_blob": "0fcebf4598ad8a80b3bbfea3b816a9d3f4677712",
+      "match": true
+    },
+    {
+      "path": "include/model.h",
+      "github_blob": "71dc29f85093526622329204cf0eb8251b30c615",
+      "local_blob": "71dc29f85093526622329204cf0eb8251b30c615",
+      "match": true
+    },
+    {
+      "path": "include/nsf_hyper_checkpoint.hpp",
+      "github_blob": "6465f8ea2a0a51b94e543de28400892b888c141d",
+      "local_blob": "6465f8ea2a0a51b94e543de28400892b888c141d",
+      "match": true
+    },
+    {
+      "path": "include/nsf_hyper_coopvec_pack.hpp",
+      "github_blob": "bd7d7463ca2c55452fccd26186ec400a8d55390d",
+      "local_blob": "bd7d7463ca2c55452fccd26186ec400a8d55390d",
+      "match": true
+    },
+    {
+      "path": "include/optix8.hpp",
+      "github_blob": "10e107e00867eb293dcc745c4f6c422a8d228265",
+      "local_blob": "10e107e00867eb293dcc745c4f6c422a8d228265",
+      "match": true
+    },
+    {
+      "path": "include/ptx_data_reader.hpp",
+      "github_blob": "3588ae6f40ea15427ce0faf15e6007c82cef59de",
+      "local_blob": "3588ae6f40ea15427ce0faf15e6007c82cef59de",
+      "match": true
+    },
+    {
+      "path": "include/renderer.hpp",
+      "github_blob": "04763175f44d9fe06c7bb742bd25796d3ee9b639",
+      "local_blob": "04763175f44d9fe06c7bb742bd25796d3ee9b639",
+      "match": true
+    },
+    {
+      "path": "include/safetensors_loader.hpp",
+      "github_blob": "eeb3fe15233ad8512e20c4a4ada50eaeea438374",
+      "local_blob": "eeb3fe15233ad8512e20c4a4ada50eaeea438374",
+      "match": true
+    },
+    {
+      "path": "include/sceneDescIO.hpp",
+      "github_blob": "eca74695bf56e192aa4441b7aec39977bf77748a",
+      "local_blob": "eca74695bf56e192aa4441b7aec39977bf77748a",
+      "match": true
+    },
+    {
+      "path": "include/texture.hpp",
+      "github_blob": "a637867b9bd3990dffb71bd9d74dc191094ac934",
+      "local_blob": "a637867b9bd3990dffb71bd9d74dc191094ac934",
+      "match": true
+    },
+    {
+      "path": "include/vdb_loader.hpp",
+      "github_blob": "a16b50304bd5d9b28bda49005bd4f6c50edd3fef",
+      "local_blob": "a16b50304bd5d9b28bda49005bd4f6c50edd3fef",
+      "match": true
+    },
+    {
+      "path": "kernels/copy_buffer_to_surface.cu",
+      "github_blob": "8fdd801b7b598ff29db96455bb3cd5413442f26a",
+      "local_blob": "8fdd801b7b598ff29db96455bb3cd5413442f26a",
+      "match": true
+    },
+    {
+      "path": "kernels/toneMap.cu",
+      "github_blob": "cf8e63d29a4f185fb03475abdfd467fb93dfabae",
+      "local_blob": "cf8e63d29a4f185fb03475abdfd467fb93dfabae",
+      "match": true
+    },
+    {
+      "path": "shaders/callable/diffuse_brdf.cu",
+      "github_blob": "85422f3cc71828f7c716fb5ffed98bf2271ea173",
+      "local_blob": "85422f3cc71828f7c716fb5ffed98bf2271ea173",
+      "match": true
+    },
+    {
+      "path": "shaders/callable/disney_principled_brdf.cu",
+      "github_blob": "8a77bd44901648b1c1c8c36ca161c79d6ebf0e2d",
+      "local_blob": "8a77bd44901648b1c1c8c36ca161c79d6ebf0e2d",
+      "match": true
+    },
+    {
+      "path": "shaders/callable/glass_bsdf.cu",
+      "github_blob": "3a19c11dd582388d0ea668fca28d48d08ee137b4",
+      "local_blob": "3a19c11dd582388d0ea668fca28d48d08ee137b4",
+      "match": true
+    },
+    {
+      "path": "shaders/callable/lens.cu",
+      "github_blob": "23dc21f68d38c124f0b301170704f132feaaec98",
+      "local_blob": "23dc21f68d38c124f0b301170704f132feaaec98",
+      "match": true
+    },
+    {
+      "path": "shaders/callable/light_sample.cu",
+      "github_blob": "10bb2d3a30a8f9f68ba2b2d1a0791c2c4de5853e",
+      "local_blob": "10bb2d3a30a8f9f68ba2b2d1a0791c2c4de5853e",
+      "match": true
+    },
+    {
+      "path": "shaders/config.cuh",
+      "github_blob": "2be199b9a3cb71faa5f168506890b18a3f25024a",
+      "local_blob": "2be199b9a3cb71faa5f168506890b18a3f25024a",
+      "match": true
+    },
+    {
+      "path": "shaders/device/atmosphere_sampling_device.cuh",
+      "github_blob": "17cdaa1f3c927f7a875f6f250215041e63f2b46c",
+      "local_blob": "17cdaa1f3c927f7a875f6f250215041e63f2b46c",
+      "match": true
+    },
+    {
+      "path": "shaders/device/m1_diagnostics.cuh",
+      "github_blob": "8496746234f52d33ceef0a9e34851a64393832e7",
+      "local_blob": "8496746234f52d33ceef0a9e34851a64393832e7",
+      "match": true
+    },
+    {
+      "path": "shaders/device/m1_surface.cuh",
+      "github_blob": "a1f72a08b985c20e32e35628547c654b9f374112",
+      "local_blob": "a1f72a08b985c20e32e35628547c654b9f374112",
+      "match": true
+    },
+    {
+      "path": "shaders/device/neural_phase_function.cuh",
+      "github_blob": "919ae8a59da7c1ba308fbd4f7f35af553b499722",
+      "local_blob": "919ae8a59da7c1ba308fbd4f7f35af553b499722",
+      "match": true
+    },
+    {
+      "path": "shaders/device/nsf_simd_constant_backend.cuh",
+      "github_blob": "546af978e03e379c85f5b899fdf6c067186b66c6",
+      "local_blob": "546af978e03e379c85f5b899fdf6c067186b66c6",
+      "match": true
+    },
+    {
+      "path": "shaders/device/nsf_simd_constant_flow_flexible_data.cuh",
+      "github_blob": "f2a5b4c9585ca45b2a2164598876aa5e7f65bf25",
+      "local_blob": "f2a5b4c9585ca45b2a2164598876aa5e7f65bf25",
+      "match": true
+    },
+    {
+      "path": "shaders/device/nsf_simd_hardcoded_flow_flexible_generated.cuh",
+      "github_blob": "6dada625c7a9cbeb2c938c9e4106a94d098842cd",
+      "local_blob": "6dada625c7a9cbeb2c938c9e4106a94d098842cd",
+      "match": true
+    },
+    {
+      "path": "shaders/device/phase_function.cuh",
+      "github_blob": "313c4da83e595351a6a5d2593cd7e066c2fb5f78",
+      "local_blob": "313c4da83e595351a6a5d2593cd7e066c2fb5f78",
+      "match": true
+    },
+    {
+      "path": "shaders/device/random_number_generator.cuh",
+      "github_blob": "d8c115e08f51d7fde2999c33f98a4b095b1061c5",
+      "local_blob": "d8c115e08f51d7fde2999c33f98a4b095b1061c5",
+      "match": true
+    },
+    {
+      "path": "shaders/device/shader_common.cuh",
+      "github_blob": "25cb7ab42450f6b91ad6a2e5769ee402c961666f",
+      "local_blob": "25cb7ab42450f6b91ad6a2e5769ee402c961666f",
+      "match": true
+    },
+    {
+      "path": "shaders/device/trace_surface.cuh",
+      "github_blob": "b34735dac78e98fc287ca1a406e351c292c49438",
+      "local_blob": "b34735dac78e98fc287ca1a406e351c292c49438",
+      "match": true
+    },
+    {
+      "path": "shaders/device/trace_volume.cuh",
+      "github_blob": "4c2e6193382b560c2e34adb204cdffc5d7b5d386",
+      "local_blob": "4c2e6193382b560c2e34adb204cdffc5d7b5d386",
+      "match": true
+    },
+    {
+      "path": "shaders/entry/ah_radiance.cu",
+      "github_blob": "aab7f032dff694f31344c89564b5fbc79cc8ff3d",
+      "local_blob": "aab7f032dff694f31344c89564b5fbc79cc8ff3d",
+      "match": true
+    },
+    {
+      "path": "shaders/entry/ah_shadow.cu",
+      "github_blob": "f9fdd7b6898f7c28d017e4a876f3f92d85febfd0",
+      "local_blob": "f9fdd7b6898f7c28d017e4a876f3f92d85febfd0",
+      "match": true
+    },
+    {
+      "path": "shaders/entry/ch_radiance.cu",
+      "github_blob": "4ddbd41349ff349fd3192a503f0c06422f8bf783",
+      "local_blob": "4ddbd41349ff349fd3192a503f0c06422f8bf783",
+      "match": true
+    },
+    {
+      "path": "shaders/entry/ch_radiance_vdb.cu",
+      "github_blob": "54182f789f3abd50584c272bb24164b002bedf73",
+      "local_blob": "54182f789f3abd50584c272bb24164b002bedf73",
+      "match": true
+    },
+    {
+      "path": "shaders/entry/ch_shadow.cu",
+      "github_blob": "a3e8a145f8201f9aa05bb268b19382685cf5c8d5",
+      "local_blob": "a3e8a145f8201f9aa05bb268b19382685cf5c8d5",
+      "match": true
+    },
+    {
+      "path": "shaders/entry/intersection_vdb.cu",
+      "github_blob": "d2fb938667be9e5e4e737cf57d71f1e055e994c5",
+      "local_blob": "d2fb938667be9e5e4e737cf57d71f1e055e994c5",
+      "match": true
+    },
+    {
+      "path": "shaders/entry/miss_radiance.cu",
+      "github_blob": "bcf4439fac580469672e87cf2825f29a771bb77c",
+      "local_blob": "bcf4439fac580469672e87cf2825f29a771bb77c",
+      "match": true
+    },
+    {
+      "path": "shaders/entry/miss_shadow.cu",
+      "github_blob": "0dc5453dc83b933e5250e6e7bb313385d1f1b5e7",
+      "local_blob": "0dc5453dc83b933e5250e6e7bb313385d1f1b5e7",
+      "match": true
+    },
+    {
+      "path": "shaders/entry/raygen.cu",
+      "github_blob": "b379ec1a0b0c4ff2dd4a32212887cff2e57ba41f",
+      "local_blob": "b379ec1a0b0c4ff2dd4a32212887cff2e57ba41f",
+      "match": true
+    },
+    {
+      "path": "shaders/entry/sphere_intersection.cu",
+      "github_blob": "7aed9ebc99c9810eb9c07f955c1f610d7d477004",
+      "local_blob": "7aed9ebc99c9810eb9c07f955c1f610d7d477004",
+      "match": true
+    },
+    {
+      "path": "shaders/params/per_ray_data.cuh",
+      "github_blob": "cb5bdf0f82451d4e994196419a61dcc573139051",
+      "local_blob": "cb5bdf0f82451d4e994196419a61dcc573139051",
+      "match": true
+    },
+    {
+      "path": "src/application.cpp",
+      "github_blob": "74b95872150d0490dfb339142ecc2bb305565b54",
+      "local_blob": "74b95872150d0490dfb339142ecc2bb305565b54",
+      "match": true
+    },
+    {
+      "path": "src/atmosphere_lut.cpp",
+      "github_blob": "97fb93d37687242548ca999e5f68e0bf41ccec83",
+      "local_blob": "97fb93d37687242548ca999e5f68e0bf41ccec83",
+      "match": true
+    },
+    {
+      "path": "src/m1/spectral_assets.cpp",
+      "github_blob": "d3c9f4e510404481bf3c7d932208fa395c0a14d1",
+      "local_blob": "d3c9f4e510404481bf3c7d932208fa395c0a14d1",
+      "match": true
+    },
+    {
+      "path": "src/main.cpp",
+      "github_blob": "bab0fb8346daa2e325afab75d94aa88494757e01",
+      "local_blob": "bab0fb8346daa2e325afab75d94aa88494757e01",
+      "match": true
+    },
+    {
+      "path": "src/model.cpp",
+      "github_blob": "7ef21ee9f4183ff90af90f2ff5b8afec0a68145e",
+      "local_blob": "7ef21ee9f4183ff90af90f2ff5b8afec0a68145e",
+      "match": true
+    },
+    {
+      "path": "src/renderer.cpp",
+      "github_blob": "610fd790aa72ea8c415778a70d04ff6b295a290f",
+      "local_blob": "610fd790aa72ea8c415778a70d04ff6b295a290f",
+      "match": true
+    },
+    {
+      "path": "src/texture.cpp",
+      "github_blob": "cabbc023aa3c2b71a97c9e95f52d6f23e063530d",
+      "local_blob": "cabbc023aa3c2b71a97c9e95f52d6f23e063530d",
+      "match": true
+    },
+    {
+      "path": "src/vdb_loader.cpp",
+      "github_blob": "0d4e1847f86e66f2e7d9ff72993401fafb113956",
+      "local_blob": "0d4e1847f86e66f2e7d9ff72993401fafb113956",
+      "match": true
+    },
+    {
+      "path": "tests/m1/CMakeLists.txt",
+      "github_blob": "b53f3d62d570bfd92a5e3868db3d94121576c97e",
+      "local_blob": "b53f3d62d570bfd92a5e3868db3d94121576c97e",
+      "match": true
+    },
+    {
+      "path": "tests/test_m1_bsdf.cpp",
+      "github_blob": "e449dd2cdac9151ad642e0f0b5a50eb4139f09c9",
+      "local_blob": "e449dd2cdac9151ad642e0f0b5a50eb4139f09c9",
+      "match": true
+    },
+    {
+      "path": "tests/test_m1_diagnostics.cpp",
+      "github_blob": "6952dc83c9b61e66024c78cba97337c5b4a28738",
+      "local_blob": "6952dc83c9b61e66024c78cba97337c5b4a28738",
+      "match": true
+    },
+    {
+      "path": "tests/test_m1_light_pdf.cpp",
+      "github_blob": "c034a9da47b6d692f6348aff1f904fc69d81a079",
+      "local_blob": "c034a9da47b6d692f6348aff1f904fc69d81a079",
+      "match": true
+    },
+    {
+      "path": "tests/test_m1_scene.cpp",
+      "github_blob": "175dbfb6b2f8029674edc5153401b2c4b36e53b6",
+      "local_blob": "175dbfb6b2f8029674edc5153401b2c4b36e53b6",
+      "match": true
+    },
+    {
+      "path": "tests/test_m1_spectral_assets.cpp",
+      "github_blob": "c28b64594749cd4c661aaaaab140db4c66500406",
+      "local_blob": "c28b64594749cd4c661aaaaab140db4c66500406",
+      "match": true
+    },
+    {
+      "path": "tests/test_m2_alpha.cpp",
+      "github_blob": "b393aa4080bcb1e07f097988cc6325f87ef0c859",
+      "local_blob": "b393aa4080bcb1e07f097988cc6325f87ef0c859",
+      "match": true
+    },
+    {
+      "path": "tests/test_m2_tangent_frame.cpp",
+      "github_blob": "8305e6b5a3fc885f15b58d02db1ad234049f0018",
+      "local_blob": "8305e6b5a3fc885f15b58d02db1ad234049f0018",
+      "match": true
+    },
+    {
+      "path": "utils/CMakeLists.txt",
+      "github_blob": "c30682cb5548056cd2f42ff2058b023ac3c8cea9",
+      "local_blob": "c30682cb5548056cd2f42ff2058b023ac3c8cea9",
+      "match": true
+    },
+    {
+      "path": "utils/box.hpp",
+      "github_blob": "98967f0f303fb3a1ec7e56fb7ec335df983da449",
+      "local_blob": "98967f0f303fb3a1ec7e56fb7ec335df983da449",
+      "match": true
+    },
+    {
+      "path": "utils/cmake/BuildSettings.cmake",
+      "github_blob": "2ba313b2597fb0b860398ed4594835af135e1fee",
+      "local_blob": "2ba313b2597fb0b860398ed4594835af135e1fee",
+      "match": true
+    },
+    {
+      "path": "utils/cmake/BuildVDB.cmake",
+      "github_blob": "50993140a1afe610b43e9482bd8394e36a278cfc",
+      "local_blob": "50993140a1afe610b43e9482bd8394e36a278cfc",
+      "match": true
+    },
+    {
+      "path": "utils/cmake/FindOptiX8.cmake",
+      "github_blob": "9f7abb94da641164360104c81046deb2971cc201",
+      "local_blob": "9f7abb94da641164360104c81046deb2971cc201",
+      "match": true
+    },
+    {
+      "path": "utils/cmake/FindOptiX9.cmake",
+      "github_blob": "d3c52a1eb6be20ffeaf6febe706288eece4ae3ef",
+      "local_blob": "d3c52a1eb6be20ffeaf6febe706288eece4ae3ef",
+      "match": true
+    },
+    {
+      "path": "utils/cmake/nvcuda_compile_module.cmake",
+      "github_blob": "80817412d3eb6ddb8ca46ace3f99e5539c3e5238",
+      "local_blob": "80817412d3eb6ddb8ca46ace3f99e5539c3e5238",
+      "match": true
+    },
+    {
+      "path": "utils/helper_math.h",
+      "github_blob": "42a2d157422fcf919f7dda592d8745e60bad3531",
+      "local_blob": "42a2d157422fcf919f7dda592d8745e60bad3531",
+      "match": true
+    },
+    {
+      "path": "utils/my_debug_tool.hpp",
+      "github_blob": "980fbd9c8cb40774c7d95d1815e2866521ec5c07",
+      "local_blob": "980fbd9c8cb40774c7d95d1815e2866521ec5c07",
+      "match": true
+    },
+    {
+      "path": "utils/my_math.hpp",
+      "github_blob": "1a420d9e0f6b43c673412e3f8006fd0b1dead78d",
+      "local_blob": "1a420d9e0f6b43c673412e3f8006fd0b1dead78d",
+      "match": true
+    },
+    {
+      "path": "viewer/glfw_window.cpp",
+      "github_blob": "410e88e5c1be2e2183c201948c2f6bdcc4eb0ab4",
+      "local_blob": "410e88e5c1be2e2183c201948c2f6bdcc4eb0ab4",
+      "match": true
+    },
+    {
+      "path": "viewer/glfw_window.hpp",
+      "github_blob": "5539778a92e2c35fb49723cf0f14de7e4abc94bf",
+      "local_blob": "5539778a92e2c35fb49723cf0f14de7e4abc94bf",
+      "match": true
+    }
+  ],
+  "base_commit": "6e4794fb50fe3d9eafaacd78e5fe0b6e2098a103"
+}

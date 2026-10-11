@@ -1,0 +1,71 @@
+{
+  "purpose": "Numerical investigation of the reported PlanetIntersection event; this is not a GPU failure reproduction.",
+  "reported_event": {
+    "reason": "PlanetIntersection",
+    "stage": "planet",
+    "frame": 0,
+    "pixel": [113, 60],
+    "bounce": 2,
+    "origin_decimal": ["3374.39648", "14831.293", "-8108.75244"],
+    "direction_decimal": ["-0.702025175", "-0.673400521", "-0.231716275"],
+    "ground_t_decimal": "22070.8789",
+    "ground_t_as_binary32": "22070.87890625",
+    "surface_position": [0, 0, 0],
+    "surface_normal": [0, 0, 0],
+    "internal_ground_parameter_hi": null,
+    "internal_ground_parameter_lo": null,
+    "planet_hit_status": null,
+    "note": "The reported ground_t is a rounded scalar diagnostic. The actual internal FloatPair hi/lo and the PlanetHit status were not included in the supplied event. The scalar must not be treated as the full internal ray parameter."
+  },
+  "geometry_parameters": {
+    "planetRadius_m": 6371000,
+    "atmosphereHeight_m": 100000,
+    "groundY_m": -6,
+    "note": "The reproduction calls clip and planet_hit directly. These geometry functions do not use the tracking enabled flag, extinction coefficient, scale height, or random samples."
+  },
+  "resolved_binary32_inputs": {
+    "origin": ["3374.396484375", "14831.29296875", "-8108.75244140625"],
+    "direction": ["-0.7020251750946044921875", "-0.67340052127838134765625", "-0.23171627521514892578125"]
+  },
+  "cpu_execution": {
+    "input_handling": "Read through volatile float inputs to avoid compile-time constant folding.",
+    "baseline_include_root": "nf-renderer-m3-shader-fp32-fix/include",
+    "baseline_flags": "g++ -std=c++17 -O3 -mfma -ffp-contract=off",
+    "baseline_log": "reproduce-no-contract.log",
+    "candidate_include_root": "nf-renderer-m3-planet-fix/include",
+    "candidate_flags": "g++ -std=c++17 -O3 -mfma -ffp-contract=fast",
+    "candidate_log": "candidate-contract.log",
+    "baseline_candidate_log_comparison": "Byte-identical; diff exited with status 0.",
+    "measured_result": "For t_max=infinity and t_max=1e30f, both implementations return clip.status=Ok, hits_ground=true, and planet_hit.status=Ok. The reported GPU failure was not reproduced on CPU."
+  },
+  "cpu_infinite_segment_metrics": {
+    "independent_long_double_near_t": "22070.8817094650520633792",
+    "ground_parameter_hi": "22070.880859375",
+    "ground_parameter_lo": "0.000850090174935758113861084",
+    "ground_parameter_sum": "22070.8817094651749357581",
+    "root_height_m": "-7.30486712785527458891011e-11",
+    "independent_root_height_m": "-7.30645884877400281898184e-11",
+    "root_height_bound_m": "1.16559067464550025761127e-5",
+    "planet_hit_status": "Ok",
+    "position": ["-12119.9189453125", "-31.250278472900390625", "-13222.935546875"],
+    "normal": ["-0.00190235720947384834289551", "0.99999606609344482421875", "-0.00207548821344971656799316"]
+  },
+  "rounded_reported_parameter_evaluation": {
+    "parameter": "22070.87890625",
+    "independent_height_m": "0.0018825871604515729119449",
+    "note": "This evaluates the point at the rounded diagnostic scalar only. It does not establish the residual at the unknown internal GPU FloatPair parameter."
+  },
+  "finite_segment_control": {
+    "t_max": "22070.87890625",
+    "clip_status": "Ok",
+    "hits_ground": false,
+    "forced_planet_hit_status": "InvalidRay",
+    "note": "This finite segment ends before the independently computed sphere intersection. The standalone reproduction intentionally calls planet_hit even though clip.hits_ground is false, violating that function's successful-ground-clip precondition. Its InvalidRay result is a forced negative control, not a reproduction of the user's PlanetIntersection event."
+  },
+  "limitations": [
+    "No actual GPU or OptiX execution of this reported ray was performed in this reproduction.",
+    "Ordinary CUDA PTX/SASS inspection is separate evidence and does not prove how the user's OptiX JIT compiled the program.",
+    "The candidate preserves explicit FP32 rounding boundaries and improves diagnostics; the available CPU evidence alone does not establish the GPU failure's cause or confirm its resolution.",
+    "Long double is used only by the independent CPU numerical reference in reproduce.cpp. Production GPU arithmetic remains FP32."
+  ]
+}

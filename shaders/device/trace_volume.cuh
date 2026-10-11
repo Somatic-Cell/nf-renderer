@@ -217,7 +217,10 @@ nanovdb::Vec3f worldToIndexPoint(
     const nanovdb::Vec3f& pW
 )
 {
-    return grid->map().applyInverseMap(pW);
+    // Vec3f return values alone do not select FP32: the unsuffixed NanoVDB
+    // map API evaluates with its double coefficient copy. Select its float
+    // coefficients explicitly for the GPU's float coordinate path.
+    return grid->map().applyInverseMapF(pW);
 }
 
 static __forceinline__ __device__ 
@@ -227,7 +230,7 @@ nanovdb::Vec3f worldToIndexVector(
     const nanovdb::Vec3f& vW
 )
 {
-    return grid->map().applyInverseJacobian(vW);
+    return grid->map().applyInverseJacobianF(vW);
 }
 
 static __forceinline__ __device__

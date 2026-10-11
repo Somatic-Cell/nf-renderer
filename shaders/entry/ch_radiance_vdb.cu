@@ -15,7 +15,7 @@
 
 static __forceinline__ __device__
 float evalPhaseFunction(){
-    return 1.f / (4.0f * M_PI);
+    return 1.f / (4.0f * m1::pi);
 }
 extern "C" __global__ void __closesthit__vdb_radiance_rgb()
 {

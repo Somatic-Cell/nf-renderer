@@ -1,0 +1,31 @@
+{
+  "all_succeeded": true,
+  "patches": [
+    {
+      "file": "m3-fp32-from-6e4794f.patch",
+      "baseline": {
+        "repository_commit": "6e4794fb50fe3d9eafaacd78e5fe0b6e2098a103",
+        "includes": "complete M3 overlay source changes"
+      },
+      "git_apply_check_passed": true,
+      "git_apply_passed": true,
+      "applied_bytes_match": true,
+      "checked_files": 46,
+      "patch_sha256": "1cacb3cf30f543f3cb3064c9e109b68d668a6671efda97e35676cc1e77609ec9"
+    },
+    {
+      "file": "m3-fp32-from-previous-m3.patch",
+      "baseline": {
+        "previous_deliverable": "nf-renderer-M3-rayleigh-6e4794f.zip",
+        "previous_deliverable_sha256": "5de871c5812c61a8b86d25d6b6612b661121ec5abd6e88298e025f0f3752d5c8",
+        "local_snapshot_only": "56fc4b295809df8a309e0ba9fe392fac41dd1954",
+        "local_snapshot_is_not_a_GitHub_commit": true
+      },
+      "git_apply_check_passed": true,
+      "git_apply_passed": true,
+      "applied_bytes_match": true,
+      "checked_files": 38,
+      "patch_sha256": "cb8b76e4ed4587a98961ded9cb85860d08f58795fede3a9bb4a897c0808e64ca"
+    }
+  ]
+}

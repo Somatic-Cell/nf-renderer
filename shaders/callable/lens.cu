@@ -1,4 +1,5 @@
 #include "../config.cuh"
+#include "m1/bounded_trig.hpp"
 
 #include <optix.h>
 
@@ -11,12 +12,12 @@ extern "C" __device__ LensRay __direct_callable__lens_pinhole(const float2 scree
 {
     LensRay ray;
     const auto &camera = optixLaunchParams.camera;
-    const float sensorWidth     = 35.0 / 1000.0f; // m 単位に正規化
+    const float sensorWidth     = 35.0f / 1000.0f; // m 単位に正規化
     const float aspect          = (float)optixLaunchParams.frame.size.x / (float)optixLaunchParams.frame.size.y;
     const float sensorHeight    = sensorWidth / aspect;
 
     const float fovY = camera.fov * float(M_PI) / 180.0f;
-    const float focalLength = (sensorHeight / 2.0f) / tanf(fovY / 2.0f);
+    const float focalLength = (sensorHeight / 2.0f) / m1::bounded_tan(fovY / 2.0f);
 
     const float3 sensorCenter = camera.position + normalize(camera.direction) * focalLength;
 
@@ -33,7 +34,7 @@ extern "C" __device__ LensRay __direct_callable__lens_thinLens(const float2 scre
 {
     LensRay ray;
     const auto &camera = optixLaunchParams.camera;
-    const float sensorWidth     = 35.0 / 1000.0f; // m 単位に正規化
+    const float sensorWidth     = 35.0f / 1000.0f; // m 単位に正規化
     const float sensorHeight    = sensorWidth * (float)optixLaunchParams.frame.size.y / (float)optixLaunchParams.frame.size.x; // mm 単位に正規化
     const float pint = optixLaunchParams.camera.pintDist;//m 単位に正規化
     const float focalLength = camera.focalLength / 1000.0f; // m 

@@ -61,7 +61,7 @@ struct __align__( OPTIX_SBT_RECORD_ALIGNMENT ) HitgroupRecord
 };
 
 namespace {
-void validateM1Geometry(const std::vector<const Model*>& models)
+void validateM1Geometry(const std::vector<const Model*>& models, bool allowEmpty = false)
 {
     size_t meshCount = 0;
     const auto finite3 = [](float3 p) {
@@ -141,15 +141,25 @@ void validateM1Geometry(const std::vector<const Model*>& models)
             }
         }
     }
-    if (meshCount == 0) throw std::invalid_argument("M1 requires at least one triangle mesh");
+    if (meshCount == 0 && !allowEmpty) throw std::invalid_argument("M1 requires at least one triangle mesh");
 }
 } // namespace
 
 
 Renderer::Renderer(std::vector<const Model*> models, sceneIO::Scene sceneDesc) : m_models(models), m_sceneDesc(sceneDesc)
 {
+    // Validate again for callers that construct Scene directly instead of JSON.
+    sceneIO::validateRayleighScene(m_sceneDesc);
+    m_launchParams.rayleigh = m_sceneDesc.rayleigh;
+    if (m_launchParams.rayleigh.enabled) {
+        std::cout << "# M3 FP32 delta/ratio tracking: " << sceneIO::rayleighJson(m_launchParams.rayleigh).dump() << '\n'
+                  << "# Scene units: metres, +Y up; planet centre=(0, "
+                  << std::setprecision(std::numeric_limits<double>::max_digits10)
+                  << (m_launchParams.rayleigh.groundY - m_launchParams.rayleigh.planetRadius)
+                  << ", 0) m. Ground is neutral Lambertian.\n";
+    }
     if (m_sceneDesc.integrator.m1Surface) {
-        validateM1Geometry(m_models);
+        validateM1Geometry(m_models, m_sceneDesc.rayleigh.enabled != 0);
         if (!m_sceneDesc.environment.file.empty()) {
             throw std::invalid_argument("M1 surface rendering requires environment.file to be empty");
         }
@@ -1006,8 +1016,12 @@ void Renderer::createMissPrograms()
     
     // m_missPrograms に radiance ray を登録
     if(m_sceneDesc.integrator.applySpectralRendering){
-        // pgDesc.miss.entryFunctionName = "__miss__radiance_spectral";
-        pgDesc.miss.entryFunctionName = "__miss__radiance_sky_spectral";
+        // The M1/M2/M3 spectral path supplies its own sun/medium miss.
+        // Select the existing no-environment entry so its active program has
+        // no legacy LUT/sky branch (or that branch's unused FP64 math).
+        pgDesc.miss.entryFunctionName = m_sceneDesc.integrator.m1Surface
+            ? "__miss__radiance_noEnvMap_spectral"
+            : "__miss__radiance_sky_spectral";
     } else {
         // pgDesc.miss.entryFunctionName = "__miss__radiance_rgb";
         pgDesc.miss.entryFunctionName = "__miss__radiance_noEnvMap_rgb";
@@ -1400,7 +1414,9 @@ void Renderer::buildSBT()
         }
     }
 
-    m_hitgroupRecordsBuffer.allocAndUpload(hitgroupRecords);                        // GPU に情報を転送
+    // A pure M3 sky has no mesh IAS or hitgroup records. Its medium and planet
+    // are evaluated by the M3 path adapter without tracing handle 0.
+    if (!hitgroupRecords.empty()) m_hitgroupRecordsBuffer.allocAndUpload(hitgroupRecords);
     m_sbt.hitgroupRecordBase            = m_hitgroupRecordsBuffer.getDevicePointer();    // hitgroupRecords バッファのデバイス上の先頭アドレスを sbt に登録
     m_sbt.hitgroupRecordStrideInBytes   = sizeof(HitgroupRecord);                   // 
     m_sbt.hitgroupRecordCount           = (int)hitgroupRecords.size();
@@ -1456,7 +1472,7 @@ void Renderer::render()
             std::ostringstream message;
             message.imbue(std::locale::classic());
             message << std::setprecision(std::numeric_limits<float>::max_digits10)
-                    << "M1/M2 surface integrator reported " << invalidSamples
+                    << (m_launchParams.rayleigh.enabled ? "M3 Rayleigh integrator reported " : "M1/M2 surface integrator reported ") << invalidSamples
                     << " invalid path/film events; the frame was not accepted\n";
             if (failure.claimed != 0) {
                 message << m1::format_failure(failure.first) << '\n';
@@ -1494,6 +1510,9 @@ void Renderer::render()
                     << " sun_azimuth_rad=" << m_launchParams.sunParams.sunAzimuthRad << '\n';
             for (size_t i = 0; i < m_sceneDesc.objects.size(); ++i)
                 message << "object[" << i << "]=" << std::quoted(m_sceneDesc.objects[i].file) << '\n';
+            // Serialize the actual FP32 launch parameters, including tracking
+            // budget and roulette threshold, rather than the original decimals.
+            message << "rayleigh=" << sceneIO::rayleighJson(m_launchParams.rayleigh).dump() << '\n';
 
             // Persist the full report even if a launched console closes after
             // main catches the exception. A failed log write never hides it.
@@ -2495,8 +2514,8 @@ void Renderer::loadAssets()
     }
 
     // GPU にアップロード
-    m_meshTableBuffer.allocAndUpload(m_meshTable);
-    m_materialTableBuffer.allocAndUpload(m_materialTable);
+    if (!m_meshTable.empty()) m_meshTableBuffer.allocAndUpload(m_meshTable);
+    if (!m_materialTable.empty()) m_materialTableBuffer.allocAndUpload(m_materialTable);
 
     // launch params に登録
     m_launchParams.meshes = (TriangleMeshGeomData *)m_meshTableBuffer.getDevicePointer();

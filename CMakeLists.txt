@@ -226,11 +226,24 @@ set(
     ${PROJECT_SOURCE_DIR}/shaders/device/atmosphere_sampling_device.cuh
     ${PROJECT_SOURCE_DIR}/shaders/config.cuh
     ${PROJECT_SOURCE_DIR}/shaders/device/m1_surface.cuh
+    ${PROJECT_SOURCE_DIR}/shaders/device/m1_diagnostics.cuh
+    ${PROJECT_SOURCE_DIR}/shaders/device/m3_atmosphere.cuh
     ${PROJECT_SOURCE_DIR}/include/m1/render_params.h
+    ${PROJECT_SOURCE_DIR}/include/m1/diagnostics.hpp
+    ${PROJECT_SOURCE_DIR}/include/m1/light_pdf.hpp
     ${PROJECT_SOURCE_DIR}/include/m1/spectral_types.hpp
     ${PROJECT_SOURCE_DIR}/include/m1/rgb2spec_device.hpp
     ${PROJECT_SOURCE_DIR}/include/m1/bsdf.hpp
     ${PROJECT_SOURCE_DIR}/include/m1/math.hpp
+    ${PROJECT_SOURCE_DIR}/include/m1/fp32_numeric.hpp
+    ${PROJECT_SOURCE_DIR}/include/m1/bounded_trig.hpp
+    ${PROJECT_SOURCE_DIR}/include/m2/alpha.hpp
+    ${PROJECT_SOURCE_DIR}/include/m2/tangent_frame.hpp
+    ${PROJECT_SOURCE_DIR}/include/m3/tracking_parameters.hpp
+    ${PROJECT_SOURCE_DIR}/include/m3/tracking_float.hpp
+    ${PROJECT_SOURCE_DIR}/include/m3/tracking_geometry.hpp
+    ${PROJECT_SOURCE_DIR}/include/m3/tracking.hpp
+    ${PROJECT_SOURCE_DIR}/include/m3/transport.hpp
 )
 
 # .cu ファイルを .ptx ファイルにコンパイル (実装は nvcuda_compile_module.cmake モジュール内)

@@ -3,6 +3,7 @@
 #include "../../utils/my_math.hpp"
 #include "../config.cuh"
 #include "shader_common.cuh"
+#include "m1/bounded_trig.hpp"
 
 
 #include <cuda_runtime.h>
@@ -265,7 +266,7 @@ __device__ __forceinline__ float evalGroundRadianceLambertSpectral(
 
 __device__ __forceinline__ float sunSolidAngle(float angularRadiusRad)
 {
-    return 2.0f * kPi * (1.0f - cosf(angularRadiusRad));
+    return 2.0f * kPi * (1.0f - m1::bounded_cos(angularRadiusRad));
 }
 
 __device__ __forceinline__ float 
@@ -278,7 +279,7 @@ evalSunDiskRadianceSpectral(
     float sunAngularRadiusRad)
 {
     const float cosTheta = dot(viewDir, sunDir); // nu?
-    const float cosMax = cosf(sunAngularRadiusRad); 
+    const float cosMax = m1::bounded_cos(sunAngularRadiusRad);
     if(cosTheta < cosMax) {
         return 0.0f;
     }
@@ -351,7 +352,7 @@ __device__ __forceinline__ float pdfSunDiskUniform(
     const float3& sunDir,
     float sunAngularRadiusRad)
 {
-    const float cosMax = cosf(sunAngularRadiusRad);
+    const float cosMax = m1::bounded_cos(sunAngularRadiusRad);
     const float cosTheta = dot(dir, sunDir);
     if(cosTheta < cosMax) {
         return 0.0f;
@@ -402,7 +403,9 @@ __device__ __forceinline__ float3 sampleUniformSphere(float u1, float u2)
     const float z   = 1.0f - 2.0f * u1;
     const float r   = sqrtf(fmaxf(0.0f, 1.0f - z * z));
     const float phi = 2.0f * kPi * u2;
-    return make_float3(r * cosf(phi), z, r * sinf(phi));
+    // u2 is a unit-interval sample, hence phi is in [0, 2*pi].
+    const m1::SinCos azimuth = m1::bounded_sincos(phi);
+    return make_float3(r * azimuth.cosine, z, r * azimuth.sine);
 }
 
 __device__ __forceinline__ float3 sampleSunDiskUniform(
@@ -411,13 +414,14 @@ __device__ __forceinline__ float3 sampleSunDiskUniform(
     float u1,
     float u2)
 {
-    const float cosThetaMax = cosf(sunAngularRadiusRad);
+    const float cosThetaMax = m1::bounded_cos(sunAngularRadiusRad);
     const float cosTheta = 1.0f + u1 * (cosThetaMax - 1.0f);
     const float sinTheta = sqrtf(fmaxf(0.0f, 1.0f - cosTheta * cosTheta));
     const float phi = 2.0f * kPi * u2;
 
-    const float x = sinTheta * cosf(phi);
-    const float y = sinTheta * sinf(phi);
+    const m1::SinCos azimuth = m1::bounded_sincos(phi);
+    const float x = sinTheta * azimuth.cosine;
+    const float y = sinTheta * azimuth.sine;
     const float z = cosTheta;
     float3 t, b;
     makeONB(sunDir, t, b);
@@ -440,8 +444,9 @@ __device__ __forceinline__ float3 sampleVMF(
     const float sinTheta = sqrtf(fmaxf(0.0f, 1.0f - cosTheta * cosTheta));
     const float phi = 2.0f * kPi * u2;
 
-    const float x = sinTheta * cosf(phi);
-    const float y = sinTheta * sinf(phi);
+    const m1::SinCos azimuth = m1::bounded_sincos(phi);
+    const float x = sinTheta * azimuth.cosine;
+    const float y = sinTheta * azimuth.sine;
     const float z = cosTheta;
     float3 t, b;
     makeONB(muDir, t, b);
@@ -482,12 +487,14 @@ __device__ __forceinline__ SkyLightSample sampleSkyEmitterMixture(
 __device__ __forceinline__
 float3 sunDirFromAngles(float zenithRad, float azimuthRad)
 {
-    const float sinTheta = sinf(zenithRad);
-    const float cosTheta = cosf(zenithRad);
+    // LaunchParams::sunParams specifies zenith in [0, pi] and azimuth in [0, 2*pi).
+    // Keep the legacy +Z azimuth origin (M1/M3 use their own convention).
+    const m1::SinCos zenith = m1::bounded_sincos(zenithRad);
+    const m1::SinCos azimuth = m1::bounded_sincos(azimuthRad);
 
-    const float x = sinTheta * sinf(azimuthRad);
-    const float y = cosTheta;
-    const float z = sinTheta * cosf(azimuthRad);
+    const float x = zenith.sine * azimuth.sine;
+    const float y = zenith.cosine;
+    const float z = zenith.sine * azimuth.cosine;
     return make_float3(x, y, z);
 }
 

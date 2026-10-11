@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.18)
-project(NeuralPFRenderer_M1_CPU_Checks LANGUAGES C CXX)
+project(NeuralPFRenderer_Spectral_CPU_Checks LANGUAGES C CXX)
 
 # Configure this directory directly. No GPU, DirectXTex, OpenGL or OptiX is
 # required for the portable mathematical and asset checks.
@@ -37,6 +37,26 @@ add_executable(m2_tangent_frame_check "${M1_ROOT}/tests/test_m2_tangent_frame.cp
 target_include_directories(m2_tangent_frame_check PRIVATE "${M1_ROOT}/include")
 add_test(NAME m2_tangent_frame_check COMMAND m2_tangent_frame_check)
 
+add_executable(m3_atmosphere_check "${M1_ROOT}/tests/test_m3_atmosphere.cpp")
+target_include_directories(m3_atmosphere_check PRIVATE "${M1_ROOT}/include")
+add_test(NAME m3_atmosphere_check COMMAND m3_atmosphere_check)
+
+add_executable(m3_transport_check "${M1_ROOT}/tests/test_m3_transport.cpp")
+target_include_directories(m3_transport_check PRIVATE "${M1_ROOT}/include")
+add_test(NAME m3_transport_check COMMAND m3_transport_check)
+
+add_executable(m3_position_check "${M1_ROOT}/tests/test_m3_position.cpp")
+target_include_directories(m3_position_check PRIVATE "${M1_ROOT}/include")
+add_test(NAME m3_position_check COMMAND m3_position_check)
+
+add_executable(m3_tracking_geometry_check "${M1_ROOT}/tests/test_m3_tracking_geometry.cpp")
+target_include_directories(m3_tracking_geometry_check PRIVATE "${M1_ROOT}/include")
+add_test(NAME m3_tracking_geometry_check COMMAND m3_tracking_geometry_check)
+
+add_executable(m3_tracking_check "${M1_ROOT}/tests/test_m3_tracking.cpp")
+target_include_directories(m3_tracking_check PRIVATE "${M1_ROOT}/include")
+add_test(NAME m3_tracking_check COMMAND m3_tracking_check)
+
 add_executable(m1_spectral_check "${M1_ROOT}/tests/test_m1_spectral_assets.cpp")
 target_link_libraries(m1_spectral_check PRIVATE m1_spectral_assets)
 add_test(NAME m1_spectral_check COMMAND m1_spectral_check "${M1_ROOT}/spectrum/m1")
@@ -50,7 +70,7 @@ target_include_directories(m1_scene_check PRIVATE "${M1_ROOT}/include" "${M1_JSO
 add_test(NAME m1_scene_check COMMAND m1_scene_check "${M1_ROOT}")
 
 if(MSVC)
-    foreach(target m1_bsdf_check m1_light_pdf_check m1_diagnostics_check m2_alpha_check m2_tangent_frame_check m1_spectral_check m1_scene_check m1_spectral_assets)
+    foreach(target m1_bsdf_check m1_light_pdf_check m1_diagnostics_check m2_alpha_check m2_tangent_frame_check m3_atmosphere_check m3_transport_check m3_position_check m3_tracking_geometry_check m3_tracking_check m1_spectral_check m1_scene_check m1_spectral_assets)
         target_compile_options(${target} PRIVATE /utf-8 /W4)
     endforeach()
 endif()

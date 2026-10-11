@@ -1,0 +1,43 @@
+{
+  "kind": "Isolated CMake generator-expression branch probe; no MSVC or full renderer build",
+  "cmake": "/workspace/scratch/6fbbff5708b2/m1-toolchain/cmake/data/bin/cmake",
+  "probe_source": "cmake_minimum_required(VERSION 3.18)\nproject(viewer_flags_probe LANGUAGES CXX)\n# This is a generator-expression branch probe, not an MSVC compiler run.\n# The C++ compiler really remains GCC; only the ID for expression evaluation\n# is selected here. Do not compile the generated MSVC-probe build files.\nset(CMAKE_CXX_COMPILER_ID \"${PROBE_COMPILER_ID}\")\nadd_subdirectory(\"${RENDERER_SOURCE_DIR}/viewer\" viewer)\nfile(GENERATE OUTPUT \"${CMAKE_BINARY_DIR}/viewer-options.txt\"\n    CONTENT \"$<TARGET_GENEX_EVAL:viewer,$<TARGET_PROPERTY:viewer,COMPILE_OPTIONS>>\\n\")\n",
+  "results": [
+    {
+      "condition_compiler_id": "MSVC",
+      "command": [
+        "/workspace/scratch/6fbbff5708b2/m1-toolchain/cmake/data/bin/cmake",
+        "-S",
+        "/workspace/scratch/6fbbff5708b2/m3-gui-viewer-validation/flags-probe",
+        "-B",
+        "/workspace/scratch/6fbbff5708b2/m3-gui-viewer-validation/flags-MSVC",
+        "-G",
+        "Ninja",
+        "-DCMAKE_MAKE_PROGRAM=/workspace/scratch/6fbbff5708b2/m1-toolchain/bin/ninja",
+        "-DRENDERER_SOURCE_DIR=/workspace/scratch/6fbbff5708b2/nf-renderer-m3-gui-fix",
+        "-DPROBE_COMPILER_ID=MSVC"
+      ],
+      "configure_exit_code": 0,
+      "evaluated_viewer_compile_options": "/utf-8",
+      "log": "-- The CXX compiler identification is GNU 13.3.0\n-- Detecting CXX compiler ABI info\n-- Detecting CXX compiler ABI info - done\n-- Check for working CXX compiler: /usr/bin/c++ - skipped\n-- Detecting CXX compile features\n-- Detecting CXX compile features - done\n-- Configuring done (0.1s)\n-- Generating done (0.0s)\n-- Build files have been written to: /workspace/scratch/6fbbff5708b2/m3-gui-viewer-validation/flags-MSVC\n"
+    },
+    {
+      "condition_compiler_id": "GNU",
+      "command": [
+        "/workspace/scratch/6fbbff5708b2/m1-toolchain/cmake/data/bin/cmake",
+        "-S",
+        "/workspace/scratch/6fbbff5708b2/m3-gui-viewer-validation/flags-probe",
+        "-B",
+        "/workspace/scratch/6fbbff5708b2/m3-gui-viewer-validation/flags-GNU",
+        "-G",
+        "Ninja",
+        "-DCMAKE_MAKE_PROGRAM=/workspace/scratch/6fbbff5708b2/m1-toolchain/bin/ninja",
+        "-DRENDERER_SOURCE_DIR=/workspace/scratch/6fbbff5708b2/nf-renderer-m3-gui-fix",
+        "-DPROBE_COMPILER_ID=GNU"
+      ],
+      "configure_exit_code": 0,
+      "evaluated_viewer_compile_options": "",
+      "log": "-- The CXX compiler identification is GNU 13.3.0\n-- Detecting CXX compiler ABI info\n-- Detecting CXX compiler ABI info - done\n-- Check for working CXX compiler: /usr/bin/c++ - skipped\n-- Detecting CXX compile features\n-- Detecting CXX compile features - done\n-- Configuring done (0.1s)\n-- Generating done (0.0s)\n-- Build files have been written to: /workspace/scratch/6fbbff5708b2/m3-gui-viewer-validation/flags-GNU\n"
+    }
+  ]
+}

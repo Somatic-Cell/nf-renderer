@@ -4,14 +4,17 @@
 
 #include <chrono>
 #include <iostream>
+#include <stdexcept>
 
 
 
 // --------------------------------------------
 // コンストラクタ
 // --------------------------------------------
-MyGLFWWindow::MyGLFWWindow(const std::string & title)
+MyGLFWWindow::MyGLFWWindow(const std::string & title, int initialWidth, int initialHeight)
 {
+    if (initialWidth <= 0 || initialHeight <= 0)
+        throw std::invalid_argument("Initial window dimensions must be positive");
     glfwSetErrorCallback(
         [](int error, const char* description) -> void {
             fprintf(stderr, "Error: %s\n", description);
@@ -38,7 +41,7 @@ MyGLFWWindow::MyGLFWWindow(const std::string & title)
         glfwWindowHint(GLFW_VISIBLE, GLFW_TRUE);
 
 #endif
-    m_handle = glfwCreateWindow(1280, 720, title.c_str(), NULL, NULL);
+    m_handle = glfwCreateWindow(initialWidth, initialHeight, title.c_str(), NULL, NULL);
     if(!m_handle){
         glfwTerminate();
         exit(EXIT_FAILURE);

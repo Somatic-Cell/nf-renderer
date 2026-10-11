@@ -15,6 +15,8 @@
 #include <cctype>
 #include <cmath>
 #include <stdexcept>
+#include <limits>
+#include "m3/tracking.hpp"
 
 #if defined(_WIN32)
 #ifndef NOMINMAX
@@ -71,7 +73,8 @@ namespace sceneIO {
     };
 
     struct Outputs {
-        std::array<int, 2> resolution{1920, 1090};
+        // Matches the existing initial window size when the field is absent.
+        std::array<int, 2> resolution{1280, 720};
     };
 
     struct Camera {
@@ -103,13 +106,119 @@ namespace sceneIO {
 
     struct Scene {
         std::vector<Object>     objects         {Object{}};
+        Outputs                 outputs         {};
         Camera                  camera          {};
         Environment             environment     {};
         Integrator              integrator      {};
         Spectrum                spectrum        {};
         Display                 display         {};
+        // Independent opt-in medium. Absent in existing M1/M2 scenes = vacuum.
+        m3::TrackingParameters   rayleigh        {};
         bool                    enableGroundRendering {true};
     };
+
+    inline void validateRayleighParameters(const m3::TrackingParameters& parameters) {
+        const auto status = m3::tracking::validate_parameters(parameters);
+        if (status != m3::tracking::Status::Ok)
+            throw std::invalid_argument(std::string("Invalid rayleigh parameters: ") + m3::tracking::status_name(status));
+    }
+
+    // Keep the scene, launch, and output metadata on the same parameter POD.
+    // Method/law tags are fixed contracts, not selectable unimplemented methods.
+    inline nlohmann::ordered_json rayleighJson(const m3::TrackingParameters& v) {
+        return {
+            {"enabled", v.enabled != 0},
+            {"areaNeeTransmittance", v.areaNeeTransmittance != 0},
+            {"solver", "delta_ratio_fp32"},
+            {"wavelengthLaw", "lambda^-4"},
+            {"planetRadius", v.planetRadius},
+            {"atmosphereHeight", v.atmosphereHeight},
+            {"scaleHeight", v.scaleHeight},
+            {"groundY", v.groundY},
+            {"beta550", v.beta550},
+            {"groundAlbedo", v.groundAlbedo},
+            {"ratioRrThreshold", v.ratioRrThreshold},
+            {"maxTrackingEvents", v.maxTrackingEvents}
+        };
+    }
+
+    inline void readRayleigh(const nlohmann::ordered_json& j, m3::TrackingParameters& v) {
+        if (!j.is_object()) throw std::invalid_argument("rayleigh must be an object");
+        if (j.value("solver", std::string("delta_ratio_fp32")) != "delta_ratio_fp32")
+            throw std::invalid_argument("rayleigh.solver must be delta_ratio_fp32. Convert an old M3 scene with tools/migrate_m3_tracking_scene.py; numerical_reference is CPU-only.");
+        static const std::unordered_set<std::string> fields{
+            "enabled", "areaNeeTransmittance", "solver", "wavelengthLaw", "planetRadius",
+            "atmosphereHeight", "scaleHeight", "groundY", "beta550", "groundAlbedo",
+            "ratioRrThreshold", "maxTrackingEvents"
+        };
+        for (auto it = j.begin(); it != j.end(); ++it)
+            if (fields.count(it.key()) == 0)
+                throw std::invalid_argument("Unknown rayleigh field: " + it.key());
+        if (j.value("wavelengthLaw", std::string("lambda^-4")) != "lambda^-4")
+            throw std::invalid_argument("rayleigh.wavelengthLaw must be lambda^-4");
+
+        const auto flag = [&](const char* field, uint32_t fallback) {
+            if (!j.contains(field)) return fallback;
+            if (!j[field].is_boolean()) throw std::invalid_argument(std::string("rayleigh.") + field + " must be boolean");
+            return j[field].get<bool>() ? 1u : 0u;
+        };
+        const auto budget = [&](const char* field, uint32_t fallback) {
+            if (!j.contains(field)) return fallback;
+            const auto& value = j[field];
+            if (!value.is_number_integer() || (!value.is_number_unsigned() && value.get<int64_t>() < 0))
+                throw std::invalid_argument(std::string("rayleigh.") + field + " must be a positive integer");
+            const auto number = value.get<uint64_t>();
+            if (number > std::numeric_limits<uint32_t>::max())
+                throw std::invalid_argument(std::string("rayleigh.") + field + " exceeds uint32 range");
+            return static_cast<uint32_t>(number);
+        };
+        const auto number = [&](const char* field, float fallback) {
+            if (!j.contains(field)) return fallback;
+            if (!j[field].is_number())
+                throw std::invalid_argument(std::string("rayleigh.") + field + " must be a finite number");
+            // Parsing and validation are CPU-only. Reject a nonzero parameter
+            // rounded to zero, especially a density that would become vacuum.
+            const double source = j[field].get<double>();
+            const float value = static_cast<float>(source);
+            if (!std::isfinite(source) || !std::isfinite(value) || (source != 0.0 && value == 0.0f))
+                throw std::invalid_argument(std::string("rayleigh.") + field + " is outside the nonzero FP32 range");
+            return value;
+        };
+        v.enabled = flag("enabled", v.enabled);
+        v.areaNeeTransmittance = flag("areaNeeTransmittance", v.areaNeeTransmittance);
+        v.planetRadius = number("planetRadius", v.planetRadius);
+        v.atmosphereHeight = number("atmosphereHeight", v.atmosphereHeight);
+        v.scaleHeight = number("scaleHeight", v.scaleHeight);
+        v.groundY = number("groundY", v.groundY);
+        v.beta550 = number("beta550", v.beta550);
+        v.groundAlbedo = number("groundAlbedo", v.groundAlbedo);
+        v.ratioRrThreshold = number("ratioRrThreshold", v.ratioRrThreshold);
+        v.maxTrackingEvents = budget("maxTrackingEvents", v.maxTrackingEvents);
+        validateRayleighParameters(v);
+    }
+
+    inline void validateRayleighScene(const Scene& scene) {
+        validateRayleighParameters(scene.rayleigh);
+        if (!scene.rayleigh.enabled) return;
+        if (!scene.integrator.m1Surface || !scene.integrator.applySpectralRendering)
+            throw std::invalid_argument("rayleigh.enabled requires m1Surface=true and applySpectralRendering=true");
+        if (scene.integrator.type != "Path Tracing")
+            throw std::invalid_argument("rayleigh requires integrator.type=Path Tracing");
+        if (!scene.environment.file.empty() || scene.enableGroundRendering)
+            throw std::invalid_argument("rayleigh requires environment.file empty and enableGroundRendering=false; it supplies its own spherical ground");
+        for (const auto& object : scene.objects) {
+            auto extension = std::filesystem::path(object.file).extension().string();
+            for (auto& c : extension) c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+            if (object.type != "mesh" || extension == ".vdb" || extension == ".nvdb")
+                throw std::invalid_argument("rayleigh supports only mesh objects, not VDB or other media: " + object.name);
+        }
+        for (const auto value : scene.camera.from)
+            if (!std::isfinite(value)) throw std::invalid_argument("rayleigh camera position must be finite");
+        const auto cameraHeight = m3::tracking::height(scene.rayleigh,
+            m1::Vec3{scene.camera.from[0], scene.camera.from[1], scene.camera.from[2]});
+        if (cameraHeight.status != m3::tracking::Status::Ok || !(cameraHeight.height_m > 0.0f))
+            throw std::invalid_argument("rayleigh camera must start above the opaque planet surface (check groundY)");
+    }
 
     // Environment
     inline void from_json(const nlohmann::ordered_json& j, Environment& v){
@@ -205,7 +314,25 @@ namespace sceneIO {
 
     // Outputs
     inline void from_json(const nlohmann::ordered_json& j, Outputs& v){
-        v.resolution = j.value("resolution", v.resolution);
+        if (!j.is_object()) throw std::invalid_argument("outputs must be an object");
+        for (auto it = j.begin(); it != j.end(); ++it)
+            if (it.key() != "resolution") throw std::invalid_argument("Unknown outputs field: " + it.key());
+        if (!j.contains("resolution")) return;
+        const auto& resolution = j["resolution"];
+        if (!resolution.is_array() || resolution.size() != 2)
+            throw std::invalid_argument("outputs.resolution must be [width, height]");
+        for (size_t axis = 0; axis < 2; ++axis) {
+            const auto& value = resolution[axis];
+            if (!value.is_number_integer() || (!value.is_number_unsigned() && value.get<int64_t>() <= 0))
+                throw std::invalid_argument("outputs.resolution dimensions must be positive integers");
+            const auto number = value.get<uint64_t>();
+            if (number == 0 || number > static_cast<uint64_t>(std::numeric_limits<int>::max()))
+                throw std::invalid_argument("outputs.resolution dimension is outside the supported integer range");
+            v.resolution[axis] = static_cast<int>(number);
+        }
+        const auto pixels = uint64_t(v.resolution[0]) * uint64_t(v.resolution[1]);
+        if (pixels > static_cast<uint64_t>(std::numeric_limits<int>::max()))
+            throw std::invalid_argument("outputs.resolution exceeds the framebuffer index range");
     }
 
     inline void to_json(nlohmann::ordered_json& j, const Outputs& v){
@@ -273,23 +400,28 @@ namespace sceneIO {
 
     inline void from_json(const nlohmann::ordered_json& j, Scene& v){
         if(j.contains("objects"))       v.objects       = j["objects"].get<std::vector<Object>>();
+        if(j.contains("outputs"))       v.outputs       = j["outputs"].get<Outputs>();
         if(j.contains("camera"))        v.camera        = j["camera"].get<Camera>();
         if(j.contains("environment"))   v.environment   = j["environment"].get<Environment>();
         if(j.contains("integrator"))    v.integrator    = j["integrator"].get<Integrator>();
         if(j.contains("spectrum"))      v.spectrum      = j["spectrum"].get<Spectrum>();
         if(j.contains("display"))       v.display       = j["display"].get<Display>();
+        if(j.contains("rayleigh"))      readRayleigh(j["rayleigh"], v.rayleigh);
         v.enableGroundRendering                         = j.value("enableGroundRendering", v.enableGroundRendering);
+        validateRayleighScene(v);
     }
 
     inline void to_json(nlohmann::ordered_json& j, const Scene& v) 
     {
         j = {
             {"objects", v.objects},
+            {"outputs", v.outputs},
             {"camera",  v.camera},
             {"environment", v.environment},
             {"integrator", v.integrator},
             {"spectrum", v.spectrum},
             {"display", v.display},
+            {"rayleigh", rayleighJson(v.rayleigh)},
             {"enableGroundRendering", v.enableGroundRendering}
         };
     }
@@ -397,6 +529,10 @@ namespace sceneIO {
         nlohmann::ordered_json def = defaultJson();
         nlohmann::ordered_json merged = def;
         merged.merge_patch(j);
+        // JSON merge-patch treats null as deletion. Preserve the submitted M3
+        // object so null/bad types cannot silently disable it or reset a value.
+        if (j.contains("rayleigh")) merged["rayleigh"] = j["rayleigh"];
+        if (j.contains("outputs")) merged["outputs"] = j["outputs"];
         out = merged.get<Scene>();
         if(writeBackDefaults && merged != j) saveJson(jsonPath, merged);
         return true;

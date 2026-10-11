@@ -1,5 +1,6 @@
 #include "m1/light_pdf.hpp"
 
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <iomanip>
@@ -125,6 +126,50 @@ void test_invalid_geometry_and_modes() {
         require(light_hit_needs_pdf(bounce,delta,mode)==(bounce>0&&!delta&&mode==0),
                 "only a continuous MIS light hit needs the competing PDF");
 }
+
+void test_fp32_exponent_range_against_reference() {
+    // Inputs cover every float exponent regime, not just ordinary scene units.
+    // The independent host quotient keeps all four input factors in double.
+    const std::array<int,12> exponents{{-148,-127,-126,-100,-40,-1,0,1,40,100,126,128}};
+    const std::array<int,8> cosine_exponents{{-148,-127,-100,-40,-10,-1,0,1}};
+    const std::array<int,6> counts{{1,3,257,16777217,2000000000,2147483647}};
+    constexpr double epsilon=std::numeric_limits<float>::epsilon();
+    const double smallest=std::numeric_limits<float>::denorm_min();
+    const double largest=(std::numeric_limits<float>::max)();
+    double maximum_normal_relative_error=0,maximum_subnormal_absolute_error=0;
+    unsigned checked=0,rejected_range=0;
+    for(int de:exponents) for(int ae:exponents) for(int ce:cosine_exponents) for(int count:counts) {
+        const float distance=std::ldexp(0.8125f,de);
+        const float area=std::ldexp(0.6875f,ae);
+        const float cosine=std::ldexp(0.5625f,ce);
+        if(!(distance>0.0f && area>0.0f && cosine>0.0f && cosine<=1.0f))continue;
+        const double reference=double(distance)/(double(area)*double(cosine)*double(count));
+        const auto result=m1::one_sided_area_light_pdf(distance,area,cosine,count);
+        if(reference>largest*(1.0+4.0*epsilon) || reference<smallest*(0.5-4.0*epsilon)) {
+            require(!result.valid,"unrepresentable final density must remain an error");
+            ++rejected_range;
+            continue;
+        }
+        if(reference>largest || reference<=smallest*(0.5+4.0*epsilon))continue;
+        require(result.valid && result.pdf>0.0f,"representable quotient was lost to intermediate range");
+        const double error=std::abs(double(result.pdf)-reference);
+        require(error<=4.0*epsilon*reference+0.5*smallest,
+                "FP32 Jacobian error exceeds operation rounding plus subnormal rounding");
+        if(reference>=std::numeric_limits<float>::min())
+            maximum_normal_relative_error=std::max(maximum_normal_relative_error,error/reference);
+        else maximum_subnormal_absolute_error=std::max(maximum_subnormal_absolute_error,error);
+        ++checked;
+    }
+    const auto maximum=m1::one_sided_area_light_pdf((std::numeric_limits<float>::max)(),1,1,1);
+    require(maximum.valid && maximum.pdf==(std::numeric_limits<float>::max)(),
+            "largest finite PDF remains representable");
+    const auto minimum=m1::one_sided_area_light_pdf(std::numeric_limits<float>::denorm_min(),1,1,1);
+    require(minimum.valid && minimum.pdf==std::numeric_limits<float>::denorm_min(),
+            "smallest positive PDF is not replaced by zero");
+    std::cout<<"FP32 PDF exponent sweep: finite="<<checked<<" range_rejections="<<rejected_range
+             <<" max_normal_relative_error="<<maximum_normal_relative_error
+             <<" max_subnormal_absolute_error="<<maximum_subnormal_absolute_error<<'\n';
+}
 } // namespace
 
 int main() {
@@ -133,6 +178,7 @@ int main() {
         test_offset_support();
         test_analytic_pdf_and_range();
         test_invalid_geometry_and_modes();
+        test_fp32_exponent_range_against_reference();
         std::cout<<"M1 area-light PDF: finite offset support, analytic Jacobian, "
                      "intermediate range, invalid geometry and mode checks passed\n";
         return 0;

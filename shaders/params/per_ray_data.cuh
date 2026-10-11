@@ -62,6 +62,9 @@ struct PRDSpectral {
     float3 m1PrimaryAlbedo{};
     bool m1PreviousDelta=true;
     bool m1Invalid=false;
+    // Atmosphere vertices sample the sun only. Their continuation may still
+    // reach area emitters, for which there is no competing NEE strategy.
+    bool m3PreviousMedium=false;
     uint32_t m1SampleIndex=0;
     m1::FailureStage m1FailureStage=m1::FailureStage::Camera;
     m1::FailureContext m1FailureContext{};
