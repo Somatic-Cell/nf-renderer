@@ -12,3 +12,4 @@
 *.jpg
 /output
 /atmosphericLUT/*
+.venv/
