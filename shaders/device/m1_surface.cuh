@@ -296,9 +296,10 @@ static __forceinline__ __device__ Vec3 shading_normal(const TriangleMeshGeomData
 
 // Surface polygons and the analytic planet use the same BSDF, NEE and RR path.
 static __forceinline__ __device__ void scatter_surface(PRDSpectral& p,Vec3 position,
-    Vec3 ng,Vec3 normal,Vec3 facing_ns,Vec3 ray_direction,const SurfaceBsdf& bsdf) {
-    const auto frame=m1::make_frame(facing_ns);
-    const Vec3 wo=m1::normalize(frame.to_local(-ray_direction));
+    Vec3 ng,Vec3 normal,Vec3 ns,Vec3 ray_direction,const SurfaceBsdf& bsdf) {
+    const auto oriented=m1::make_bsdf_frame(ns,-ray_direction);
+    const auto& frame=oriented.frame;
+    const Vec3 wo=oriented.wo;
     p.position=vector(position);
 
     if(bsdf.type!=MATERIAL_TYPE_GLASS&&optixLaunchParams.m1.directMode!=1) {
@@ -464,6 +465,78 @@ static __forceinline__ __device__ void scatter_medium(PRDSpectral& p,Vec3 positi
              sampled.direction.x,sampled.direction.y,sampled.direction.z,sampled.value,sampled.pdf}});
 }
 
+static __forceinline__ __device__ m4rain::ScatterResponse rain_query(
+    PRDSpectral& p,const m4rain::ScatterRequest& request){
+    m4rain::ScatterResponse out{};
+    optixDirectCall<void,const m4rain::ScatterRequest*,m4rain::ScatterResponse*>(
+        M4_NF_CALLABLE_ID,&request,&out);
+    if(out.status==m4nf::Status::success&&
+       (!m4nf::unit(out.direction)||!m1::finite(out.value)||!(out.value>0)||
+        !m1::finite(out.pdf)||!(out.pdf>0)||!m1::finite(out.weight)||!(out.weight>0)))
+        out.status=m4nf::Status::nonfinite;
+    if(out.status!=m4nf::Status::success)
+        fail(p,FailureReason::RainScatter,{{float(out.status),float(request.op),p.waveLength,
+            out.proposalCosine,out.incidentCosine,out.value,out.pdf,out.weight,
+            out.logPhysicalPhase,out.logProposal,out.cscaIncident,out.cextCamera,request.u0,request.u1}});
+    return out;
+}
+
+static __forceinline__ __device__ void scatter_rain(PRDSpectral& p,Vec3 position){
+    p.position=vector(position);p.m1FailureStage=FailureStage::Rain;
+    if(!m1::finite(position)||!finite3(p.wi)){
+        fail(p,FailureReason::AtmosphereContinuation,{{position.x,position.y,position.z,p.wi.x,p.wi.y,p.wi.z}});return;
+    }
+    if(p.bounce>=optixLaunchParams.frame.maxBounce){p.continueTrace=0;return;}
+    const auto& settings=optixLaunchParams.m1;
+    m4rain::ScatterRequest request{};request.wavelength=p.waveLength;
+    request.cameraDirection={p.wi.x,p.wi.y,p.wi.z};
+    if(settings.sunEnabled&&settings.directMode!=1){
+        p.m1FailureStage=FailureStage::RainSunNee;
+        const Vec3 direction=sample_sun(p.random(),p.random());
+        const float le=sun_radiance(p.waveLength),pdf=sun_pdf();
+        if(!m1::finite(le)||le<0||!m1::finite(pdf)||!(pdf>0)){
+            fail(p,FailureReason::SunParameters,{{le,pdf,settings.sunAngularRadiusRad,settings.sunScale}});return;
+        }
+        if(le>0&&visible(p,position,direction,CUDART_INF_F)){
+            const float transmittance=m3device::connection_transmittance(p,position,direction,CUDART_INF_F);
+            if(p.m1Invalid)return;
+            if(transmittance>0){
+                request.op=m4rain::ScatterOp::Evaluate;
+                request.nextDirection={direction.x,direction.y,direction.z};
+                const auto q=rain_query(p,request);if(p.m1Invalid)return;
+                const float mis=m3::nee_weight(settings.directMode,pdf,q.pdf);
+                p.contribution+=p.albedo*q.value*le*transmittance*mis/pdf;
+                if(!m1::finite(p.contribution)||p.contribution<0){
+                    fail(p,FailureReason::RainDirect,{{le,pdf,q.value,q.pdf,transmittance,mis}});return;
+                }
+            }
+        }
+    }
+    // The component label was chosen by competing free flights. Both NEE and
+    // continuation above/below estimate ONLY the rain summand conditioned on
+    // that label. Rayleigh events use the existing analytic branch instead.
+    if(p.m1Invalid)return;
+    p.m1FailureStage=FailureStage::Rain;request.op=m4rain::ScatterOp::Sample;
+    m3device::OpenRandom random{p.random};request.u0=random();request.u1=random();
+    const auto q=rain_query(p,request);if(p.m1Invalid)return;
+    p.albedo*=q.weight;
+    if(!m1::finite(p.albedo)||p.albedo<0){fail(p,FailureReason::Throughput,{{q.weight,1}});return;}
+    if(p.albedo==0){p.continueTrace=0;return;}
+    if(p.bounce+1>=int(settings.rrDepth)){
+        const float rr_beta=p.albedo*p.m1EtaScale;
+        if(!m1::finite(rr_beta)){fail(p,FailureReason::Roulette,{{rr_beta}});return;}
+        const float survival=fminf(0.95f,rr_beta);
+        if(!(survival>0)||p.random()>=survival){p.continueTrace=0;return;}
+        p.albedo/=survival;
+    }
+    p.pdf.bxdf=q.pdf;p.m1PreviousDelta=false;p.m3PreviousMedium=true;
+    p.m1PreviousPosition=vector(position);p.position=vector(position);
+    p.wi=make_float3(q.direction.x,q.direction.y,q.direction.z);p.continueTrace=1;
+    if(!m1::finite(p.albedo)||!finite3(p.wi))
+        fail(p,FailureReason::AtmosphereContinuation,{{position.x,position.y,position.z,
+            q.direction.x,q.direction.y,q.direction.z,q.value,q.pdf}});
+}
+
 static __forceinline__ __device__ void scatter_planet(PRDSpectral& p,
     const m3::tracking::RaySegment& ray,const m3::tracking::ShellClip& segment) {
     p.m1FailureStage=FailureStage::Planet;p.m1FailureContext={};
@@ -502,11 +575,14 @@ static __forceinline__ __device__ bool advance_medium(PRDSpectral& p,float t_max
     float beta=0.0f;
     if(!m3device::coefficient(p,beta))return true;
     m3device::OpenRandom rng{p.random};
-    const auto sampled=m3::tracking::delta_free_flight(optixLaunchParams.rayleigh,r,beta,rng);
+    const auto& rain=optixLaunchParams.rain;
+    const auto mixed=m4rain::free_flight(optixLaunchParams.rayleigh,rain.parameters,
+                                        rain.model,r,beta,p.waveLength,rng);
+    const auto& sampled=mixed.flight;
     if(sampled.status!=m3::tracking::Status::Ok){
-        fail(p,FailureReason::AtmosphereTracking,{{float(sampled.status),sampled.ray_t,
-             sampled.clip.begin_t,sampled.clip.end_t,float(sampled.candidates),
-             float(sampled.null_collisions),beta,p.waveLength}});
+        fail(p,FailureReason::RainTracking,{{float(sampled.status),float(mixed.nfStatus),
+             sampled.ray_t,float(sampled.candidates),float(mixed.rain.candidates),
+             float(mixed.rain.nulls),p.waveLength}});
         return true;
     }
     if(sampled.scattered) {
@@ -518,7 +594,8 @@ static __forceinline__ __device__ bool advance_medium(PRDSpectral& p,float t_max
                  represented.position.x,represented.position.y,represented.position.z}});
             return true;
         }
-        scatter_medium(p,represented.position);
+        if(mixed.component==m4rain::Component::Rain)scatter_rain(p,represented.position);
+        else scatter_medium(p,represented.position);
         return true;
     }
     if(sampled.endpoint==m3::tracking::Endpoint::Ground) {
@@ -649,9 +726,8 @@ static __forceinline__ __device__ void hit(PRDSpectral& p) {
     }
     if(p.m1Invalid)return;
     const Vec3 normal=front?ng:-ng;
-    const Vec3 facing_ns=m1::dot(ns,-ray_direction)>=0?ns:-ns;
     p.instanceID=instance;
-    scatter_surface(p,position,ng,normal,facing_ns,ray_direction,bsdf);
+    scatter_surface(p,position,ng,normal,ns,ray_direction,bsdf);
 }
 
 static __forceinline__ __device__ void miss(PRDSpectral& p) {

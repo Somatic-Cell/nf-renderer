@@ -6,6 +6,7 @@
 #include "../../include/m1/math.hpp"
 #include "../../include/m3/tracking.hpp"
 #include "../../include/m3/transport.hpp"
+#include "m4_rain/tracking.hpp"
 
 namespace m3device {
 namespace medium = m3::tracking;
@@ -55,14 +56,16 @@ static __forceinline__ __device__ float connection_transmittance(PRDSpectral& p,
     float beta=0.0f;
     if(!coefficient(p,beta))return 0;
     OpenRandom rng{p.random};
-    const auto result=medium::ratio_transmittance(a,r,beta,rng);
+    const auto& rain=optixLaunchParams.rain;
+    const auto result=m4rain::transmittance(a,rain.parameters,rain.model,r,beta,p.waveLength,rng);
     if(result.status!=medium::Status::Ok){
-        m1diagnostics::fail(p,m1::FailureReason::AtmosphereRatio,
-            {{float(result.status),result.clip.begin_t,result.clip.end_t,result.transmittance,
-              float(result.candidates),float(result.roulette_tests),p.waveLength}});
+        m1diagnostics::fail(p,m1::FailureReason::RainRatio,
+            {{float(result.status),float(result.nfStatus),result.value,
+              float(result.rayleigh.candidates),float(result.rain.candidates),
+              float(result.rain.roulette),p.waveLength}});
         return 0;
     }
-    return result.transmittance;
+    return result.value;
 }
 
 } // namespace m3device
