@@ -9,7 +9,7 @@ inline constexpr std::uint32_t no_index = 0xffffffffu;
 
 enum class FailureStage : std::uint32_t {
     Camera, Surface, SunNee, AreaNee, Bsdf, Miss, Film,
-    RadianceAnyHit, ShadowAnyHit, Atmosphere, AtmosphereSunNee, Planet
+    RadianceAnyHit, ShadowAnyHit, Atmosphere, AtmosphereSunNee, Planet, Rain, RainSunNee
 };
 
 // One name per validation condition. Keep the values and their labels together
@@ -72,7 +72,11 @@ enum class FailureStage : std::uint32_t {
     X(PlanetIntersection, "ray_t, position.x, position.y, position.z, normal.x, normal.y, normal.z, tracking_status, root_height_m, root_height_bound_m, root_t_hi, root_t_lo, radial_correction_m, root_position.x, root_position.y, root_position.z") \
     X(AtmosphereCoefficient, "wavelength_nm, beta550") \
     X(AtmosphereTracking, "status, ray_t, begin_t, end_t, candidates, null_collisions, beta_lambda, wavelength_nm") \
-    X(AtmosphereRatio, "status, begin_t, end_t, transmittance, candidates, roulette_tests, wavelength_nm")
+    X(AtmosphereRatio, "status, begin_t, end_t, transmittance, candidates, roulette_tests, wavelength_nm") \
+    X(RainTracking, "tracking_status, nf_status, ray_t, rayleigh_candidates, rain_candidates, rain_nulls, wavelength_nm") \
+    X(RainRatio, "tracking_status, nf_status, transmittance, rayleigh_candidates, rain_candidates, rain_roulette, wavelength_nm") \
+    X(RainScatter, "nf_status, operation, wavelength_nm, proposal_cosine, incident_cosine, value, pdf, weight, log_physical, log_proposal, csca_in, cext_camera, u0, u1") \
+    X(RainDirect, "radiance, sun_pdf, value, proposal_pdf, transmittance, mis_weight")
 
 enum class FailureReason : std::uint32_t {
 #define M1_ENUM_REASON(name, labels) name,
@@ -113,6 +117,8 @@ inline const char* failure_stage_name(FailureStage stage) {
     case FailureStage::Atmosphere: return "atmosphere";
     case FailureStage::AtmosphereSunNee: return "atmosphere_sun_nee";
     case FailureStage::Planet: return "planet";
+    case FailureStage::Rain: return "rain";
+    case FailureStage::RainSunNee: return "rain_sun_nee";
     }
     return "unknown";
 }

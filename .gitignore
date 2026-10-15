@@ -13,3 +13,4 @@
 /output
 /atmosphericLUT/*
 .venv/
+build*

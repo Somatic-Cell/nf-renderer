@@ -1,0 +1,44 @@
+{
+  "validation_kind": "Host-side API-mock packing and CPU regressions; no GPU validation",
+  "production_source": "src/m4_nf/gpu_asset.cpp",
+  "production_source_before_sha256": "3d4c4311e2198fae1097cd1956b232e8b2027aca7d4f0f17f509dcf615fecb50",
+  "production_source_after_sha256": "6b8073c88c6d361a50fb542a64c04e1b1a08ae1a6f7f94f98bf416b84e9a3a6c",
+  "asset_sha256": "b1dca30aa8fee6ee1fb45b25b47a92cf871682943d81f07112e9a09bc7d4208e",
+  "input_log_sha256": "a9949f9ff0415da6067b6ce94b4876c83a0a64e22edbf88a76017f737ed5d3eb",
+  "original_M4_package_sha256": "23a7d46c2ed5d847132a1e01f89b35d067b74671762be7583f9c27faaf8da6c3",
+  "nominmax_package_sha256": "2e7cfa084e13102e23bb1a0cc0b779947e9cbfcaefb9461a06db48d256f23754",
+  "reported_stride": {
+    "hex": "0x26BE0",
+    "bytes": 158688,
+    "remainder_mod64": 32
+  },
+  "padded_stride_for_reported_case": {
+    "hex": "0x26C00",
+    "bytes": 158720,
+    "remainder_mod64": 0,
+    "remainder_mod128": 0
+  },
+  "host_mock": {
+    "compilers": [
+      "g++ (Debian 14.2.0-19) 14.2.0",
+      "clang version 17.0.0 (https://github.com/swiftlang/llvm-project.git 10999b6d034fe318f3d56c83bddb6572593a8bb0)"
+    ],
+    "old_error_reproduced": true,
+    "synthetic_layout_variants": 2,
+    "all_tensor_bytes_checked": true,
+    "reupload_release_failure_cleanup": "pass",
+    "ASan_UBSan": "pass",
+    "simulates_optimal_matrix_layout": false,
+    "simulates_GPU_inference": false
+  },
+  "existing_cpu_CTest": {
+    "executables": 1,
+    "internal_groups": 6,
+    "passed": true
+  },
+  "patch_apply_check": true,
+  "applied_bytes_equal_deliverable": true,
+  "GPU_compile_executed": false,
+  "OptiX_runtime_executed": false,
+  "Windows_MSVC_build_executed": false
+}

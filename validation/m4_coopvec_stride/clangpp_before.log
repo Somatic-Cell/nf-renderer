@@ -1,0 +1,2 @@
+MOCK: outputNetworkStrideInBytes (0x26be0) must be 64 byte aligned.
+PASS: reproduced old 0x26BE0 output stride rejection with API mock; no GPU was used.

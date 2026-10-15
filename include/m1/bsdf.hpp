@@ -42,6 +42,31 @@ M1_HD inline bool bsdf_unit_direction(Vec3 w) {
     return finite(w) && fabsf(dot(w,w)-1.0f)<=2.0e-4f;
 }
 
+struct BsdfFrame {
+    Frame frame;
+    Vec3 wo;
+};
+
+// The caller supplies a unit shading normal and a finite, nonzero world-space
+// outgoing direction. Decide the side from the very same local direction that
+// the BSDF will consume. Separately faceforwarding Ns and then recomputing this
+// dot product can disagree at grazing angles after FP32 rounding/contraction.
+M1_HD inline BsdfFrame make_bsdf_frame(Vec3 normal,Vec3 wo_world) {
+    BsdfFrame result;
+    result.frame=make_frame(normal);
+    result.wo=normalize(result.frame.to_local(wo_world));
+    if(result.wo.z<0.0f) {
+        // A 180-degree basis rotation about y preserves handedness and the
+        // represented world direction. Flip both the frame and its coordinate;
+        // changing only wo.z would change the direction used by evaluation.
+        result.frame.x=-result.frame.x;
+        result.frame.z=-result.frame.z;
+        result.wo.x=-result.wo.x;
+        result.wo.z=-result.wo.z;
+    }
+    return result;
+}
+
 M1_HD inline bool valid_bsdf_parameters(const BsdfParameters& p) {
     if(p.kind==MaterialKind::Dielectric)
         return finite(p.eta_i_over_t) && p.eta_i_over_t>0.0f;

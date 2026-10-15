@@ -2,6 +2,7 @@
 #include "texture.hpp"
 #include "m1/spectral_assets.hpp"
 #include "m1/failure_report.hpp"
+#include "m4_rain/sha256.hpp"
 #include <optix_function_table_definition.h>
 #include <optix_stack_size.h>
 #include <optix_types.h>
@@ -150,6 +151,9 @@ Renderer::Renderer(std::vector<const Model*> models, sceneIO::Scene sceneDesc) :
 {
     // Validate again for callers that construct Scene directly instead of JSON.
     sceneIO::validateRayleighScene(m_sceneDesc);
+    m4rain::validate_scene(m_sceneDesc.rain,m_sceneDesc.rayleigh,
+        m_sceneDesc.spectrum.wavelengthMinNm,m_sceneDesc.spectrum.wavelengthMaxNm);
+    m_launchParams.rain.parameters=m_sceneDesc.rain.parameters;
     m_launchParams.rayleigh = m_sceneDesc.rayleigh;
     if (m_launchParams.rayleigh.enabled) {
         std::cout << "# M3 FP32 delta/ratio tracking: " << sceneIO::rayleighJson(m_launchParams.rayleigh).dump() << '\n'
@@ -250,6 +254,13 @@ Renderer::Renderer(std::vector<const Model*> models, sceneIO::Scene sceneDesc) :
     m_cudaModuleFileNames[static_cast<int>(PostProcessCudaModuleIdentifier::CUDA_MODULE_ID_TONEMAP)] = std::string("tonemap.ptx");
 
 
+    if(m_sceneDesc.rain.parameters.enabled) {
+#if defined(USE_OPTIX_IR)
+        m_optixModuleFileNames[static_cast<int>(OptixModuleIdentifier::OPTIX_MODULE_ID_M4_NF)]="nf_scatter.optixir";
+#else
+        m_optixModuleFileNames[static_cast<int>(OptixModuleIdentifier::OPTIX_MODULE_ID_M4_NF)]="nf_scatter.ptx";
+#endif
+    }
     m_isAccumulate = m_sceneDesc.integrator.isAccumulate;
     m_launchParams.frame.maxBounce = m_sceneDesc.integrator.maxBounce;
     m_launchParams.frame.numPixelSamples = m_sceneDesc.integrator.spp;
@@ -258,6 +269,19 @@ Renderer::Renderer(std::vector<const Model*> models, sceneIO::Scene sceneDesc) :
     
     std::cout << "# Atmospheric RT: creating OptiX context..." << std::endl;
     createContext();
+    if(m_sceneDesc.rain.parameters.enabled) {
+        const auto& file=m_sceneDesc.rain.modelFile;
+        m_rainAssetSha256=m4rain::file_sha256(file);
+        const auto asset=m4nf::load_asset(file);
+        if(m_rainAssetSha256!=m4rain::file_sha256(file))
+            throw std::runtime_error("NF asset changed while loading");
+        m_rainGpuAsset.upload(m_optixContext,m_stream,asset);
+        m_launchParams.rain.model=m_rainGpuAsset.model;
+        m_launchParams.rain.coop=m_rainGpuAsset.coop;
+        m_launchParams.rain.selectedStep=asset.selected_step;
+        std::cout << "# M4 rain: " << m4rain::to_json(m_sceneDesc.rain).dump() << '\n'
+                  << "# NF step=" << asset.selected_step << " sha256=" << m_rainAssetSha256 << '\n';
+    }
 
     std::cout << "# Atmospheric RT: setting up OptiX module..." << std::endl;
     createOptiXModule();
@@ -942,6 +966,8 @@ void Renderer::createOptiXModule()
     m_module.resize(m_optixModuleFileNames.size());
 
     for(size_t i = 0; i < m_optixModuleFileNames.size(); i++){
+        // A disabled rain component neither loads nor JIT-compiles the NF.
+        if(m_optixModuleFileNames[i].empty())continue;
         std::vector<char> ptxCode = readData(m_optixModuleFileNames[i]);
         char log[8192];
         size_t sizeOfLog = sizeof(log);
@@ -1135,7 +1161,7 @@ void Renderer::createHitgroupPrograms()
 
 void Renderer::createCallablePrograms()
 {
-    const int numCallablePrograms = NUM_LENS_TYPE + NUM_BXDF + NUM_LIGHT_TYPE;
+    const int numCallablePrograms = M4_NF_CALLABLE_ID + (m_sceneDesc.rain.parameters.enabled?1:0);
     m_callablePrograms.resize(numCallablePrograms);
 
     OptixProgramGroupOptions            pgOptions   = {};
@@ -1252,6 +1278,13 @@ void Renderer::createCallablePrograms()
         pgd->callables.entryFunctionNameDC    = "__direct_callable__light_triangle_rgb";
     }
     
+    if(m_sceneDesc.rain.parameters.enabled) {
+        pgd=&pgDesc[M4_NF_CALLABLE_ID];
+        pgd->kind=OPTIX_PROGRAM_GROUP_KIND_CALLABLES;
+        pgd->flags=OPTIX_PROGRAM_GROUP_FLAGS_NONE;
+        pgd->callables.moduleDC=m_module[static_cast<int>(OptixModuleIdentifier::OPTIX_MODULE_ID_M4_NF)];
+        pgd->callables.entryFunctionNameDC="__direct_callable__m4_nf";
+    }
     // 登録
     for(int callableID = 0; callableID < numCallablePrograms; callableID++){
         OPTIX_CHECK(optixProgramGroupCreate(m_optixContext,
@@ -1305,7 +1338,7 @@ void Renderer::createPipeline()
 
     // Preserve this renderer's program groups and trace-depth budget, but size
     // the stacks from their compiled requirements instead of a fixed 2 KiB.
-    // Lens/BSDF/light direct callables do not invoke another OptiX callable;
+    // Lens/BSDF/light/NF direct callables do not invoke another OptiX callable;
     // the call graph contains no continuation callables.
     OptixStackSizes stackSizes{};
     for (const auto programGroup : programGroups) {
@@ -1472,7 +1505,7 @@ void Renderer::render()
             std::ostringstream message;
             message.imbue(std::locale::classic());
             message << std::setprecision(std::numeric_limits<float>::max_digits10)
-                    << (m_launchParams.rayleigh.enabled ? "M3 Rayleigh integrator reported " : "M1/M2 surface integrator reported ") << invalidSamples
+                    << (m_launchParams.rain.parameters.enabled ? "M4 NF rain integrator reported " : m_launchParams.rayleigh.enabled ? "M3 Rayleigh integrator reported " : "M1/M2 surface integrator reported ") << invalidSamples
                     << " invalid path/film events; the frame was not accepted\n";
             if (failure.claimed != 0) {
                 message << m1::format_failure(failure.first) << '\n';
@@ -1513,6 +1546,9 @@ void Renderer::render()
             // Serialize the actual FP32 launch parameters, including tracking
             // budget and roulette threshold, rather than the original decimals.
             message << "rayleigh=" << sceneIO::rayleighJson(m_launchParams.rayleigh).dump() << '\n';
+            if(m_launchParams.rain.parameters.enabled)
+                message << "rain=" << m4rain::to_json(m_sceneDesc.rain).dump() << '\n'
+                        << "nf_step=" << m_launchParams.rain.selectedStep << " sha256=" << m_rainAssetSha256 << '\n';
 
             // Persist the full report even if a launched console closes after
             // main catches the exception. A failed log write never hides it.
@@ -2078,8 +2114,10 @@ void Renderer::uploadSpectrumData()
         const uint32_t cieCount = count(assets.cie.size());
         const uint32_t solarCount = count(assets.solar.size());
         const uint32_t d65Count = count(assets.d65.size());
-        m_wavelengthMin = assets.cie.front().wavelength_nm;
-        m_wavelengthMax = assets.cie.back().wavelength_nm;
+        m_wavelengthMin = m_sceneDesc.spectrum.wavelengthMinNm;
+        m_wavelengthMax = m_sceneDesc.spectrum.wavelengthMaxNm;
+        if(assets.cie.front().wavelength_nm>m_wavelengthMin || assets.cie.back().wavelength_nm<m_wavelengthMax)
+            throw std::runtime_error("CIE data do not cover the requested wavelength interval");
         if (!(m_wavelengthMin < m_wavelengthMax) ||
             assets.solar.front().wavelength_nm > m_wavelengthMin ||
             assets.solar.back().wavelength_nm < m_wavelengthMax ||

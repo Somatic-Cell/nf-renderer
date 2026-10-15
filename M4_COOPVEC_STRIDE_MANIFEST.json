@@ -1,0 +1,98 @@
+{
+  "schema": "m4.coopvec_stride_fix.v1",
+  "applies_to": "M4-NF-inference-965a8f5 plus M4-NOMINMAX-fix",
+  "production_changes": [
+    {
+      "path": "src/m4_nf/gpu_asset.cpp",
+      "before_sha256": "3d4c4311e2198fae1097cd1956b232e8b2027aca7d4f0f17f509dcf615fecb50",
+      "after_sha256": "6b8073c88c6d361a50fb542a64c04e1b1a08ae1a6f7f94f98bf416b84e9a3a6c"
+    }
+  ],
+  "files": [
+    {
+      "path": "README_M4_COOPVEC_STRIDE_JA.md",
+      "bytes": 6704,
+      "sha256": "859d06b714f9a53d81ce5b4916efd8ce494c13ac933f4b78421fe88e6cc4d8f6"
+    },
+    {
+      "path": "m4-coopvec-stride-fix.patch",
+      "bytes": 3666,
+      "sha256": "cfa87492f1e865c957878cae3cbf1670244c07d903646477711de5236515fc93"
+    },
+    {
+      "path": "src/m4_nf/gpu_asset.cpp",
+      "bytes": 6913,
+      "sha256": "6b8073c88c6d361a50fb542a64c04e1b1a08ae1a6f7f94f98bf416b84e9a3a6c"
+    },
+    {
+      "path": "validation/m4_coopvec_stride/asan_after.log",
+      "bytes": 371,
+      "sha256": "9ee47cbacc84ac8b34c3c006bf3e138ef961ba5c848b1bc94f9c499158349c7b"
+    },
+    {
+      "path": "validation/m4_coopvec_stride/clangpp_after.log",
+      "bytes": 371,
+      "sha256": "9ee47cbacc84ac8b34c3c006bf3e138ef961ba5c848b1bc94f9c499158349c7b"
+    },
+    {
+      "path": "validation/m4_coopvec_stride/clangpp_before.log",
+      "bytes": 153,
+      "sha256": "4a65e0a0cfaa56f38b3a6f6ca8fc52f4cddf5f108047ce19d5fdb97abdb27ece"
+    },
+    {
+      "path": "validation/m4_coopvec_stride/cpu_build.log",
+      "bytes": 554,
+      "sha256": "5ef13515fb70d7f06a803bc03c1bba2a72045746966abd954b1598802c62fc7f"
+    },
+    {
+      "path": "validation/m4_coopvec_stride/cpu_configure.log",
+      "bytes": 388,
+      "sha256": "c3a42433cd5513022a41fa7433e9f6f3f042092320089c1f81e66d4fa199149f"
+    },
+    {
+      "path": "validation/m4_coopvec_stride/cpu_ctest.log",
+      "bytes": 1291,
+      "sha256": "73c244068b89f4362807909372fe26a814c64c711f67f0680bcd3b4b50b759b8"
+    },
+    {
+      "path": "validation/m4_coopvec_stride/gpp_after.log",
+      "bytes": 371,
+      "sha256": "9ee47cbacc84ac8b34c3c006bf3e138ef961ba5c848b1bc94f9c499158349c7b"
+    },
+    {
+      "path": "validation/m4_coopvec_stride/gpp_before.log",
+      "bytes": 153,
+      "sha256": "4a65e0a0cfaa56f38b3a6f6ca8fc52f4cddf5f108047ce19d5fdb97abdb27ece"
+    },
+    {
+      "path": "validation/m4_coopvec_stride/mock/cuda.h",
+      "bytes": 488,
+      "sha256": "7f2450abb28d760b2befd0922ecea20a878cac530ecac72c057453961bc5a8b5"
+    },
+    {
+      "path": "validation/m4_coopvec_stride/mock/optix.h",
+      "bytes": 1187,
+      "sha256": "3e4f89ac21fbeba51574a6b598bbe7ca49685402674df4faa599baf52435d0fe"
+    },
+    {
+      "path": "validation/m4_coopvec_stride/mock/optix_stubs.h",
+      "bytes": 108,
+      "sha256": "7a083aa24553e1c42087b8a5cf51fda4c281034516bd27a43c0b41a4499b4fd1"
+    },
+    {
+      "path": "validation/m4_coopvec_stride/results.json",
+      "bytes": 1709,
+      "sha256": "9cf62457e4d9307d36c2d77c9d507c1042bab974550828f2e38585d76244eb5b"
+    },
+    {
+      "path": "validation/m4_coopvec_stride/run_host_mock.py",
+      "bytes": 1972,
+      "sha256": "bded4b8278ceade3c429e4a4fd2de254092d90354ad14bebb15d3fa060d8f9e9"
+    },
+    {
+      "path": "validation/m4_coopvec_stride/test_gpu_asset_host.cpp",
+      "bytes": 9207,
+      "sha256": "cfd01ff22bc86b6a6974b9f794b8f594f8d9e4c411667d33aa1c1da7e4c6096a"
+    }
+  ]
+}

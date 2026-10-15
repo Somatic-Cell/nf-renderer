@@ -1,0 +1,4 @@
+$ /usr/bin/g++ -std=c++17 -Wall -Wextra -Werror -DTEST_PARENTHESIZED /mnt/data/nf-renderer-M4-NOMINMAX-fix/validation/m4_nominmax/macro_repro.cpp -o /mnt/data/_m4_nomimmax_work/gpp_parenthesized
+
+exit_code=0
+program_exit_code=0

@@ -1,0 +1,17 @@
+{
+  "truncated": {
+    "exit_code": 1,
+    "stderr": "Truncated NF asset",
+    "rejected": true
+  },
+  "trailing": {
+    "exit_code": 1,
+    "stderr": "Trailing bytes in NF asset",
+    "rejected": true
+  },
+  "bad_magic": {
+    "exit_code": 1,
+    "stderr": "Wrong NF asset format/version",
+    "rejected": true
+  }
+}

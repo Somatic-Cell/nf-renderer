@@ -95,6 +95,17 @@ void Application::save(std::string fileName)
         info["ray_epsilon"] = params.m1.rayEpsilon;
         info["integrator_model"] = params.rayleigh.enabled ? "M3 spherical Rayleigh path tracing" : "M1/M2 spectral surface path tracing";
         info["rayleigh"] = sceneIO::rayleighJson(params.rayleigh);
+        if(params.rain.parameters.enabled){
+            info["integrator_model"]="M4 oriented NF rain + M3 Rayleigh, component-labelled path tracing";
+            auto rain=m_scene.rain;rain.parameters=params.rain.parameters;
+            info["rain"]=m4rain::to_json(rain);
+            info["rain"]["selectedStep"]=params.rain.selectedStep;
+            info["rain"]["modelSha256"]=m_renderer.getRainAssetSha256();
+            info["rain"]["crossSections"]="Csca=Cext=Aproj; Cabs=0";
+            info["rain"]["proposal"]="P_NF(w|d); physical K uses ki=-w,ko=-d";
+            info["rain"]["endpointExtension"]="g/C only; NN receives unchanged signed cosine";
+            info["rain"]["componentSampling"]="independent competing free flights; conditional component NEE and q";
+        }
         if (params.rayleigh.enabled) {
             info["rayleigh_model"] = {
                 {"coordinates", "metres; +Y up"},

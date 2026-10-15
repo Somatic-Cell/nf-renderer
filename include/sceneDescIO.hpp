@@ -17,6 +17,7 @@
 #include <stdexcept>
 #include <limits>
 #include "m3/tracking.hpp"
+#include "m4_rain/scene.hpp"
 
 #if defined(_WIN32)
 #ifndef NOMINMAX
@@ -97,6 +98,7 @@ namespace sceneIO {
         // std::string D65File = "CIE_std_illum_D65.csv";
         std::string D65File = "PVL_Spectrum.csv";
         std::string m1AssetDirectory = "spectrum/m1";
+        float wavelengthMinNm=360.0f,wavelengthMaxNm=830.0f;
     };
 
     struct Display {
@@ -114,6 +116,7 @@ namespace sceneIO {
         Display                 display         {};
         // Independent opt-in medium. Absent in existing M1/M2 scenes = vacuum.
         m3::TrackingParameters   rayleigh        {};
+        m4rain::SceneSettings    rain            {};
         bool                    enableGroundRendering {true};
     };
 
@@ -373,6 +376,10 @@ namespace sceneIO {
         v.xyzFuncFile       = j.value("xyzFuncFile", v.xyzFuncFile);
         v.D65File           = j.value("D65File", v.D65File);
         v.m1AssetDirectory  = j.value("m1AssetDirectory", v.m1AssetDirectory);
+        if(j.contains("wavelengthMinNm"))v.wavelengthMinNm=m4rain::json_float(j["wavelengthMinNm"],"spectrum.wavelengthMinNm");
+        if(j.contains("wavelengthMaxNm"))v.wavelengthMaxNm=m4rain::json_float(j["wavelengthMaxNm"],"spectrum.wavelengthMaxNm");
+        if(!(v.wavelengthMinNm>0&&v.wavelengthMinNm<v.wavelengthMaxNm))
+            throw std::invalid_argument("Invalid spectrum wavelength interval");
     }
 
     inline void to_json(nlohmann::ordered_json& j, const Spectrum& v){
@@ -381,6 +388,7 @@ namespace sceneIO {
             {"xyzFuncFile", v.xyzFuncFile},
             {"D65File", v.D65File},
             {"m1AssetDirectory", v.m1AssetDirectory},
+            {"wavelengthMinNm",v.wavelengthMinNm},{"wavelengthMaxNm",v.wavelengthMaxNm},
         };
     }
 
@@ -407,8 +415,10 @@ namespace sceneIO {
         if(j.contains("spectrum"))      v.spectrum      = j["spectrum"].get<Spectrum>();
         if(j.contains("display"))       v.display       = j["display"].get<Display>();
         if(j.contains("rayleigh"))      readRayleigh(j["rayleigh"], v.rayleigh);
+        if(j.contains("rain"))          m4rain::read(j["rain"],v.rain);
         v.enableGroundRendering                         = j.value("enableGroundRendering", v.enableGroundRendering);
         validateRayleighScene(v);
+        m4rain::validate_scene(v.rain,v.rayleigh,v.spectrum.wavelengthMinNm,v.spectrum.wavelengthMaxNm);
     }
 
     inline void to_json(nlohmann::ordered_json& j, const Scene& v) 
@@ -422,6 +432,7 @@ namespace sceneIO {
             {"spectrum", v.spectrum},
             {"display", v.display},
             {"rayleigh", rayleighJson(v.rayleigh)},
+            {"rain",m4rain::to_json(v.rain)},
             {"enableGroundRendering", v.enableGroundRendering}
         };
     }
@@ -532,6 +543,7 @@ namespace sceneIO {
         // JSON merge-patch treats null as deletion. Preserve the submitted M3
         // object so null/bad types cannot silently disable it or reset a value.
         if (j.contains("rayleigh")) merged["rayleigh"] = j["rayleigh"];
+        if (j.contains("rain")) merged["rain"] = j["rain"];
         if (j.contains("outputs")) merged["outputs"] = j["outputs"];
         out = merged.get<Scene>();
         if(writeBackDefaults && merged != j) saveJson(jsonPath, merged);

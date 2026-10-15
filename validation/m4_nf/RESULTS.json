@@ -1,0 +1,119 @@
+{
+  "scope": "M4-A/B standalone inference source and CPU-verified asset; M3 rain transport integration not included",
+  "renderer_base_commit": "965a8f57202337cd4b8906c603dce4f2c46c32c8",
+  "training_source_commit": "1f9308bef5c53cfc59a93557d0d7101531eaba5f",
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.41",
+  "compiler": "g++ (Debian 14.2.0-19) 14.2.0",
+  "cmake": "cmake version 3.31.6",
+  "python": "3.13.5",
+  "cpu_release_build": "passed",
+  "ctest_executables_passed": 1,
+  "ctest_internal_groups": 6,
+  "asan_ubsan": "passed (same one executable)",
+  "malformed_asset_checks_passed": 3,
+  "numeric_reference": "equations",
+  "unmodified_training_project_executed": false,
+  "teacher_data_comparison": false,
+  "gpu_compilation": "not performed; no nvcc/SDK",
+  "gpu_ptx_fp64_audit": "not performed; build-time checker supplied",
+  "optix_jit_and_execution": "not performed; no GPU",
+  "actual_coopvec_precision_comparison": "not performed",
+  "gpu_performance_measurement": "not performed",
+  "model_bin_bytes": 618000,
+  "model_bin_sha256": "b1dca30aa8fee6ee1fb45b25b47a92cf871682943d81f07112e9a09bc7d4208e",
+  "export_reproducible": true,
+  "selected_step": 208000,
+  "random_inference_test": {
+    "reference": "equations",
+    "samples_per_group": 4096,
+    "seed": 731,
+    "checkpoint_step": 208000,
+    "teacher_data_comparison": false,
+    "reference_sample_eval_log_difference": {
+      "count": 4096,
+      "nonfinite": 0,
+      "mean": 1.6347016753570642e-06,
+      "median": 4.76837158203125e-07,
+      "p95": 6.020069122314453e-06,
+      "max": 0.00014710426330566406
+    },
+    "fp32": {
+      "cpu_seconds": 2.668755033000025,
+      "invalid": 0,
+      "log_pdf_absolute_error": {
+        "count": 4096,
+        "nonfinite": 0,
+        "mean": 3.2078497895232615e-06,
+        "median": 2.115882515262707e-06,
+        "p95": 1.001391540556007e-05,
+        "max": 5.627083251980025e-05
+      },
+      "common_uniform_direction_angle_rad": {
+        "count": 4096,
+        "nonfinite": 0,
+        "mean": 1.9290457571286988e-07,
+        "median": 1.405068410772145e-07,
+        "p95": 5.199407870639015e-07,
+        "max": 3.026062991569335e-06
+      },
+      "sample_log_pdf_error": {
+        "count": 4096,
+        "nonfinite": 0,
+        "mean": 2.9937335097914957e-06,
+        "median": 1.9063381957451497e-06,
+        "p95": 9.097002099989898e-06,
+        "max": 0.00018644261962919018
+      },
+      "sample_eval_log_difference": {
+        "count": 4096,
+        "nonfinite": 0,
+        "mean": 1.6193504031972595e-06,
+        "median": 4.799999999693938e-07,
+        "p95": 5.963249999976772e-06,
+        "max": 8.344999999998493e-05
+      }
+    },
+    "half_reference": {
+      "cpu_seconds": 7.2930437049999455,
+      "invalid": 0,
+      "log_pdf_absolute_error": {
+        "count": 4096,
+        "nonfinite": 0,
+        "mean": 0.0006166288039123598,
+        "median": 0.0003402209606933049,
+        "p95": 0.0017274605334471893,
+        "max": 0.04000854261596665
+      },
+      "common_uniform_direction_angle_rad": {
+        "count": 4096,
+        "nonfinite": 0,
+        "mean": 5.8379538010066705e-05,
+        "median": 3.269070118169439e-05,
+        "p95": 0.00013438570101407792,
+        "max": 0.00572702820641899
+      },
+      "sample_log_pdf_error": {
+        "count": 4096,
+        "nonfinite": 0,
+        "mean": 0.00041274706773773327,
+        "median": 0.0001782625747985822,
+        "p95": 0.0008786907818606471,
+        "max": 0.1990728373803714
+      },
+      "sample_eval_log_difference": {
+        "count": 4096,
+        "nonfinite": 0,
+        "mean": 3.688539632763847e-07,
+        "median": 1.896499999924639e-07,
+        "p95": 8.400000000019503e-07,
+        "max": 6.57999999997827e-05
+      }
+    },
+    "limitations": [
+      "half_reference is a CPU rounding sensitivity model, not an OptiX/Tensor Core execution.",
+      "There is no teacher-CDF or rendering-image comparison.",
+      "Physical preparation is FP32 analytic masses versus reference FP64 CDF differences.",
+      "Equation replay is not a claim of executing the unmodified Zuko training project."
+    ]
+  }
+}

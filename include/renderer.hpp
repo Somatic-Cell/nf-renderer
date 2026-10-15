@@ -10,6 +10,7 @@
 #include "model.h"
 #include "launch_params.h"
 #include "sceneDescIO.hpp"
+#include "m4_nf/gpu_asset.hpp"
 #include <cuda_runtime.h>
 #include "vdb_loader.hpp"
 #include "mie_tables_txt_loader.h"
@@ -36,6 +37,7 @@ enum class OptixModuleIdentifier{
     OPTIX_MODULE_ID_LENS,
     OPTIX_MODULE_ID_IS_VDB,
     OPTIX_MODULE_ID_CH_VDB_RADIANCE,
+    OPTIX_MODULE_ID_M4_NF,
     NUM_OPTIX_MODULE_IDENTIFIERS
 };
 
@@ -103,6 +105,7 @@ public:
     void setRenderBufferType(const int renderBufferType);
     int getRenderBufferType() const;
     const LaunchParams  getLaunchParams() const;
+    const std::string& getRainAssetSha256() const { return m_rainAssetSha256; }
     const CUDABuffer&   getFinalColorBuffer() const;
 
     float getDensityScale() const;
@@ -194,6 +197,8 @@ protected:
     CUDABuffer                      m_callableRecordsBuffer {};
     OptixShaderBindingTable         m_sbt                   {};
 
+    m4nf::GpuAsset m_rainGpuAsset;
+    std::string m_rainAssetSha256;
     LaunchParams    m_launchParams{};
     CUDABuffer      m_launchParamsBuffer;
 

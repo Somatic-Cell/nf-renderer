@@ -1,0 +1,9 @@
+[ 16%] Building CXX object CMakeFiles/m4_nf_asset.dir/mnt/data/_m4_alignment_work/merged/src/m4_nf/asset.cpp.o
+[ 33%] Linking CXX static library libm4_nf_asset.a
+[ 33%] Built target m4_nf_asset
+[ 50%] Building CXX object CMakeFiles/m4_nf_core_tests.dir/test_core.cpp.o
+[ 66%] Building CXX object CMakeFiles/m4_nf_probe_cpu.dir/mnt/data/_m4_alignment_work/merged/src/m4_nf/probe_cpu.cpp.o
+[ 83%] Linking CXX executable m4_nf_core_tests
+[ 83%] Built target m4_nf_core_tests
+[100%] Linking CXX executable m4_nf_probe_cpu
+[100%] Built target m4_nf_probe_cpu

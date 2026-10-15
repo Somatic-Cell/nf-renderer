@@ -5,6 +5,7 @@
 #include "../utils/my_math.hpp"
 #include "m1/render_params.h"
 #include "m3/tracking_parameters.hpp"
+#include "m4_rain/parameters.hpp"
 #include <cuda_runtime.h>
 
 
@@ -59,6 +60,8 @@ enum {
     LIGHT_TYPE_SKY, 
     NUM_LIGHT_TYPE
 };
+
+static constexpr unsigned M4_NF_CALLABLE_ID = NUM_LENS_TYPE + NUM_BXDF + NUM_LIGHT_TYPE;
 
 enum : unsigned int {
     HIT_KIND_VDB_ENTER = 0,
@@ -269,6 +272,7 @@ struct alignas(16) LaunchParams {
     SpectralParams spectral;
     M1RenderParams m1{};
     m3::TrackingParameters rayleigh{};
+    m4rain::DeviceData rain{};
 
     TriangleMeshGeomData* meshes;
     int numMeshes       {0};

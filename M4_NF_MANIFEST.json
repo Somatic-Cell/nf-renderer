@@ -1,0 +1,194 @@
+{
+  "schema": "nf_renderer.m4_inference_package.v1",
+  "renderer_base_commit": "965a8f57202337cd4b8906c603dce4f2c46c32c8",
+  "training_commit": "1f9308bef5c53cfc59a93557d0d7101531eaba5f",
+  "installation": "additions only; existing M3 files are not overwritten",
+  "gpu_compilation_or_execution_verified": false,
+  "files": [
+    {
+      "path": "README_M4_NF_JA.md",
+      "bytes": 8342,
+      "sha256": "83530208b4243e6eccd301aebf00fd19a12ef819e16fbbcf771f7c4f6f096bfa"
+    },
+    {
+      "path": "assets/m4_nf/best/manifest.json",
+      "bytes": 6314,
+      "sha256": "c31a063d2bc8801aff007f7c30a86e153823ad040f2c24425b79358583c771fc"
+    },
+    {
+      "path": "assets/m4_nf/best/model.bin",
+      "bytes": 618000,
+      "sha256": "b1dca30aa8fee6ee1fb45b25b47a92cf871682943d81f07112e9a09bc7d4208e"
+    },
+    {
+      "path": "docs/M4_ANISOTROPIC_TRANSPORT_JA.md",
+      "bytes": 5935,
+      "sha256": "fd0730e7f24ec75a5ddfc420e03314f969d65a93a0089f361affaa02a7baa045"
+    },
+    {
+      "path": "include/m4_nf/anisotropic.hpp",
+      "bytes": 2389,
+      "sha256": "8f6bd72fb9e155a3c5125305377a15ee5f7506f74048fa7fa21f45d874410a15"
+    },
+    {
+      "path": "include/m4_nf/asset.hpp",
+      "bytes": 441,
+      "sha256": "1ac13479fab88ab838b323654a869d7153e91317c95109715dad1a0bc06386f6"
+    },
+    {
+      "path": "include/m4_nf/binary16.hpp",
+      "bytes": 1583,
+      "sha256": "e5223c29137f55716868d7c6aef7b96e3cc3173e8f37cb608a39f987cfc69c9d"
+    },
+    {
+      "path": "include/m4_nf/coop_types.hpp",
+      "bytes": 518,
+      "sha256": "39dcfc852dd0ea51da49949dd48c063c5110f63428bbb5cec7b9cc0814ce89ee"
+    },
+    {
+      "path": "include/m4_nf/flow.hpp",
+      "bytes": 10425,
+      "sha256": "e06994815b9cbf9000e8e3b209f86071e36fe409c8b4519786091e0b5d147509"
+    },
+    {
+      "path": "include/m4_nf/gpu_asset.hpp",
+      "bytes": 754,
+      "sha256": "4b4c70b9b7ef1775ae585abe074aa5854d01a538114835652608debc3e76cf6c"
+    },
+    {
+      "path": "include/m4_nf/half_reference.hpp",
+      "bytes": 1069,
+      "sha256": "2cce57ea8e5af2ac24e873b9ab0e43012784ee91f1c37aadbd5e72c943189930"
+    },
+    {
+      "path": "include/m4_nf/types.hpp",
+      "bytes": 4099,
+      "sha256": "8af80176fee8a431dc49b34c23bba1ecffc78049b6add87b1c54d0d1bfbdafcd"
+    },
+    {
+      "path": "shaders/m4_nf/coop_mlp.cuh",
+      "bytes": 2180,
+      "sha256": "3208fc7885dfd931040295904c30d564fcddf5bc367c4a44f57e039afd270126"
+    },
+    {
+      "path": "shaders/m4_nf/probe.cu",
+      "bytes": 1275,
+      "sha256": "ecf45752c692f0c0c427d0607769734beaffaf68ebd08a4535b000156c1c782f"
+    },
+    {
+      "path": "src/m4_nf/asset.cpp",
+      "bytes": 2759,
+      "sha256": "cc1be62aa5079b04e0438516bf8d8062f22e07020a5ec1f9d487cd2df5a54083"
+    },
+    {
+      "path": "src/m4_nf/gpu_asset.cpp",
+      "bytes": 5202,
+      "sha256": "a13af7ab627fbf48af20d2120fe6b627ef1fa0d13d8ec9d6fe8e280072f2b109"
+    },
+    {
+      "path": "src/m4_nf/probe_cpu.cpp",
+      "bytes": 1796,
+      "sha256": "edb92a2e654609334bf23909381ea71c774563619bf1db2d774db96b22bb036e"
+    },
+    {
+      "path": "src/m4_nf/probe_optix.cpp",
+      "bytes": 7493,
+      "sha256": "09002c2ece9c134a736d1cc182077c8e7a36e8f7ccc5d94b5bae592ae2a9cc21"
+    },
+    {
+      "path": "tests/m4_nf/CMakeLists.txt",
+      "bytes": 3933,
+      "sha256": "7875c99334f0d946637a022fc6289703c15ebf9b845180c0bff4ff1bc5c2f404"
+    },
+    {
+      "path": "tests/m4_nf/test_core.cpp",
+      "bytes": 4822,
+      "sha256": "1c6a55742d814acc85391afbfcf6d28e429568c4f79071000c1880c20db870cd"
+    },
+    {
+      "path": "tools/m4_nf/check_fp64.py",
+      "bytes": 656,
+      "sha256": "67fa73c85e0f41cba8ca25193fd41862b3ea2a9c2d0d2442923e69fe1e7373bc"
+    },
+    {
+      "path": "tools/m4_nf/export_model.py",
+      "bytes": 7420,
+      "sha256": "4f3e292fcda2387324e62fba869daf1b8a07457092836cdec07e283fbb63dc0a"
+    },
+    {
+      "path": "tools/m4_nf/reference_equations.py",
+      "bytes": 5469,
+      "sha256": "16d9e2be4ce9e076bc4a0c7438683914e45e879d6e77135d932a82e5db69d783"
+    },
+    {
+      "path": "tools/m4_nf/run_gpu_validation.py",
+      "bytes": 2794,
+      "sha256": "b857d6c5b8d47320a6b35374a3eb2f78e603b6a8a5d13f268f890dbfeab254be"
+    },
+    {
+      "path": "tools/m4_nf/validate.py",
+      "bytes": 6381,
+      "sha256": "6c5cb0700fa6406dd15146a77f0782d53e0f08dbbc09198783f56e76b4220d64"
+    },
+    {
+      "path": "validation/m4_nf/README.md",
+      "bytes": 3911,
+      "sha256": "72899a746500787d7f2c22b64c834310a2a513fd9c9753c7de375f25472d3e4f"
+    },
+    {
+      "path": "validation/m4_nf/RESULTS.json",
+      "bytes": 4137,
+      "sha256": "1ded14364959d7b9c6fbebba10a34af2bc1260040b3304c57f8d89e1c1cfe44a"
+    },
+    {
+      "path": "validation/m4_nf/asan.log",
+      "bytes": 2133,
+      "sha256": "af5076f3562f0f3ee25888f16b92e758bad4fd30c3e6c02072885b20ee422a69"
+    },
+    {
+      "path": "validation/m4_nf/asset_errors.json",
+      "bytes": 318,
+      "sha256": "f741ec42f248487d7d145503a44554b49373ddf9c8497aa48987bfc2ae193212"
+    },
+    {
+      "path": "validation/m4_nf/core_tests.log",
+      "bytes": 1191,
+      "sha256": "a8c07ef0741f81613c7df1d82e59eb223e20b57788b8f4001c7d9b052df4bd6e"
+    },
+    {
+      "path": "validation/m4_nf/cpu/fp32.txt",
+      "bytes": 393306,
+      "sha256": "65c43e8e62f085c056db78f0fe8cf7e077ce6c8de79b7c7181451429ca775a21"
+    },
+    {
+      "path": "validation/m4_nf/cpu/half_reference.txt",
+      "bytes": 393317,
+      "sha256": "1d640f7db41f9f32b397e585c05b053ee4945ea11c331759884a4dbbc2517544"
+    },
+    {
+      "path": "validation/m4_nf/cpu/queries.txt",
+      "bytes": 468134,
+      "sha256": "d8cf6282cfd11f911d5e98b10c1366ff98002322b176142911ba706ab747fad7"
+    },
+    {
+      "path": "validation/m4_nf/cpu/report.json",
+      "bytes": 2744,
+      "sha256": "b3af2b2936939cc5ecd547ea1b9440e0baca506b5d38f967e0459408e73450e6"
+    },
+    {
+      "path": "validation/m4_nf/cpu_build.log",
+      "bytes": 496,
+      "sha256": "75a52a2c7590ac931ea2f22820a2a4d4c3f0ab4f5691cd2842fa571877958cf2"
+    },
+    {
+      "path": "validation/m4_nf/export_recheck.log",
+      "bytes": 296,
+      "sha256": "818ac9eb98de474368fda92f81a01aafec9c7d0a9e910dc363b4515c1925d8f1"
+    },
+    {
+      "path": "validation/m4_nf/parity.log",
+      "bytes": 2744,
+      "sha256": "b3af2b2936939cc5ecd547ea1b9440e0baca506b5d38f967e0459408e73450e6"
+    }
+  ]
+}

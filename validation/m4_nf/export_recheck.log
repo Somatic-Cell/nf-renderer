@@ -1,0 +1,13 @@
+{
+  "selected_file": "best.pt",
+  "selected_step": 208000,
+  "asset_sha256": "b1dca30aa8fee6ee1fb45b25b47a92cf871682943d81f07112e9a09bc7d4208e",
+  "condition_axes": {
+    "wavelengths": 91,
+    "cosines": 300,
+    "cosine_range": [
+      -0.9999862922466825,
+      0.9999862922466825
+    ]
+  }
+}

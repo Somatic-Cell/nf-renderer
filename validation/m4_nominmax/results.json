@@ -1,0 +1,61 @@
+{
+  "scope": "Minimal macro reproductions and Linux CPU tests; not Windows/MSVC or GPU verification",
+  "macro_tests": [
+    {
+      "compiler": "g++",
+      "case": "without_fix",
+      "expected_compilation_success": false,
+      "compile_returncode": 1
+    },
+    {
+      "compiler": "g++",
+      "case": "nominmax",
+      "expected_compilation_success": true,
+      "compile_returncode": 0,
+      "execution_returncode": 0
+    },
+    {
+      "compiler": "g++",
+      "case": "parenthesized",
+      "expected_compilation_success": true,
+      "compile_returncode": 0,
+      "execution_returncode": 0
+    },
+    {
+      "compiler": "clang++",
+      "case": "without_fix",
+      "expected_compilation_success": false,
+      "compile_returncode": 1
+    },
+    {
+      "compiler": "clang++",
+      "case": "nominmax",
+      "expected_compilation_success": true,
+      "compile_returncode": 0,
+      "execution_returncode": 0
+    },
+    {
+      "compiler": "clang++",
+      "case": "parenthesized",
+      "expected_compilation_success": true,
+      "compile_returncode": 0,
+      "execution_returncode": 0
+    }
+  ],
+  "cpu_ctest": "1/1 executable passed; all 6 internal groups passed",
+  "patch_check": "passed",
+  "patch_apply": "passed",
+  "applied_sources_match": [
+    "tests/m4_nf/CMakeLists.txt",
+    "src/m4_nf/probe_optix.cpp",
+    "src/m4_nf/gpu_asset.cpp"
+  ],
+  "only_modified_original_files": [
+    "src/m4_nf/gpu_asset.cpp",
+    "src/m4_nf/probe_optix.cpp",
+    "tests/m4_nf/CMakeLists.txt"
+  ],
+  "windows_msvc_full_build": "not run",
+  "cuda_optix_compilation": "not run",
+  "coopvec_gpu_execution": "not run"
+}

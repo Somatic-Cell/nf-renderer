@@ -1,0 +1,104 @@
+{
+  "base_archive": "nf-renderer-M4-NF-inference-965a8f5.zip",
+  "base_archive_sha256": "23a7d46c2ed5d847132a1e01f89b35d067b74671762be7583f9c27faaf8da6c3",
+  "changed_files": [
+    {
+      "path": "tests/m4_nf/CMakeLists.txt",
+      "before_sha256": "7875c99334f0d946637a022fc6289703c15ebf9b845180c0bff4ff1bc5c2f404",
+      "after_sha256": "024e56505adb0050e67b066fffd97878be1401f2b533eb4cf22d1a30e0b8206f"
+    },
+    {
+      "path": "src/m4_nf/probe_optix.cpp",
+      "before_sha256": "09002c2ece9c134a736d1cc182077c8e7a36e8f7ccc5d94b5bae592ae2a9cc21",
+      "after_sha256": "2115fff02f45cb983ad270d8353ef026878a5bc49bcc6b3d8be3f7b2d0d50538"
+    },
+    {
+      "path": "src/m4_nf/gpu_asset.cpp",
+      "before_sha256": "a13af7ab627fbf48af20d2120fe6b627ef1fa0d13d8ec9d6fe8e280072f2b109",
+      "after_sha256": "3d4c4311e2198fae1097cd1956b232e8b2027aca7d4f0f17f509dcf615fecb50"
+    }
+  ],
+  "scope": "Windows preprocessor/build compatibility only; no shader, model, precision, sampling or transport changes",
+  "bundle_files": [
+    {
+      "path": "README_M4_NOMINMAX_JA.md",
+      "bytes": 5662,
+      "sha256": "79db686b30ce11a0f08d6828ef134801871a9ef4c65bdc3a17951fd846e10186"
+    },
+    {
+      "path": "m4-nominmax-fix.patch",
+      "bytes": 2622,
+      "sha256": "445bb3ba1c67496c17ddaef99adaefd0ed3fb8aa51e311ace45be9f62e010dbb"
+    },
+    {
+      "path": "src/m4_nf/gpu_asset.cpp",
+      "bytes": 5204,
+      "sha256": "3d4c4311e2198fae1097cd1956b232e8b2027aca7d4f0f17f509dcf615fecb50"
+    },
+    {
+      "path": "src/m4_nf/probe_optix.cpp",
+      "bytes": 7495,
+      "sha256": "2115fff02f45cb983ad270d8353ef026878a5bc49bcc6b3d8be3f7b2d0d50538"
+    },
+    {
+      "path": "tests/m4_nf/CMakeLists.txt",
+      "bytes": 4250,
+      "sha256": "024e56505adb0050e67b066fffd97878be1401f2b533eb4cf22d1a30e0b8206f"
+    },
+    {
+      "path": "validation/m4_nominmax/clangpp_nominmax.log",
+      "bytes": 237,
+      "sha256": "03c76b3199f33b87dde55d8f54a3223f2a1a4354728ad5df1ddbb0fa53b37051"
+    },
+    {
+      "path": "validation/m4_nominmax/clangpp_parenthesized.log",
+      "bytes": 252,
+      "sha256": "953bdf8540de9ce714d786a54f82b5b7d73b0e7a6e868340b4d1b5e4b3cf24c0"
+    },
+    {
+      "path": "validation/m4_nominmax/clangpp_without_fix.log",
+      "bytes": 1458,
+      "sha256": "dfc592991bf30f3b494ddc5e38af5c197bb14d21f9fae498e75478475d37d600"
+    },
+    {
+      "path": "validation/m4_nominmax/cpu-build.log",
+      "bytes": 550,
+      "sha256": "35cbe1ca8ab539d04a17b4231b1de60aab6934f8b90317f57f7e7928f4cbf011"
+    },
+    {
+      "path": "validation/m4_nominmax/cpu-configure.log",
+      "bytes": 387,
+      "sha256": "172e0f5f691232d00a7a61cf1a352ebfe759abbb5b7dd3f8767ac86c99d6141c"
+    },
+    {
+      "path": "validation/m4_nominmax/cpu-ctest.log",
+      "bytes": 1283,
+      "sha256": "5ee4e8cb0dc07f9e23509785ecb08de70d354799ae880d6827111cfcd807c1b7"
+    },
+    {
+      "path": "validation/m4_nominmax/gpp_nominmax.log",
+      "bytes": 213,
+      "sha256": "75f747b684fda431ecd2585bbef3d6a8d14e74e30eb5046a1a22051419f241dd"
+    },
+    {
+      "path": "validation/m4_nominmax/gpp_parenthesized.log",
+      "bytes": 228,
+      "sha256": "2ed5ad5adf57468c1844857ee02b729782f454b1eb987d6f1571d04e843feb31"
+    },
+    {
+      "path": "validation/m4_nominmax/gpp_without_fix.log",
+      "bytes": 1692,
+      "sha256": "215a9f00dc9b29802328132c17feb9e67623a220467b29e1dd0893ab16b7048b"
+    },
+    {
+      "path": "validation/m4_nominmax/macro_repro.cpp",
+      "bytes": 539,
+      "sha256": "250f33badecaae081fba916c95fa8b4a9b49f2a4cb95a6719fa124b5a459f820"
+    },
+    {
+      "path": "validation/m4_nominmax/results.json",
+      "bytes": 1626,
+      "sha256": "01b353df41d79d61b734ec4ab31216268fc84b960870b71328aa5c781d5dbbbe"
+    }
+  ]
+}

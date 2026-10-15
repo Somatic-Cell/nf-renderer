@@ -1,0 +1,4 @@
+PASS: size_variant=0 input_stride=155648 output_stride=158720; all tensor bytes/offsets checked.
+PASS: size_variant=1 input_stride=155648 output_stride=160000; all tensor bytes/offsets checked.
+PASS: reupload, repeated release and injected conversion error cleanup.
+HOST API MOCK ONLY: no CUDA runtime, OptiX JIT, optimal-layout conversion or GPU inference was executed.

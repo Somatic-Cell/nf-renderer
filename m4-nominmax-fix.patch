@@ -1,0 +1,40 @@
+diff --git a/tests/m4_nf/CMakeLists.txt b/tests/m4_nf/CMakeLists.txt
+--- a/tests/m4_nf/CMakeLists.txt
++++ b/tests/m4_nf/CMakeLists.txt
+@@ -59,6 +59,12 @@
+   add_dependencies(m4_nf_probe_gpu m4_nf_fp64_audit)
+   target_include_directories(m4_nf_probe_gpu PRIVATE "${M4_OPTIX_INCLUDE}")
+   target_link_libraries(m4_nf_probe_gpu PRIVATE m4_nf_asset CUDA::cuda_driver ${CMAKE_DL_LIBS})
++  # optix_stubs.h includes Windows.h on Windows. Disable its min/max macros
++  # before any header is parsed, including optix_stack_size.h and <limits>.
++  # This standalone project does not inherit the renderer root's definitions.
++  if(WIN32)
++    target_compile_definitions(m4_nf_probe_gpu PRIVATE NOMINMAX)
++  endif()
+   if(MSVC)
+     target_compile_options(m4_nf_probe_gpu PRIVATE /utf-8 /fp:precise)
+   else()
+diff --git a/src/m4_nf/probe_optix.cpp b/src/m4_nf/probe_optix.cpp
+--- a/src/m4_nf/probe_optix.cpp
++++ b/src/m4_nf/probe_optix.cpp
+@@ -44,7 +44,7 @@
+         std::ifstream in(argv[3]);if(!in)throw std::runtime_error("Cannot open queries");
+         std::vector<m4nf::Query> queries;m4nf::Query q;
+         while(in>>q.op>>q.lambda>>q.cosine>>q.a>>q.b>>q.c)queries.push_back(q);
+-        if(!in.eof()||queries.empty()||queries.size()>std::numeric_limits<unsigned>::max())throw std::runtime_error("Invalid query file");
++        if(!in.eof()||queries.empty()||queries.size()>(std::numeric_limits<unsigned>::max)())throw std::runtime_error("Invalid query file");
+         std::ifstream file(argv[2],std::ios::binary);if(!file)throw std::runtime_error("Cannot read OptiX IR");
+         const std::string ir((std::istreambuf_iterator<char>(file)),std::istreambuf_iterator<char>());
+         Session s;check(cuInit(0));check(cuDeviceGet(&s.device,ordinal));
+diff --git a/src/m4_nf/gpu_asset.cpp b/src/m4_nf/gpu_asset.cpp
+--- a/src/m4_nf/gpu_asset.cpp
++++ b/src/m4_nf/gpu_asset.cpp
+@@ -14,7 +14,7 @@
+ void check(CUresult r){if(r!=CUDA_SUCCESS){const char* s=nullptr;cuGetErrorString(r,&s);throw std::runtime_error(s?s:"CUDA driver error");}}
+ void check(OptixResult r){if(r!=OPTIX_SUCCESS)throw std::runtime_error(std::string("OptiX: ")+optixGetErrorName(r));}
+ std::size_t align128(std::size_t n){return (n+127u)&~std::size_t(127u);}
+-unsigned small(std::size_t n){if(n>std::numeric_limits<unsigned>::max())throw std::overflow_error("CoopVec offset overflow");return static_cast<unsigned>(n);}
++unsigned small(std::size_t n){if(n>(std::numeric_limits<unsigned>::max)())throw std::overflow_error("CoopVec offset overflow");return static_cast<unsigned>(n);}
+ }
+ GpuAsset::~GpuAsset(){release();}
+ void GpuAsset::release()noexcept{

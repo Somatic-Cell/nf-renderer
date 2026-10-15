@@ -259,6 +259,132 @@ void test_shading_normal_support() {
     close(energy,0.6,1.5e-4,"radiance convention uses shading cosine consistently");
     std::cout<<"Shading-normal support: acceptance="<<accepted<<" exact=0.75\n";
 }
+
+void test_reported_bsdf_grazing() {
+    // Exact decimal-to-float inputs from the frame 111 Grass_blades.DoubleSided
+    // diagnostic. They reproduce the sampler's precondition failure; the
+    // original normal/tangent frame was not logged and is not reconstructed.
+    const MetallicParameters material{0.0516714454f,0.0f,0.741176486f};
+    const Vec3 reported_wo{0.0777869374f,0.996969998f,-1.47486912e-08f};
+    constexpr float branch=0.233046412f,u1=0.572265685f,u2=0.70618248f;
+    require(valid_metallic_parameters(material)&&bsdf_unit_direction(reported_wo),
+            "reported material and unit-vector contract are valid");
+    require(sample_metallic(material,reported_wo,branch,u1,u2).status==BsdfSampleStatus::Invalid,
+            "reported negative local cosine remains a strict BSDF rejection");
+
+    // Use that grazing direction in an axis-aligned WORLD frame to exercise
+    // the production caller contract. Orienting the frame must preserve the
+    // world ray while presenting a positive, nonzero local cosine to the BSDF.
+    const auto oriented=make_bsdf_frame({0,0,1},reported_wo);
+    require(oriented.wo.z>0.0f&&oriented.wo.z<2.0e-8f,
+            "grazing orientation preserves the small cosine without a floor");
+    const Vec3 reconstructed=oriented.frame.to_world(oriented.wo);
+    close(reconstructed.x,reported_wo.x,2.0e-7,"reported grazing world x preserved");
+    close(reconstructed.y,reported_wo.y,2.0e-7,"reported grazing world y preserved");
+    close(reconstructed.z,reported_wo.z,1.0e-14,"reported grazing world z preserved");
+    const auto s=sample_metallic(material,oriented.wo,branch,u1,u2);
+    require(s.status==BsdfSampleStatus::Valid,
+            "reported variates produce a valid diffuse-branch sample in the oriented frame");
+    const auto e=evaluate_metallic(material,oriented.wo,s.wi);
+    require(e.valid&&e.pdf>0.0f,"oriented grazing sample has finite evaluation");
+    close(s.pdf,e.pdf,1.0e-7,"grazing continuation and NEE use the same mixture PDF");
+    close(s.weight,double(e.f)*s.wi.z/e.pdf,2.0e-7,
+            "grazing continuation retains full-mixture f*cos/pdf");
+    std::cout<<"Reported grazing BSDF: strict rejection retained; oriented sample PDF="
+             <<s.pdf<<" weight="<<s.weight<<'\n';
+}
+
+void test_bsdf_frame_invariants() {
+    // Independent double-precision dot products are a CPU test oracle only.
+    const auto dot_reference=[](Vec3 a,Vec3 b) {
+        return double(a.x)*b.x+double(a.y)*b.y+double(a.z)*b.z;
+    };
+    unsigned count=0;
+    const auto check=[&](Vec3 normal,Vec3 wo_world) {
+        const auto oriented=make_bsdf_frame(normal,wo_world);
+        const auto& f=oriented.frame;
+        require(bsdf_unit_direction(oriented.wo)&&oriented.wo.z>=0.0f,
+                "one shared frame/local-direction pair faces the incoming ray");
+        // The synthetic normal below differs from exact unit length by four
+        // float epsilons. Allow that input representation error in this oracle.
+        close(dot_reference(f.x,f.x),1,2.0e-6,"oriented frame x is unit length");
+        close(dot_reference(f.y,f.y),1,2.0e-6,"oriented frame y is unit length");
+        close(dot_reference(f.z,f.z),1,2.0e-6,"oriented frame z is unit length");
+        close(dot_reference(f.x,f.y),0,2.0e-7,"oriented frame x and y are orthogonal");
+        close(dot_reference(f.x,f.z),0,2.0e-7,"oriented frame x and z are orthogonal");
+        close(dot_reference(f.y,f.z),0,2.0e-7,"oriented frame y and z are orthogonal");
+        close(dot_reference(cross(f.x,f.y),f.z),1,2.0e-6,
+                "orientation preserves a right-handed frame");
+        close(std::abs(dot_reference(f.z,normal)),1,2.0e-6,
+                "orientation preserves the original shading-normal axis");
+        const double length=std::sqrt(dot_reference(wo_world,wo_world));
+        const Vec3 reconstructed=f.to_world(oriented.wo);
+        close(reconstructed.x,wo_world.x/length,1.0e-6,"frame roundtrip preserves world x");
+        close(reconstructed.y,wo_world.y/length,1.0e-6,"frame roundtrip preserves world y");
+        close(reconstructed.z,wo_world.z/length,1.0e-6,"frame roundtrip preserves world z");
+        close(oriented.wo.z,std::abs(dot_reference(normal,wo_world))/length,2.0e-7,
+                "local cosine magnitude agrees with the world-space projection");
+        ++count;
+    };
+    const std::array<Vec3,5> normals{{{0,0,1},{0,0,-1},{1,0,0},
+        normalize({0.2f,0.7f,0.3f}),normalize({-0.7f,0.2f,-0.5f})}};
+    for(Vec3 normal:normals) {
+        const Frame source=make_frame(normal);
+        for(float cosine:std::array<float,9>{-1.0f,-0.2f,-1.0e-5f,-1.0e-8f,
+                                               0.0f,1.0e-8f,1.0e-5f,0.2f,1.0f}) {
+            const float sine=sqrtf(1.0f-cosine*cosine);
+            check(normal,source.to_world({0.6f*sine,0.8f*sine,cosine}));
+        }
+    }
+
+    // A synthetic cancellation case illustrates why separately evaluated dot
+    // products cannot certify the sign of the final local wo.z. Volatile stores
+    // fix one legal rounding sequence, while explicit fma fixes another. This
+    // is not a claim to reproduce the user's OptiX instruction sequence.
+    const Vec3 normal{0.90521770715713501f,0.050454605370759964f,-0.42194125056266785f};
+    const Vec3 wo_world{0.41568207740783691f,0.10107676684856415f,0.90387600660324097f};
+    volatile float product_x=normal.x*wo_world.x;
+    volatile float product_y=normal.y*wo_world.y;
+    volatile float product_z=normal.z*wo_world.z;
+    volatile float partial=product_x+product_y;
+    volatile float unfused=partial+product_z;
+    const float fused=std::fma(normal.z,wo_world.z,std::fma(normal.x,wo_world.x,product_y));
+    require(unfused==0.0f&&fused<0.0f,
+            "synthetic separately rounded projections disagree on the grazing sign");
+    check(normal,wo_world);check(-normal,wo_world);
+    std::cout<<"BSDF frame invariants: "<<count<<" world-direction cases passed\n";
+}
+
+void test_bsdf_frame_boundary_contracts() {
+    const MetallicParameters material{0.3f,0.0f,0.7f};
+    for(float zero:std::array<float,2>{0.0f,-0.0f}) {
+        const auto tangent=make_bsdf_frame({0,0,1},{1,0,zero});
+        require(tangent.wo.z==0.0f,"exact tangent is not moved into the BSDF hemisphere");
+        require(sample_metallic(material,tangent.wo,0.25f,0.3f,0.6f).status==BsdfSampleStatus::Null,
+                "exact tangent retains the metallic null-event contract");
+        for(MaterialKind kind:std::array<MaterialKind,3>{MaterialKind::Diffuse,
+                MaterialKind::GgxReflection,MaterialKind::Dielectric})
+            require(sample_bsdf({kind,0.3f,0.5f,1.0f/1.5f},tangent.wo,0.25f,0.3f,0.6f).status==
+                    BsdfSampleStatus::Null,"exact tangent retains every BSDF's null-event contract");
+    }
+    for(Vec3 local:std::array<Vec3,2>{{{0,0,-1},{1,0,-1.0e-8f}}}) {
+        require(sample_metallic(material,local,0.25f,0.3f,0.6f).status==BsdfSampleStatus::Invalid,
+                "negative local directions must not become null or valid samples");
+        require(!evaluate_metallic(material,local,{0,0,1}).valid,
+                "negative local directions remain invalid for evaluation");
+    }
+    const float nan=std::numeric_limits<float>::quiet_NaN();
+    for(const auto input:std::array<std::array<Vec3,2>,4>{{
+            {{{nan,0,1},{0,0,1}}},{{{0,0,1},{nan,0,1}}},
+            {{{0,0,0},{0,0,1}}},{{{0,0,1},{0,0,0}}}}}) {
+        const auto invalid=make_bsdf_frame(input[0],input[1]);
+        require(sample_metallic(material,invalid.wo,0.25f,0.3f,0.6f).status==BsdfSampleStatus::Invalid,
+                "invalid frame input remains a detectable BSDF failure");
+    }
+    const auto oriented=make_bsdf_frame({0,0,1},{0,0,-1});
+    require(sample_metallic({-0.1f,0,0.7f},oriented.wo,0.25f,0.3f,0.6f).status==BsdfSampleStatus::Invalid,
+            "frame orientation does not conceal invalid material parameters");
+}
 }
 
 int main() {
@@ -268,7 +394,8 @@ int main() {
         test_grazing_and_reciprocity();test_dielectric();
         test_mis_and_roulette();test_rejection();
         test_existing_metallic_mixture();test_shading_normal_support();
-        std::cout<<"M1 BSDF tests: 9 groups passed\n";
+        test_reported_bsdf_grazing();test_bsdf_frame_invariants();test_bsdf_frame_boundary_contracts();
+        std::cout<<"M1 BSDF tests: 12 groups passed\n";
     } catch(const std::exception& e) {
         std::cerr<<"M1 BSDF test failed: "<<e.what()<<'\n';
         return 1;

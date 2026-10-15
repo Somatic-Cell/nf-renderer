@@ -1,0 +1,4 @@
+$ /usr/local/swift/usr/bin/clang++ -std=c++17 -Wall -Wextra -Werror -DNOMINMAX /mnt/data/nf-renderer-M4-NOMINMAX-fix/validation/m4_nominmax/macro_repro.cpp -o /mnt/data/_m4_nomimmax_work/clangpp_nominmax
+
+exit_code=0
+program_exit_code=0

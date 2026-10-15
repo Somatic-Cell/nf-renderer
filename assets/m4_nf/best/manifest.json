@@ -1,0 +1,297 @@
+{
+  "schema": "nf_renderer.m4_nf.asset.v1",
+  "selected_file": "best.pt",
+  "selected_step": 208000,
+  "architecture": {
+    "hidden_features": [
+      64,
+      64,
+      64
+    ],
+    "num_coupling_layers": 4,
+    "num_bins": 64,
+    "mirror_symmetry": true,
+    "min_bin_width": 1e-05,
+    "min_bin_height": 1e-05,
+    "min_derivative": 0.0001,
+    "wavelength_bounds_nm": [
+      380,
+      830
+    ],
+    "incident_cosine_bounds": [
+      -1,
+      1
+    ],
+    "encoding": "raw"
+  },
+  "checkpoint_sha256": "a41ad592641384722ffaa51d960cd14312d79ad6bd767decee248ffbeb23a7c1",
+  "asset_sha256": "b1dca30aa8fee6ee1fb45b25b47a92cf871682943d81f07112e9a09bc7d4208e",
+  "catalog_fingerprint": "08876c9a067679a5c0b2253878f8bec899e031a81fe072809a9d6f5499851832",
+  "source_sha256": {
+    "conditional_data.py": "20ec5ba5e5bdfbfe239acad990f8bf67c17e76aa52b13ac5a5e10d61768d0787",
+    "conditional_model.py": "76603113f75dc21851773466a85bbc450dbec0912767e7e802aecac0ef6ea6af",
+    "conditional_train.py": "8293eb9a26e89b9a5f29bfd1a2f092bc88e3a7c6eb297f2bcb0ac6821a106636",
+    "conditional_report.py": "734fd9618dc6998a2ff28f52f26d371d6af5e8c8066ce28b451ca973a363e6bb",
+    "conditional_cli.py": "db1788769408b514de3fe8743fa19efbf355f7cb4b052ab7d315ce6eb70664e1",
+    "hg.py": "25fb97b281981d971d814dec28406d4d68f2c1086bf4d4de3dd6e945e803ace4",
+    "splines.py": "31b8a8b82f686d26ffe4ee67fa0c760c99fd78ad0d3a396d29d50afc6b46a646",
+    "sphere_splines.py": "8afb69fcf1385341be28c9266251adfdfd86c22d2ab693582d2afa25bda8cd74",
+    "rainbow.py": "f4dba7b2b8ceef9479f7e87904285e1feb7319346ed141d9afed9998e1118a82"
+  },
+  "tensors": [
+    {
+      "key": "couplings.0.hyper.0.weight",
+      "shape": [
+        64,
+        3
+      ],
+      "offset_floats": 0
+    },
+    {
+      "key": "couplings.0.hyper.0.bias",
+      "shape": [
+        64
+      ],
+      "offset_floats": 192
+    },
+    {
+      "key": "couplings.0.hyper.2.weight",
+      "shape": [
+        64,
+        64
+      ],
+      "offset_floats": 256
+    },
+    {
+      "key": "couplings.0.hyper.2.bias",
+      "shape": [
+        64
+      ],
+      "offset_floats": 4352
+    },
+    {
+      "key": "couplings.0.hyper.4.weight",
+      "shape": [
+        64,
+        64
+      ],
+      "offset_floats": 4416
+    },
+    {
+      "key": "couplings.0.hyper.4.bias",
+      "shape": [
+        64
+      ],
+      "offset_floats": 8512
+    },
+    {
+      "key": "couplings.0.hyper.6.weight",
+      "shape": [
+        193,
+        64
+      ],
+      "offset_floats": 8576
+    },
+    {
+      "key": "couplings.0.hyper.6.bias",
+      "shape": [
+        193
+      ],
+      "offset_floats": 20928
+    },
+    {
+      "key": "couplings.1.hyper.0.weight",
+      "shape": [
+        64,
+        3
+      ],
+      "offset_floats": 21121
+    },
+    {
+      "key": "couplings.1.hyper.0.bias",
+      "shape": [
+        64
+      ],
+      "offset_floats": 21313
+    },
+    {
+      "key": "couplings.1.hyper.2.weight",
+      "shape": [
+        64,
+        64
+      ],
+      "offset_floats": 21377
+    },
+    {
+      "key": "couplings.1.hyper.2.bias",
+      "shape": [
+        64
+      ],
+      "offset_floats": 25473
+    },
+    {
+      "key": "couplings.1.hyper.4.weight",
+      "shape": [
+        64,
+        64
+      ],
+      "offset_floats": 25537
+    },
+    {
+      "key": "couplings.1.hyper.4.bias",
+      "shape": [
+        64
+      ],
+      "offset_floats": 29633
+    },
+    {
+      "key": "couplings.1.hyper.6.weight",
+      "shape": [
+        97,
+        64
+      ],
+      "offset_floats": 29697
+    },
+    {
+      "key": "couplings.1.hyper.6.bias",
+      "shape": [
+        97
+      ],
+      "offset_floats": 35905
+    },
+    {
+      "key": "couplings.2.hyper.0.weight",
+      "shape": [
+        64,
+        3
+      ],
+      "offset_floats": 36002
+    },
+    {
+      "key": "couplings.2.hyper.0.bias",
+      "shape": [
+        64
+      ],
+      "offset_floats": 36194
+    },
+    {
+      "key": "couplings.2.hyper.2.weight",
+      "shape": [
+        64,
+        64
+      ],
+      "offset_floats": 36258
+    },
+    {
+      "key": "couplings.2.hyper.2.bias",
+      "shape": [
+        64
+      ],
+      "offset_floats": 40354
+    },
+    {
+      "key": "couplings.2.hyper.4.weight",
+      "shape": [
+        64,
+        64
+      ],
+      "offset_floats": 40418
+    },
+    {
+      "key": "couplings.2.hyper.4.bias",
+      "shape": [
+        64
+      ],
+      "offset_floats": 44514
+    },
+    {
+      "key": "couplings.2.hyper.6.weight",
+      "shape": [
+        193,
+        64
+      ],
+      "offset_floats": 44578
+    },
+    {
+      "key": "couplings.2.hyper.6.bias",
+      "shape": [
+        193
+      ],
+      "offset_floats": 56930
+    },
+    {
+      "key": "couplings.3.hyper.0.weight",
+      "shape": [
+        64,
+        3
+      ],
+      "offset_floats": 57123
+    },
+    {
+      "key": "couplings.3.hyper.0.bias",
+      "shape": [
+        64
+      ],
+      "offset_floats": 57315
+    },
+    {
+      "key": "couplings.3.hyper.2.weight",
+      "shape": [
+        64,
+        64
+      ],
+      "offset_floats": 57379
+    },
+    {
+      "key": "couplings.3.hyper.2.bias",
+      "shape": [
+        64
+      ],
+      "offset_floats": 61475
+    },
+    {
+      "key": "couplings.3.hyper.4.weight",
+      "shape": [
+        64,
+        64
+      ],
+      "offset_floats": 61539
+    },
+    {
+      "key": "couplings.3.hyper.4.bias",
+      "shape": [
+        64
+      ],
+      "offset_floats": 65635
+    },
+    {
+      "key": "couplings.3.hyper.6.weight",
+      "shape": [
+        97,
+        64
+      ],
+      "offset_floats": 65699
+    },
+    {
+      "key": "couplings.3.hyper.6.bias",
+      "shape": [
+        97
+      ],
+      "offset_floats": 71907
+    }
+  ],
+  "condition_axes": {
+    "wavelengths": 91,
+    "cosines": 300,
+    "cosine_range": [
+      -0.9999862922466825,
+      0.9999862922466825
+    ]
+  },
+  "field_interpolation": "bilinear in recorded wavelength_nm and signed incident cosine",
+  "condition_extrapolation": "reject; no implicit endcap policy",
+  "physical_preparation": "FP32 analytic HG bin mass identity; algebraically equivalent to FP64 CDF differences",
+  "nn_precision": "FP32 stored; CoopVec input/weights/bias/output FP16; SiLU and flow FP32",
+  "no_teacher_arrays_read": true,
+  "model_claim": "learned single-particle forward density, not reciprocity-enforced"
+}

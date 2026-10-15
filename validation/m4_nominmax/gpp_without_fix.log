@@ -1,0 +1,21 @@
+$ /usr/bin/g++ -std=c++17 -Wall -Wextra -Werror /mnt/data/nf-renderer-M4-NOMINMAX-fix/validation/m4_nominmax/macro_repro.cpp -o /mnt/data/_m4_nomimmax_work/gpp_without_fix
+/mnt/data/nf-renderer-M4-NOMINMAX-fix/validation/m4_nominmax/macro_repro.cpp:13:63: error: macro "max" requires 2 arguments, but only 1 given
+   13 |     const unsigned limit = std::numeric_limits<unsigned>::max();
+      |                                                               ^
+/mnt/data/nf-renderer-M4-NOMINMAX-fix/validation/m4_nominmax/macro_repro.cpp:5:9: note: macro "max" defined here
+    5 | #define max(a, b) (((a) > (b)) ? (a) : (b))
+      |         ^~~
+/mnt/data/nf-renderer-M4-NOMINMAX-fix/validation/m4_nominmax/macro_repro.cpp: In function ‘int main()’:
+/mnt/data/nf-renderer-M4-NOMINMAX-fix/validation/m4_nominmax/macro_repro.cpp:13:59: error: invalid conversion from ‘unsigned int (*)() noexcept’ to ‘unsigned int’ [-fpermissive]
+   13 |     const unsigned limit = std::numeric_limits<unsigned>::max();
+      |                                                           ^~~
+      |                                                           |
+      |                                                           unsigned int (*)() noexcept
+/mnt/data/nf-renderer-M4-NOMINMAX-fix/validation/m4_nominmax/macro_repro.cpp:5:19: error: expected unqualified-id before ‘(’ token
+    5 | #define max(a, b) (((a) > (b)) ? (a) : (b))
+      |                   ^
+/mnt/data/nf-renderer-M4-NOMINMAX-fix/validation/m4_nominmax/macro_repro.cpp:14:34: note: in expansion of macro ‘max’
+   14 |     const unsigned larger = std::max(1u, 2u);
+      |                                  ^~~
+
+exit_code=1
