@@ -577,7 +577,7 @@ static __forceinline__ __device__ bool advance_medium(PRDSpectral& p,float t_max
     m3device::OpenRandom rng{p.random};
     const auto& rain=optixLaunchParams.rain;
     const auto mixed=m4rain::free_flight(optixLaunchParams.rayleigh,rain.parameters,
-                                        rain.model,r,beta,p.waveLength,rng);
+                                        rain.model,r,beta,p.waveLength,rng,rain.mie);
     const auto& sampled=mixed.flight;
     if(sampled.status!=m3::tracking::Status::Ok){
         fail(p,FailureReason::RainTracking,{{float(sampled.status),float(mixed.nfStatus),

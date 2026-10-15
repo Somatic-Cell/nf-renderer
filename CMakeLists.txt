@@ -196,6 +196,7 @@ set(
     ${PROJECT_SOURCE_DIR}/shaders/callable/light_sample.cu
     ${PROJECT_SOURCE_DIR}/shaders/callable/lens.cu
     ${PROJECT_SOURCE_DIR}/shaders/m4_rain/nf_scatter.cu
+    ${PROJECT_SOURCE_DIR}/shaders/m4_rain/sphere_scatter.cu
 )
 
 if(OptiX9_FOUND)
@@ -250,7 +251,8 @@ set(
 # Keep M4 headers in the existing custom nvcc dependency graph.
 file(GLOB M4_HEADERS CONFIGURE_DEPENDS
     "${PROJECT_SOURCE_DIR}/include/m4_nf/*.hpp"
-    "${PROJECT_SOURCE_DIR}/include/m4_rain/*.hpp")
+    "${PROJECT_SOURCE_DIR}/include/m4_rain/*.hpp"
+    "${PROJECT_SOURCE_DIR}/include/m4_mie/*.hpp")
 list(APPEND GPU_KERNEL_DEPENDENCIES ${M4_HEADERS}
     "${PROJECT_SOURCE_DIR}/shaders/m4_nf/coop_mlp.cuh")
 
@@ -366,6 +368,16 @@ target_include_directories(m1_spectral_assets PUBLIC include)
 target_link_libraries(m1_spectral_assets PRIVATE m1_rgb2spec)
 
 add_library(m4_nf_assets STATIC src/m4_nf/asset.cpp src/m4_nf/gpu_asset.cpp)
+add_library(m4_mie_assets STATIC src/m4_mie/asset.cpp src/m4_mie/gpu_asset.cpp)
+target_include_directories(m4_mie_assets PUBLIC include)
+target_compile_features(m4_mie_assets PUBLIC cxx_std_17)
+target_link_libraries(m4_mie_assets PUBLIC CUDA::cuda_driver)
+if(WIN32)
+    target_compile_definitions(m4_mie_assets PRIVATE NOMINMAX)
+endif()
+if(MSVC)
+    target_compile_options(m4_mie_assets PRIVATE /utf-8 /fp:precise)
+endif()
 target_include_directories(m4_nf_assets PUBLIC include "${OPTIX_INCLUDE_DIR}")
 target_compile_features(m4_nf_assets PUBLIC cxx_std_17)
 target_link_libraries(m4_nf_assets PUBLIC CUDA::cuda_driver)
@@ -420,7 +432,19 @@ add_custom_target(m4_rain_fp64_audit
         "${M4_RAIN_AUDIT_PTX}" --report "${M4_RAIN_AUDIT_DIR}/fp64_check.json"
     DEPENDS "${M4_RAIN_AUDIT_PTX}" "${PROJECT_SOURCE_DIR}/tools/m4_nf/check_fp64.py"
     VERBATIM)
-add_dependencies(${TARGET_NAME} m4_rain_fp64_audit)
+set(M4_MIE_AUDIT_PTX "${M4_RAIN_AUDIT_DIR}/sphere_scatter.ptx")
+add_custom_command(OUTPUT "${M4_MIE_AUDIT_PTX}"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${M4_RAIN_AUDIT_DIR}"
+    COMMAND "${CMAKE_CUDA_COMPILER}" ${OPTIX_NVCC_OPTIONS} --ptx
+        "${PROJECT_SOURCE_DIR}/shaders/m4_rain/sphere_scatter.cu" -o "${M4_MIE_AUDIT_PTX}"
+    DEPENDS ${GPU_KERNEL_DEPENDENCIES} "${PROJECT_SOURCE_DIR}/shaders/m4_rain/sphere_scatter.cu"
+    VERBATIM)
+add_custom_target(m4_mie_fp64_audit
+    COMMAND "${Python3_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/tools/m4_nf/check_fp64.py"
+        "${M4_MIE_AUDIT_PTX}" --report "${M4_RAIN_AUDIT_DIR}/sphere_fp64_check.json"
+    DEPENDS "${M4_MIE_AUDIT_PTX}" "${PROJECT_SOURCE_DIR}/tools/m4_nf/check_fp64.py"
+    VERBATIM)
+add_dependencies(${TARGET_NAME} m4_rain_fp64_audit m4_mie_fp64_audit)
 
 # -----------------------------------------------------
 # ターゲットの設定
@@ -475,6 +499,7 @@ target_link_libraries(
     nanovdb
     m1_spectral_assets
     m4_nf_assets
+    m4_mie_assets
 )
 
 

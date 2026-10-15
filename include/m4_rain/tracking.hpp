@@ -7,6 +7,9 @@ namespace mt=m3::tracking;
 using mt::FloatPair;using mt::Status;using mt::RaySegment;
 NF_HD Status validate(const Parameters& p){
     if(p.enabled>1u||(p.backend!=Backend::Fp32&&p.backend!=Backend::CoopVec)||
+       (p.phaseModel!=PhaseModel::NfAnisotropic&&p.phaseModel!=PhaseModel::SphereMie1mm)||
+       (p.crossSectionMode!=m4mie::CrossSection::GeometricMatched&&
+        p.crossSectionMode!=m4mie::CrossSection::PhysicalMie)||
        (p.densityModel!=DensityModel::Constant&&p.densityModel!=DensityModel::ExponentialY)||
        (p.endcapPolicy!=m4nf::EndcapPolicy::ConstantPhysical&&p.endcapPolicy!=m4nf::EndcapPolicy::Reject)||
        !m1::finite(p.boundsMin)||!m1::finite(p.boundsMax)||
@@ -119,7 +122,17 @@ NF_HD RainRatio rain_ratio(const Parameters& p,const RaySegment& r,const BoxInte
     }
 }
 NF_HD m4nf::CrossSections camera_cross_sections(const Parameters& p,const m4nf::ModelView& m,
-                                               const RaySegment& r,float lambda){
+                                               const RaySegment& r,float lambda,
+                                               const m4mie::View& mie={}){
+    if(p.phaseModel==PhaseModel::SphereMie1mm){
+        m4nf::CrossSections out{};
+        std::uint32_t a=0,b=0;float wa=0,wb=0;
+        if(!m4mie::spectral_weights(mie,lambda,p.crossSectionMode,a,b,wa,wb,
+                                    out.scattering,out.extinction)){
+            out.status=m4nf::Status::invalid_asset;return out;
+        }
+        out.status=m4nf::Status::success;return out;
+    }
     const auto d=m4nf::normalize(m4nf::Vec3{-r.direction.x,-r.direction.y,-r.direction.z});
     return m4nf::cross_sections(m,lambda,m4nf::direction_cosine(p.particleAxis,d),p.endcapPolicy);
 }
@@ -134,7 +147,7 @@ struct MixedFlight {
 template<class RNG>
 NF_HD MixedFlight free_flight(const m3::TrackingParameters& a,const Parameters& p,
                               const m4nf::ModelView& m,const RaySegment& r,
-                              float beta,float lambda,RNG& rng){
+                              float beta,float lambda,RNG& rng,const m4mie::View& mie={}){
     MixedFlight out;out.flight=mt::delta_free_flight(a,r,beta,rng);
     if(out.flight.status!=Status::Ok||!p.enabled||p.numberDensityAtMinY==0||!out.flight.clip.has_medium)return out;
     out.flight.status=validate(p);if(out.flight.status!=Status::Ok)return out;
@@ -142,7 +155,7 @@ NF_HD MixedFlight free_flight(const m3::TrackingParameters& a,const Parameters& 
     const auto box=clip_box(p,r,out.flight.clip.begin_parameter,end);
     if(box.status!=Status::Ok){out.flight.status=box.status;return out;}
     if(!box.nonempty)return out;
-    const auto c=camera_cross_sections(p,m,r,lambda);out.nfStatus=c.status;
+    const auto c=camera_cross_sections(p,m,r,lambda,mie);out.nfStatus=c.status;
     if(c.status!=m4nf::Status::success){out.flight.status=Status::InvalidCoefficient;return out;}
     out.rain=rain_delta(p,r,box,c.extinction,out.flight.clip.direction_length,a.maxTrackingEvents,rng);
     if(out.rain.status!=Status::Ok){out.flight.status=out.rain.status;return out;}
@@ -159,14 +172,14 @@ struct MixedRatio {
 template<class RNG>
 NF_HD MixedRatio transmittance(const m3::TrackingParameters& a,const Parameters& p,
                                const m4nf::ModelView& m,const RaySegment& r,
-                               float beta,float lambda,RNG& rng){
+                               float beta,float lambda,RNG& rng,const m4mie::View& mie={}){
     MixedRatio out;out.rayleigh=mt::ratio_transmittance(a,r,beta,rng);
     out.status=out.rayleigh.status;out.value=out.rayleigh.transmittance;
     if(out.status!=Status::Ok||out.value==0||!p.enabled||p.numberDensityAtMinY==0||!out.rayleigh.clip.has_medium)return out;
     out.status=validate(p);if(out.status!=Status::Ok)return out;
     const auto box=clip_box(p,r,out.rayleigh.clip.begin_parameter,out.rayleigh.clip.end_parameter);
     out.status=box.status;if(out.status!=Status::Ok||!box.nonempty)return out;
-    const auto c=camera_cross_sections(p,m,r,lambda);out.nfStatus=c.status;
+    const auto c=camera_cross_sections(p,m,r,lambda,mie);out.nfStatus=c.status;
     if(c.status!=m4nf::Status::success){out.status=Status::InvalidCoefficient;return out;}
     out.rain=rain_ratio(p,r,box,c.extinction,out.rayleigh.clip.direction_length,
                         a.maxTrackingEvents,a.ratioRrThreshold,rng);

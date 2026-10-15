@@ -11,6 +11,7 @@
 #include "launch_params.h"
 #include "sceneDescIO.hpp"
 #include "m4_nf/gpu_asset.hpp"
+#include "m4_mie/gpu_asset.hpp"
 #include <cuda_runtime.h>
 #include "vdb_loader.hpp"
 #include "mie_tables_txt_loader.h"
@@ -198,6 +199,7 @@ protected:
     OptixShaderBindingTable         m_sbt                   {};
 
     m4nf::GpuAsset m_rainGpuAsset;
+    m4mie::GpuAsset m_sphereMieGpuAsset;
     std::string m_rainAssetSha256;
     LaunchParams    m_launchParams{};
     CUDABuffer      m_launchParamsBuffer;

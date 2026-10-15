@@ -11,10 +11,12 @@ namespace m4rain {
 struct SceneSettings {
     Parameters parameters=default_parameters();
     std::string modelFile="assets/m4_nf/best/model.bin";
+    std::string sphereMieTableFile="assets/m4_mie/mie_sphere_1mm.bin";
+    std::string sphereMieManifestFile="assets/m4_mie/mie_sphere_1mm.manifest.json";
 };
 inline nlohmann::ordered_json to_json(const SceneSettings& s){
     const auto& p=s.parameters;
-    return {{"enabled",p.enabled!=0},{"modelFile",s.modelFile},
+    nlohmann::ordered_json result={{"enabled",p.enabled!=0},{"modelFile",s.modelFile},
       {"backend",p.backend==Backend::CoopVec?"coopvec":"fp32"},
       {"endcapPolicy",p.endcapPolicy==m4nf::EndcapPolicy::ConstantPhysical?"constant_physical":"reject"},
       {"densityModel",p.densityModel==DensityModel::Constant?"constant":"exponential_y"},
@@ -22,6 +24,13 @@ inline nlohmann::ordered_json to_json(const SceneSettings& s){
       {"boundsMax",{p.boundsMax.x,p.boundsMax.y,p.boundsMax.z}},
       {"particleAxis",{p.particleAxis.x,p.particleAxis.y,p.particleAxis.z}},
       {"numberDensityAtMinY",p.numberDensityAtMinY},{"densityScaleHeight",p.densityScaleHeight}};
+    if(p.phaseModel==PhaseModel::SphereMie1mm){
+        result["phaseModel"]="sphere_mie_1mm";
+        result["sphereMieTableFile"]=s.sphereMieTableFile;
+        result["sphereMieManifestFile"]=s.sphereMieManifestFile;
+        result["crossSectionMode"]=(p.crossSectionMode==m4mie::CrossSection::PhysicalMie?"physical_mie":"geometric_matched");
+    }
+    return result;
 }
 inline float json_float(const nlohmann::ordered_json& j,const char* name){
     if(!j.is_number())throw std::invalid_argument(std::string(name)+" must be numeric");
@@ -33,7 +42,8 @@ inline float json_float(const nlohmann::ordered_json& j,const char* name){
 inline void read(const nlohmann::ordered_json& j,SceneSettings& s){
     if(!j.is_object())throw std::invalid_argument("rain must be an object");
     static const std::unordered_set<std::string> names{"enabled","modelFile","backend","endcapPolicy",
-        "densityModel","boundsMin","boundsMax","particleAxis","numberDensityAtMinY","densityScaleHeight"};
+        "densityModel","boundsMin","boundsMax","particleAxis","numberDensityAtMinY","densityScaleHeight",
+        "phaseModel","sphereMieTableFile","sphereMieManifestFile","crossSectionMode"};
     for(auto i=j.begin();i!=j.end();++i)if(!names.count(i.key()))throw std::invalid_argument("Unknown rain field: "+i.key());
     auto& p=s.parameters;
     if(j.contains("enabled")){
@@ -41,6 +51,16 @@ inline void read(const nlohmann::ordered_json& j,SceneSettings& s){
         p.enabled=j["enabled"].get<bool>()?1u:0u;
     }
     s.modelFile=j.value("modelFile",s.modelFile);
+    s.sphereMieTableFile=j.value("sphereMieTableFile",s.sphereMieTableFile);
+    s.sphereMieManifestFile=j.value("sphereMieManifestFile",s.sphereMieManifestFile);
+    const std::string phase=j.value("phaseModel",std::string("nf_anisotropic"));
+    if(phase=="nf_anisotropic")p.phaseModel=PhaseModel::NfAnisotropic;
+    else if(phase=="sphere_mie_1mm")p.phaseModel=PhaseModel::SphereMie1mm;
+    else throw std::invalid_argument("rain.phaseModel must be nf_anisotropic or sphere_mie_1mm");
+    const std::string cs=j.value("crossSectionMode",std::string("geometric_matched"));
+    if(cs=="geometric_matched")p.crossSectionMode=m4mie::CrossSection::GeometricMatched;
+    else if(cs=="physical_mie")p.crossSectionMode=m4mie::CrossSection::PhysicalMie;
+    else throw std::invalid_argument("rain.crossSectionMode must be geometric_matched or physical_mie");
     const std::string backend=j.value("backend",p.backend==Backend::CoopVec?std::string("coopvec"):std::string("fp32"));
     if(backend=="coopvec")p.backend=Backend::CoopVec;
     else if(backend=="fp32")p.backend=Backend::Fp32;
@@ -64,14 +84,18 @@ inline void read(const nlohmann::ordered_json& j,SceneSettings& s){
     if(j.contains("numberDensityAtMinY"))p.numberDensityAtMinY=json_float(j["numberDensityAtMinY"],"numberDensityAtMinY");
     if(j.contains("densityScaleHeight"))p.densityScaleHeight=json_float(j["densityScaleHeight"],"densityScaleHeight");
     if(validate(p)!=Status::Ok)throw std::invalid_argument("Invalid rain geometry/density/particle axis");
-    if(p.enabled&&s.modelFile.empty())throw std::invalid_argument("rain.modelFile must not be empty");
+    if(p.enabled&&p.phaseModel==PhaseModel::NfAnisotropic&&s.modelFile.empty())
+        throw std::invalid_argument("rain.modelFile must not be empty");
+    if(p.enabled&&p.phaseModel==PhaseModel::SphereMie1mm&&
+       (s.sphereMieTableFile.empty()||s.sphereMieManifestFile.empty()))
+        throw std::invalid_argument("rain.sphereMieTableFile and sphereMieManifestFile must not be empty");
 }
 inline void validate_scene(const SceneSettings& s,const m3::TrackingParameters& a,float lo,float hi){
     if(validate(s.parameters)!=Status::Ok)throw std::invalid_argument("Invalid rain parameters");
     if(!std::isfinite(lo)||!std::isfinite(hi)||lo<=0||!(lo<hi))throw std::invalid_argument("Invalid spectral wavelength range");
     const auto& p=s.parameters;if(!p.enabled)return;
     if(!a.enabled)throw std::invalid_argument("rain.enabled requires rayleigh.enabled (beta550 may be zero)");
-    if(lo<380.0f||hi>830.0f)throw std::invalid_argument("Rain NF requires spectrum.wavelengthMinNm >= 380 and wavelengthMaxNm <= 830; no wavelength extrapolation");
+    if(lo<380.0f||hi>830.0f)throw std::invalid_argument("Rain phase models require spectrum wavelength range within 380..830 nm; no extrapolation");
     if(p.boundsMin.y<a.groundY)throw std::invalid_argument("The supported rain box must lie above world Y=groundY");
     for(unsigned k=0;k<8;++k){
         const m1::Vec3 corner{(k&1)?p.boundsMax.x:p.boundsMin.x,(k&2)?p.boundsMax.y:p.boundsMin.y,(k&4)?p.boundsMax.z:p.boundsMin.z};

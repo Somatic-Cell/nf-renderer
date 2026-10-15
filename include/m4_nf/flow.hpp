@@ -206,8 +206,14 @@ NF_HD Result log_prob(Vec3 omega,const Context& p,const Mlp& mlp){
     if(!unit(omega))return r;
     omega=normalize(omega);
     const float tr=::sqrtf(omega.x*omega.x+omega.y*omega.y),z=omega.z,norm=::hypotf(tr,z);
-    const float near=(tr/norm)*(tr/(norm+::fabsf(z)));
-    const float dm=z>=0?near:2.0f-near,dp=z>=0?2.0f-near:near;
+    const float pole_offset =
+    (tr / norm) * (tr / (norm + ::fabsf(z)));
+
+    const float dm = z >= 0.0f
+        ? pole_offset : 2.0f - pole_offset;
+
+    const float dp = z >= 0.0f
+        ? 2.0f - pole_offset : pole_offset;
     const float phi=tr==0 ? 0.0f : ::atan2f(omega.y,omega.x);
     float t,v=wrap01((phi+pi)/(2.0f*pi)),base,ld;
     hg(dm,dp,p.a,p.b,t,base);

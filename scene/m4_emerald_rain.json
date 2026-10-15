@@ -1,0 +1,131 @@
+{
+  "objects": [
+    {
+      "name": "Emerald Square v4.1 Day",
+      "type": "mesh",
+      "file": "EmeraldSquare_v4_1/EmeraldSquare_Day.fbx",
+      "materialProfile": "orca_metal_rough",
+      "TRS": {
+        "transform": [
+          0,
+          0,
+          0
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "rotation": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      "placeCenterBBoxAtOrigin": false,
+      "placeOnGround": false,
+      "normalizeScale": false
+    }
+  ],
+  "camera": {
+    "from": [
+      -11.958117,
+      5.952472,
+      52.116798
+    ],
+    "at": [
+      -15.116695,
+      9.649835,
+      43.37855
+    ],
+    "up": [
+      0,
+      1,
+      0
+    ],
+    "fov": 80,
+    "focalLength": 50,
+    "fValue": 8,
+    "pintDist": 20,
+    "sensitivity": 1
+  },
+  "environment": {
+    "file": ""
+  },
+  "integrator": {
+    "type": "Path Tracing",
+    "applySpectralRendering": true,
+    "m1Surface": true,
+    "spp": 1,
+    "maxBounce": 8,
+    "isAccumulate": true,
+    "m1DirectMode": "mis",
+    "m1RrDepth": 5,
+    "m1Seed": 17,
+    "m1SunEnabled": true,
+    "m1SunScale": 1,
+    "m1SunAngularRadiusDeg": 0.25,
+    "m1SunZenithDeg": 85,
+    "m1SunAzimuthDeg": 70.228,
+    "m1RayEpsilon": 0.0001
+  },
+  "spectrum": {
+    "m1AssetDirectory": "spectrum/m1",
+    "wavelengthMinNm": 380,
+    "wavelengthMaxNm": 830
+  },
+  "enableGroundRendering": false,
+  "display": {
+    "exposure": 0.2,
+    "white": 100
+  },
+  "outputs": {
+    "resolution": [
+      1280,
+      720
+    ]
+  },
+  "rayleigh": {
+    "enabled": true,
+    "areaNeeTransmittance": true,
+    "solver": "delta_ratio_fp32",
+    "wavelengthLaw": "lambda^-4",
+    "planetRadius": 6371000,
+    "atmosphereHeight": 100000,
+    "scaleHeight": 8000,
+    "groundY": -6,
+    "beta550": 1.3e-05,
+    "groundAlbedo": 0.1,
+    "ratioRrThreshold": 0.01,
+    "maxTrackingEvents": 1048576
+  },
+  "rain": {
+    "enabled": true,
+    "modelFile": "assets/m4_nf/best/model.bin",
+    "backend": "coopvec",
+    "endcapPolicy": "constant_physical",
+    "densityModel": "constant",
+    "boundsMin": [
+      -3000,
+      0,
+      -3000
+    ],
+    "boundsMax": [
+      3000,
+      2000,
+      3000
+    ],
+    "particleAxis": [
+      0,
+      -1,
+      0
+    ],
+    "numberDensityAtMinY": 100,
+    "densityScaleHeight": 1000,
+    "phaseModel": "sphere_mie_1mm",
+    "sphereMieTableFile": "assets/m4_mie/mie_sphere_1mm.bin",
+    "sphereMieManifestFile": "assets/m4_mie/mie_sphere_1mm.manifest.json",
+    "crossSectionMode": "geometric_matched"
+  }
+}

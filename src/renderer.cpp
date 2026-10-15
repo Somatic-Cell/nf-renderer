@@ -3,6 +3,7 @@
 #include "m1/spectral_assets.hpp"
 #include "m1/failure_report.hpp"
 #include "m4_rain/sha256.hpp"
+#include "m4_mie/asset.hpp"
 #include <optix_function_table_definition.h>
 #include <optix_stack_size.h>
 #include <optix_types.h>
@@ -256,9 +257,9 @@ Renderer::Renderer(std::vector<const Model*> models, sceneIO::Scene sceneDesc) :
 
     if(m_sceneDesc.rain.parameters.enabled) {
 #if defined(USE_OPTIX_IR)
-        m_optixModuleFileNames[static_cast<int>(OptixModuleIdentifier::OPTIX_MODULE_ID_M4_NF)]="nf_scatter.optixir";
+        m_optixModuleFileNames[static_cast<int>(OptixModuleIdentifier::OPTIX_MODULE_ID_M4_NF)]=(m_sceneDesc.rain.parameters.phaseModel==m4rain::PhaseModel::SphereMie1mm?"sphere_scatter.optixir":"nf_scatter.optixir");
 #else
-        m_optixModuleFileNames[static_cast<int>(OptixModuleIdentifier::OPTIX_MODULE_ID_M4_NF)]="nf_scatter.ptx";
+        m_optixModuleFileNames[static_cast<int>(OptixModuleIdentifier::OPTIX_MODULE_ID_M4_NF)]=(m_sceneDesc.rain.parameters.phaseModel==m4rain::PhaseModel::SphereMie1mm?"sphere_scatter.ptx":"nf_scatter.ptx");
 #endif
     }
     m_isAccumulate = m_sceneDesc.integrator.isAccumulate;
@@ -270,17 +271,57 @@ Renderer::Renderer(std::vector<const Model*> models, sceneIO::Scene sceneDesc) :
     std::cout << "# Atmospheric RT: creating OptiX context..." << std::endl;
     createContext();
     if(m_sceneDesc.rain.parameters.enabled) {
-        const auto& file=m_sceneDesc.rain.modelFile;
-        m_rainAssetSha256=m4rain::file_sha256(file);
-        const auto asset=m4nf::load_asset(file);
-        if(m_rainAssetSha256!=m4rain::file_sha256(file))
-            throw std::runtime_error("NF asset changed while loading");
-        m_rainGpuAsset.upload(m_optixContext,m_stream,asset);
-        m_launchParams.rain.model=m_rainGpuAsset.model;
-        m_launchParams.rain.coop=m_rainGpuAsset.coop;
-        m_launchParams.rain.selectedStep=asset.selected_step;
-        std::cout << "# M4 rain: " << m4rain::to_json(m_sceneDesc.rain).dump() << '\n'
-                  << "# NF step=" << asset.selected_step << " sha256=" << m_rainAssetSha256 << '\n';
+        if(m_sceneDesc.rain.parameters.phaseModel==m4rain::PhaseModel::SphereMie1mm) {
+            const auto& table=m_sceneDesc.rain.sphereMieTableFile;
+            const auto& manifest=m_sceneDesc.rain.sphereMieManifestFile;
+            m_rainAssetSha256=m4rain::file_sha256(table);
+            const auto asset=m4mie::load_asset(table);
+            // Manifest is part of the supplied scientific provenance, and is
+            // checked against the actual bytes rather than treated as a note.
+            std::ifstream manifestStream(manifest,std::ios::binary);
+            if(!manifestStream)throw std::runtime_error("Cannot open Mie manifest: "+manifest);
+            const auto meta=nlohmann::ordered_json::parse(manifestStream);
+            if(meta.at("schema")!="m4_mie.sphere_lut.v1" ||
+               meta.at("model")!="full nonabsorbing Lorenz-Mie, unpolarized, norm=one" ||
+               meta.at("radius_m").get<double>()!=0.001 ||
+               meta.at("bin_sha256").get<std::string>()!=m_rainAssetSha256 ||
+               meta.at("bin_size_bytes").get<std::uint64_t>()!=std::filesystem::file_size(table) ||
+               meta.at("theta_cells").get<std::size_t>()!=asset.theta_edges.size()-1 ||
+               meta.at("wavelength_nm").size()!=asset.wavelengths.size() ||
+               meta.at("rows").size()!=asset.wavelengths.size())
+                throw std::runtime_error("Mie manifest does not match LUT");
+            for(std::size_t k=0;k<asset.wavelengths.size();++k){
+                const auto& row=meta.at("rows").at(k);
+                if(std::fabs(meta.at("wavelength_nm").at(k).get<float>()-asset.wavelengths[k])>1e-4f ||
+                   std::fabs(row.at("qext").get<float>()-asset.qext[k])>1e-5f ||
+                   std::fabs(row.at("qsca").get<float>()-asset.qsca[k])>1e-5f ||
+                   std::fabs(row.at("g").get<float>()-asset.g[k])>1e-5f)
+                    throw std::runtime_error("Mie manifest row differs from LUT");
+            }
+            if(m_rainAssetSha256!=m4rain::file_sha256(table))
+                throw std::runtime_error("Mie asset changed while loading");
+            if(m_sceneDesc.spectrum.wavelengthMinNm<asset.wavelengths.front()||
+               m_sceneDesc.spectrum.wavelengthMaxNm>asset.wavelengths.back())
+                throw std::invalid_argument("Scene wavelengths exceed Mie table range");
+            m_sphereMieGpuAsset.upload(m_stream,asset);
+            m_launchParams.rain.mie=m_sphereMieGpuAsset.view;
+            m_launchParams.rain.selectedStep=0;
+            std::cout << "# M4 rain: " << m4rain::to_json(m_sceneDesc.rain).dump() << '\n'
+                      << "# Mie: "+m_rainAssetSha256+" wavelengths=" << asset.wavelengths.size()
+                      << " theta=" << asset.theta_edges.size()-1 << '\n';
+        } else {
+            const auto& file=m_sceneDesc.rain.modelFile;
+            m_rainAssetSha256=m4rain::file_sha256(file);
+            const auto asset=m4nf::load_asset(file);
+            if(m_rainAssetSha256!=m4rain::file_sha256(file))
+                throw std::runtime_error("NF asset changed while loading");
+            m_rainGpuAsset.upload(m_optixContext,m_stream,asset);
+            m_launchParams.rain.model=m_rainGpuAsset.model;
+            m_launchParams.rain.coop=m_rainGpuAsset.coop;
+            m_launchParams.rain.selectedStep=asset.selected_step;
+            std::cout << "# M4 rain: " << m4rain::to_json(m_sceneDesc.rain).dump() << '\n'
+                      << "# NF step=" << asset.selected_step << " sha256=" << m_rainAssetSha256 << '\n';
+        }
     }
 
     std::cout << "# Atmospheric RT: setting up OptiX module..." << std::endl;
@@ -1283,7 +1324,7 @@ void Renderer::createCallablePrograms()
         pgd->kind=OPTIX_PROGRAM_GROUP_KIND_CALLABLES;
         pgd->flags=OPTIX_PROGRAM_GROUP_FLAGS_NONE;
         pgd->callables.moduleDC=m_module[static_cast<int>(OptixModuleIdentifier::OPTIX_MODULE_ID_M4_NF)];
-        pgd->callables.entryFunctionNameDC="__direct_callable__m4_nf";
+        pgd->callables.entryFunctionNameDC=(m_sceneDesc.rain.parameters.phaseModel==m4rain::PhaseModel::SphereMie1mm?"__direct_callable__m4_mie":"__direct_callable__m4_nf");
     }
     // 登録
     for(int callableID = 0; callableID < numCallablePrograms; callableID++){
@@ -1505,7 +1546,7 @@ void Renderer::render()
             std::ostringstream message;
             message.imbue(std::locale::classic());
             message << std::setprecision(std::numeric_limits<float>::max_digits10)
-                    << (m_launchParams.rain.parameters.enabled ? "M4 NF rain integrator reported " : m_launchParams.rayleigh.enabled ? "M3 Rayleigh integrator reported " : "M1/M2 surface integrator reported ") << invalidSamples
+                    << (m_launchParams.rain.parameters.enabled ? "M4 rain integrator reported " : m_launchParams.rayleigh.enabled ? "M3 Rayleigh integrator reported " : "M1/M2 surface integrator reported ") << invalidSamples
                     << " invalid path/film events; the frame was not accepted\n";
             if (failure.claimed != 0) {
                 message << m1::format_failure(failure.first) << '\n';
@@ -1548,7 +1589,7 @@ void Renderer::render()
             message << "rayleigh=" << sceneIO::rayleighJson(m_launchParams.rayleigh).dump() << '\n';
             if(m_launchParams.rain.parameters.enabled)
                 message << "rain=" << m4rain::to_json(m_sceneDesc.rain).dump() << '\n'
-                        << "nf_step=" << m_launchParams.rain.selectedStep << " sha256=" << m_rainAssetSha256 << '\n';
+                        << "phase_step=" << m_launchParams.rain.selectedStep << " sha256=" << m_rainAssetSha256 << '\n';
 
             // Persist the full report even if a launched console closes after
             // main catches the exception. A failed log write never hides it.

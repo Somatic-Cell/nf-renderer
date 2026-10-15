@@ -1,6 +1,7 @@
 #pragma once
 #include "m1/math.hpp"
 #include "m4_nf/coop_types.hpp"
+#include "m4_mie/table.hpp"
 #include <cstdint>
 #include <type_traits>
 namespace m4rain {
@@ -8,6 +9,7 @@ namespace m4rain {
 // Density is particles/m^3. Its vertical profile uses world Y, not altitude.
 enum class DensityModel : std::uint32_t { Constant=0, ExponentialY=1 };
 enum class Backend : std::uint32_t { Fp32=0, CoopVec=1 };
+enum class PhaseModel : std::uint32_t { NfAnisotropic=0, SphereMie1mm=1 };
 struct Parameters {
     std::uint32_t enabled;
     DensityModel densityModel;
@@ -16,17 +18,21 @@ struct Parameters {
     m1::Vec3 boundsMin,boundsMax;
     m4nf::Vec3 particleAxis;
     float numberDensityAtMinY,densityScaleHeight;
+    PhaseModel phaseModel;
+    m4mie::CrossSection crossSectionMode;
 };
 inline Parameters default_parameters(){
     return {0,DensityModel::Constant,Backend::CoopVec,m4nf::EndcapPolicy::ConstantPhysical,
             {-3000.0f,0.0f,-3000.0f},{3000.0f,2000.0f,3000.0f},
-            {0.0f,-1.0f,0.0f},100.0f,1000.0f};
+            {0.0f,-1.0f,0.0f},100.0f,1000.0f,
+            PhaseModel::NfAnisotropic,m4mie::CrossSection::GeometricMatched};
 }
 struct DeviceData {
     Parameters parameters;
     m4nf::ModelView model;
     m4nf::CoopView coop;
     std::uint32_t selectedStep;
+    m4mie::View mie;
 };
 enum class ScatterOp : std::uint32_t { Evaluate=0, Sample=1 };
 struct ScatterRequest {

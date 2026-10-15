@@ -57,7 +57,7 @@ static __forceinline__ __device__ float connection_transmittance(PRDSpectral& p,
     if(!coefficient(p,beta))return 0;
     OpenRandom rng{p.random};
     const auto& rain=optixLaunchParams.rain;
-    const auto result=m4rain::transmittance(a,rain.parameters,rain.model,r,beta,p.waveLength,rng);
+    const auto result=m4rain::transmittance(a,rain.parameters,rain.model,r,beta,p.waveLength,rng,rain.mie);
     if(result.status!=medium::Status::Ok){
         m1diagnostics::fail(p,m1::FailureReason::RainRatio,
             {{float(result.status),float(result.nfStatus),result.value,
